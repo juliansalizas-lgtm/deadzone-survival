@@ -191,6 +191,7 @@ cube(handRig,0,.025,-.25,.11,.1,.18,blasterAccent);
 const muzzle=cube(handRig,0,.005,-.36,.085,.075,.12,blasterGlow,false);
 muzzle.visible=false;
 const flashLight=new THREE.PointLight(0x73d8cb,0,3);flashLight.position.set(0,.02,-.4);handRig.add(flashLight);
+const dynamicGun=new THREE.Group();handRig.add(dynamicGun);
 let flashTime=0, shotHeld=false, shotVisuals=[];
 let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false;
 const keys={};
@@ -220,8 +221,18 @@ function makePerson(isZombie=false){
  return g;
 }
 function makeZombie(x,z){
- const g=makePerson(true);g.position.set(x,0,z);scene.add(g);
- const obj={group:g,hp:100,speed:1.25+Math.random()*.45,attack:0,dead:false};
+ const g=makePerson(true);g.position.set(x,0,z);
+ // Randomized zombie looks: skin, clothes, scale, head shape and small accessories.
+ const looks=[{skin:0x71836b,cloth:0x514b45},{skin:0x8c9b73,cloth:0x343f48},{skin:0x637c79,cloth:0x51413b},{skin:0xa1a17d,cloth:0x4b5540},{skin:0x65745b,cloth:0x49394b},{skin:0x87917f,cloth:0x5b5a55}];
+ const look=looks[Math.floor(Math.random()*looks.length)],u=g.userData;
+ u.head.material=u.head.material.clone();u.head.material.color.setHex(look.skin);
+ u.body.material=u.body.material.clone();u.body.material.color.setHex(look.cloth);
+ for(const limb of [...u.legs,...u.arms]){limb.material=limb.material.clone();limb.material.color.setHex(Math.random()<.55?look.cloth:look.skin)}
+ const scale=.88+Math.random()*.25;g.scale.set(scale,scale,scale);
+ if(Math.random()<.35){const band=cube(g,0,1.98,0,.48,.09,.44,mat(0x282a28));band.position.y=1.98;}
+ if(Math.random()<.3)cube(g,0,1.28,.19,.32,.2,.04,mat(0x8a6b43));
+ g.rotation.y=Math.random()*Math.PI*2;scene.add(g);
+ const obj={group:g,hp:80+Math.floor(Math.random()*61),speed:1.05+Math.random()*.75,attack:0,dead:false,look:look};
  zombies.push(obj);return obj;
 }
 for(let i=0;i<28;i++){
@@ -234,9 +245,13 @@ const weaponStats = {
  Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42},
  Sturmgewehr:{damage:38,cooldown:.16,mag:24,icon:'🟩',range:58},
  Schrotblaster:{damage:80,cooldown:.72,mag:6,icon:'💥',range:22},
- Präzisionsgewehr:{damage:100,cooldown:.85,mag:5,icon:'🎯',range:85}
+ Präzisionsgewehr:{damage:100,cooldown:.85,mag:5,icon:'🎯',range:85},
+ Pistole:{damage:24,cooldown:.3,mag:15,icon:'🔸',range:35}, Maschinenpistole:{damage:22,cooldown:.105,mag:30,icon:'🟦',range:38}, Karabiner:{damage:34,cooldown:.22,mag:20,icon:'🟫',range:52}, LeichtesMG:{damage:31,cooldown:.11,mag:45,icon:'🟨',range:55}, Jagdgewehr:{damage:65,cooldown:.62,mag:7,icon:'🏹',range:70}, Doppelflinte:{damage:92,cooldown:.9,mag:2,icon:'💥',range:19}, Revolver:{damage:48,cooldown:.48,mag:6,icon:'🟠',range:43}, Burstgewehr:{damage:42,cooldown:.32,mag:21,icon:'🔷',range:57}, SturmgewehrMk2:{damage:44,cooldown:.145,mag:30,icon:'🟩',range:62}, KompaktSMG:{damage:19,cooldown:.09,mag:32,icon:'🔹',range:34}, TaktischeFlinte:{damage:72,cooldown:.5,mag:8,icon:'🟪',range:27}, Scharfschützengewehr:{damage:125,cooldown:1.05,mag:4,icon:'🎯',range:100}, Armbrust:{damage:78,cooldown:.8,mag:5,icon:'🏹',range:60}, Nagelpistole:{damage:16,cooldown:.14,mag:25,icon:'🔩',range:24}, Granatwerfer:{damage:110,cooldown:1.2,mag:3,icon:'🟧',range:48}, Plasmawerfer:{damage:90,cooldown:.42,mag:8,icon:'🟣',range:65}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
+// Separate hand prop: the selected food, drink, medicine or weapon is shown in the player's hand.
+const handProp=new THREE.Group();camera.add(handProp);handProp.position.set(.34,-.30,-.62);
+function rebuildHandProp(){while(handProp.children.length)handProp.remove(handProp.children[0]);while(dynamicGun.children.length)dynamicGun.remove(dynamicGun.children[0]);handRig.children[0].visible=false;handRig.children[1].visible=false;handRig.children[2].visible=false;handRig.visible=false;handProp.visible=true;const id=selectedItem;let color=0xc7a86c;if(id==='food'){cube(handProp,0,0,0,.2,.18,.17,mat(0xc84b3d));cube(handProp,0,.1,0,.08,.08,.08,mat(0x64864a));}else if(id==='water'){cube(handProp,0,0,0,.15,.25,.13,mat(0x469dcc,.2,.2));cube(handProp,0,.15,0,.07,.06,.07,mat(0xccccbb));}else if(id==='medicine'){cube(handProp,0,0,0,.2,.17,.12,mat(0xe5e5d8));cube(handProp,0,0,-.07,.08,.08,.03,mat(0x4eaa66));}else if(id==='ammo'){cube(handProp,0,0,0,.22,.13,.14,mat(0xc49b4b));}else if(id.startsWith('weapon:')){handRig.visible=true;handProp.visible=false;const w=id.slice(7);const st=weaponStats[w]||weaponStats.Blaster;const wm=mat(w.includes('Flinte')||w.includes('Jagd')?0x454b43:w.includes('Plasma')?0x394d64:0x303a3c,.55,.45);cube(dynamicGun,0,0,0,.17,.15,w.includes('Präzisions')||w.includes('Scharfschützen')? .7:.48,wm);cube(dynamicGun,0,-.12,.08,.11,.22,.14,wm);cube(dynamicGun,0,.025,-.25,.1,.09,.16,mat(w.includes('Plasma')?0x73d8cb:0x6c8d78));}else{handRig.visible=true;handProp.visible=false;}}
 const magazineSize = 12;
 const lootNames = {
  medicine: 'Medizin',
@@ -282,7 +297,7 @@ function updateInventory(){
   b.addEventListener('click',()=>{
    selectedItem=id;
    if(id.startsWith('weapon:')){equippedWeapon=id.slice(7);ammoLoaded=Math.min(weaponStats[equippedWeapon].mag,ammoLoaded||weaponStats[equippedWeapon].mag);message(equippedWeapon+' ausgerüstet.',1.3)}
-   updateInventory();
+   rebuildHandProp();updateInventory();
   });
   $('inventoryItems').appendChild(b);
  }
@@ -301,7 +316,16 @@ function makeSupply(x,z,index){
   supplies.push({group:g,found:false,index});
 }
 makeSupply(-13,4,0);makeSupply(12,1,1);makeSupply(4,-27,2);
-updateInventory();
+const hiddenChests=[];
+for(let i=0;i<14;i++){
+ let x,z;do{x=(Math.random()-.5)*300;z=(Math.random()-.5)*300;}while(Math.hypot(x,z-12)<28||Math.hypot(x,z)<16);
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ cube(g,0,.28,0,.72,.48,.65,mat(i%3===0?0x4d5140:0x514738));cube(g,0,.53,0,.76,.09,.69,mat(0x393d32));cube(g,0,.3,.33,.1,.16,.025,mat(0x656b56));
+ // Leaves/grass disguise most of the box, but a small latch can be spotted.
+ if(Math.random()<.72){for(let j=0;j<3;j++)cube(g,(Math.random()-.5)*.65,.58+Math.random()*.1,(Math.random()-.5)*.55,.25,.1,.25,leaf)}
+ hiddenChests.push({group:g,found:false,index:i,hidden:true});
+}
+updateInventory();rebuildHandProp();
 // Soldier at camp
 const soldierGroup=makePerson(false);soldierGroup.position.set(2,0,-8);scene.add(soldierGroup);
 const soldier={group:soldierGroup, recruited:false, health:100, attack:0, home:new THREE.Vector3(2,0,-8), bob:0};
@@ -311,6 +335,7 @@ function distanceXZ(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
 function nearInteractable(){
  let best=null,bd=3.2;
  for(const s of supplies){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'supply',obj:s,d};bd=d}}
+ for(const s of hiddenChests){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'hiddenChest',obj:s,d};bd=d}}
  if(!soldier.recruited){const d=distanceXZ(player.pos,soldier.group.position);if(d<bd){best={type:'soldier',obj:soldier,d};bd=d}}
  for(const es of extraSoldiers){if(es.recruited)continue;const d=distanceXZ(player.pos,es.group.position);if(d<bd){best={type:'extraSoldier',obj:es,d};bd=d}}
  return best;
@@ -319,7 +344,16 @@ function interact(){
  if(!started)return;
  const near=nearInteractable();
  if(!near){if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}if(selectedItem==='food'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Essen benutzt.');updateInventory();return}if(selectedItem==='water'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
- if(near.type==='supply'){
+ if(near.type==='hiddenChest'){
+  const chest=near.obj;chest.found=true;scene.remove(chest.group);const roll=Math.random();
+  if(roll<.24){const names=Object.keys(weaponStats).filter(n=>n!=='Blaster');const w=names[Math.floor(Math.random()*names.length)];inventory.weapons[w]=(inventory.weapons[w]||0)+1;message('Versteckte Kiste: '+w+' gefunden!');}
+  else if(roll<.55){const n=10+Math.floor(Math.random()*21);inventory.ammo+=n;message('Versteckte Kiste: '+n+' Munition gefunden!');}
+  else if(roll<.70){inventory.food+=1+Math.floor(Math.random()*2);message('Versteckte Kiste: Essen gefunden!');}
+  else if(roll<.84){inventory.water+=1+Math.floor(Math.random()*2);message('Versteckte Kiste: Trinkwasser gefunden!');}
+  else if(roll<.94){inventory.medicine++;message('Versteckte Kiste: Medizin gefunden!');}
+  else {player.money+=10+Math.floor(Math.random()*31);message('Versteckte Kiste: Geld gefunden!');}
+  playTone(620,.12,'triangle',.06);updateInventory();lootToast('Versteckte Kiste geöffnet!');
+ }else if(near.type==='supply'){
   near.obj.found=true;near.obj.group.visible=false;suppliesFound++;
   // Jede Kiste enthält zufällige, begrenzte Vorräte.
   const roll=Math.random();
@@ -342,7 +376,7 @@ function dropZombieLoot(pos){
  const r=Math.random(); let item='',n=1;
  if(r<.05){item='food';n=1;} else if(r<.12){item='medicine';n=1;} else if(r<.34){item='water';n=1;} else if(r<.40){item='weapon';n=1;} else if(r<.90){item='money';n=5+Math.floor(Math.random()*16);} else {item='ammo';n=5+Math.floor(Math.random()*10);}
  if(item==='food')inventory.food+=n; else if(item==='medicine')inventory.medicine+=n; else if(item==='water')inventory.water+=n; else if(item==='money')player.money+=n; else if(item==='ammo')inventory.ammo+=n; else {
-  const choices=['Sturmgewehr','Schrotblaster','Präzisionsgewehr'];
+  const choices=Object.keys(weaponStats).filter(n=>n!=='Blaster');
   const weapon=choices[Math.floor(Math.random()*choices.length)];
   inventory.weapons[weapon]=(inventory.weapons[weapon]||0)+1;
   item=weapon;n=1;
@@ -474,7 +508,7 @@ function animate(){
   if(!soldier.recruited)soldier.group.rotation.y=Math.sin(performance.now()*.0005)*.12;
   const near=nearInteractable();
   $('interact').style.display=near?'block':'none';
-  $('actionBtn').textContent=near?(near.type==='supply'?'KISTE':'MISSION'):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'WAFFE':'AKTION');
+  $('actionBtn').textContent=near?((near.type==='supply'||near.type==='hiddenChest')?'KISTE':'MISSION'):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'WAFFE':'AKTION');
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
