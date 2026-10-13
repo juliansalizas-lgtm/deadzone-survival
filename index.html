@@ -183,7 +183,7 @@ function building(x,z,w,d,h,color=0x797c74){
  // Außenleiter an der linken Hauswand: Sprossen reichen bis knapp über die Dachkante.
  const ladderX=x-w/2-.42, ladderZ=z;
  const ladderMat=mat(0x777d79), rungMat=mat(0x9b9f98);
- for(const dz of [-.43,.43){const rail=cube(scene,ladderX,h/2,ladderZ+dz,.12,h+.5,.12,ladderMat);}
+ for(const dz of [-.43,.43]){const rail=cube(scene,ladderX,h/2,ladderZ+dz,.12,h+.5,.12,ladderMat);}
  for(let yy=.22;yy<h+.38;yy+=.42)cube(scene,ladderX,yy,ladderZ,.14,.075,1.02,rungMat);
  houseLadders.push({x:ladderX,z:ladderZ,height:h,w,d,houseX:x,houseZ:z});
  // Furniture: bed, table, shelves and a storage cabinet; collision boxes included.
