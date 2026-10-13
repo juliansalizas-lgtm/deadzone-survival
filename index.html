@@ -109,6 +109,7 @@ for(let i=0;i<28;i++){
 // Buildings
 function building(x,z,w,d,h,color=0x797c74){
  const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+ addObstacle(x,z,w/2,d/2);
  cube(g,0,h/2,0,w,h,d,mat(color));
  cube(g,0,h+.18,0,w+.5,.36,d+.5,dark);
  for(let xx=-w/2+1;xx<w/2;xx+=2.4){cube(g,xx,h*.62,d/2+.012,.9,1.1,.06,mat(0x2b3938))}
@@ -118,12 +119,13 @@ building(-10,-5,9,9,4.2,0x747970);
 building(9,-15,12,8,4.5,0x686f6a);
 building(14,8,7,7,3.5,0x77786d);
 // entrance and barrier
+addObstacle(-1,-14,5,.32);
 cube(scene,-1,1.4,-14,10,2.8,.5,mat(0x4a554e));
 cube(scene,-1,2.95,-14,10,.25,.65,metal);
 for(let x=-5;x<=3;x+=2) cube(scene,x,1.25,-13.65,.16,2.5,.18,metal);
-for(let x=-7;x<=7;x+=2.3) {cube(scene,x,.65,-22,1.2,1.3,1.2,crateMat); cube(scene,x,.66,-22,1.23,.12,1.23,wood)}
+for(let x=-7;x<=7;x+=2.3) {addObstacle(x,-22,.7,.7);cube(scene,x,.65,-22,1.2,1.3,1.2,crateMat); cube(scene,x,.66,-22,1.23,.12,1.23,wood)}
 // sandbags
-for(let i=0;i<8;i++){const s=cube(scene,-7+i*1.05,.38,-8,.95,.65,.62,mat(0x8a826d));s.rotation.y=(i%2)*.1}
+for(let i=0;i<8;i++){addObstacle(-7+i*1.05,-8,.5,.38);const s=cube(scene,-7+i*1.05,.38,-8,.95,.65,.62,mat(0x8a826d));s.rotation.y=(i%2)*.1}
 // Trees, with simple layered canopy
 function tree(x,z,s=1){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
@@ -142,20 +144,33 @@ for(let i=0;i<80;i++){
 for(let i=0;i<22;i++){
  const x=(Math.random()-.5)*38,z=(Math.random()-.5)*42;
  if(Math.abs(x)<5&&z>-25&&z<8)continue;
- const r=cube(scene,x,.3,z,.5+Math.random()*1.2,.5+Math.random()*1.4,.5+Math.random(),i%3?crateMat:concrete);
+ const rw=.5+Math.random()*1.2, rd=.5+Math.random();addObstacle(x,z,rw*.6,rd*.6);
+ const r=cube(scene,x,.3,z,rw,.5+Math.random()*1.4,rd,i%3?crateMat:concrete);
  r.rotation.y=Math.random()*Math.PI;
 }
 // Player and camera
 const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true};
 camera.position.copy(player.pos);
+// Fiktiver, stilisierter Sci-Fi-Energieblaster als sichtbares First-Person-Modell
+const handRig=new THREE.Group();camera.add(handRig);handRig.position.set(.36,-.32,-.68);
+const blasterMat=mat(0x303a3c,.55,.45), blasterAccent=mat(0x6c8d78,.4,.25), blasterGlow=mat(0x73d8cb,.3,.2);
+cube(handRig,0,0,0,.19,.17,.48,blasterMat);
+cube(handRig,0,-.12,.08,.12,.23,.14,blasterMat);
+cube(handRig,0,.025,-.25,.11,.1,.18,blasterAccent);
+const muzzle=cube(handRig,0,.005,-.36,.085,.075,.12,blasterGlow,false);
+muzzle.visible=false;
+const flashLight=new THREE.PointLight(0x73d8cb,0,3);flashLight.position.set(0,.02,-.4);handRig.add(flashLight);
+let flashTime=0, shotHeld=false, shotVisuals=[];
 let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false;
 const keys={};
 let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false;
 const zombies=[], allies=[], supplies=[];
+const solidObstacles=[];
+function addObstacle(x,z,hx,hz){solidObstacles.push({x,z,hx,hz})}
+function blockedAt(x,z){const r=.42;return solidObstacles.some(o=>x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
 let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0;
 const $=id=>document.getElementById(id);
 function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
-updateInventory();
 function updateHUD(){
  $('healthLabel').textContent='Leben: '+Math.max(0,Math.ceil(player.health));
  $('health').style.width=Math.max(0,player.health)+'%';
@@ -227,6 +242,7 @@ function makeSupply(x,z,index){
   supplies.push({group:g,found:false,index});
 }
 makeSupply(-13,4,0);makeSupply(12,1,1);makeSupply(4,-27,2);
+updateInventory();
 // Soldier at camp
 const soldierGroup=makePerson(false);soldierGroup.position.set(2,0,-8);scene.add(soldierGroup);
 const soldier={group:soldierGroup, recruited:false, health:100, attack:0, home:new THREE.Vector3(2,0,-8), bob:0};
@@ -291,10 +307,14 @@ document.addEventListener('mousemove',e=>{
 document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')interact();if(e.code==='Space')e.preventDefault();});
 document.addEventListener('keyup',e=>keys[e.code]=false);
 renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(pointer:coarse)').matches&&!pointerLocked&&renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();else if(started)shoot()});
+renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&started&&pointerLocked)shotHeld=true});
+window.addEventListener('pointerup',()=>shotHeld=false);
+$('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();shotHeld=true;shoot()});
+$('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
+$('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
-$('fireBtn').addEventListener('touchstart',e=>{e.preventDefault();shoot()},{passive:false});
-$('fireBtn').addEventListener('click',shoot);
+
 $('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
 $('runBtn').addEventListener('touchend',()=>sprinting=false);
 const base=$('stickBase'),stick=$('stick');
