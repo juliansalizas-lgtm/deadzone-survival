@@ -27,7 +27,7 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #stick{position:absolute;left:36px;top:36px;width:44px;height:44px;border-radius:50%;background:#ffffff9c;border:2px solid white}
 #lookArea{position:absolute;right:0;top:0;width:58%;height:75%;pointer-events:auto;touch-action:none}
 #mobileActions{position:absolute;right:20px;bottom:26px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
-#mobileActions button{width:94px;min-height:48px;background:#17251fe8}
+#mobileActions button{width:116px;min-height:44px;background:#17251fe8;font-size:12px}#sneakBtn.active{background:#7b6330;border-color:#ffe36a;box-shadow:0 0 0 2px #ffe36a55}
 #startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,rgba(7,13,12,.94),rgba(24,32,27,.82)),radial-gradient(ellipse at center,#465347,#0a0d0b);z-index:5;padding:20px}
 #startCard{max-width:550px;width:100%;padding:28px;border:1px solid #ffffff2e;background:#111b17e8;border-radius:20px;box-shadow:0 20px 80px #0008}
 #startCard h1{margin:0 0 8px;font-size:clamp(28px,5vw,44px);letter-spacing:.04em}
@@ -71,12 +71,12 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 2.4</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 2.9</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Er kann nicht endgültig sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
-    <p class="small">Version 2.4: korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 2.9: größere Karte, Schleichen, Straßenlaternen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
@@ -95,7 +95,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
-  <div id="mobileActions"><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="jumpBtn">SPRUNG</button></div>
+  <div id="mobileActions"><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button></div>
 </div>
 <script type="module">
 window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
@@ -107,8 +107,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ba9a0);
-scene.fog = new THREE.Fog(0x9ba9a0, 95, 430);
-const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 600);
+scene.fog = new THREE.Fog(0x9ba9a0, 120, 650);
+const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 900);
 camera.rotation.order = 'YXZ';
 // Die Kamera muss Teil der Szene sein, damit auch der daran befestigte Blaster gerendert wird.
 scene.add(camera);
@@ -135,14 +135,14 @@ function cube(parent, x,y,z, sx,sy,sz, material, cast=true) {
  const m=new THREE.Mesh(boxGeo,material); m.position.set(x,y,z); m.scale.set(sx,sy,sz); m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m;
 }
 function groundPatch(x,z,w,d,material,y=.015){return cube(scene,x,y,z,w,.08,d,material,false)}
-groundPatch(0, -4, 520, 520, grass,-.12);
+groundPatch(0, -4, 820, 820, grass,-.12);
 groundPatch(0, 2, 13, 92, dirt,-.055);
 groundPatch(-4, 0, 25, 22, concrete,-.01);
 // Road edge and scattered slabs
 for(let z=-42;z<45;z+=8){cube(scene,0,.002,z,0.22,.02,3.2,mat(0xb2ad92),false)}
 // low hills / perimeter rocks
 for(let i=0;i<68;i++){
- const a=i/68*Math.PI*2, r=145+(i%3)*5;
+ const a=i/68*Math.PI*2, r=245+(i%3)*8;
  const rock=cube(scene,Math.cos(a)*r,1.1,Math.sin(a)*r,5+Math.random()*5,2+Math.random()*5,5+Math.random()*6,mat(i%2?0x596257:0x666a5c));
  rock.rotation.y=Math.random()*2;
 }
@@ -217,7 +217,7 @@ for(const [cx,cz] of [[-62,-62],[66,62]]){
 }
 // Niedrige, sanfte Hügel aus überlappenden Erd- und Grasflächen.
 for(let i=0;i<22;i++){
- const x=(Math.random()-.5)*270,z=(Math.random()-.5)*270;
+ const x=(Math.random()-.5)*360,z=(Math.random()-.5)*360;
  if(Math.abs(x)<20&&Math.abs(z)<25)continue;
  const r=4+Math.random()*8,h=.5+Math.random()*1.5;
  const mound=cube(scene,x,h/2,z,r,h,r*.8,mat(i%3===0?0x59634c:0x4e6048),false);
@@ -243,13 +243,13 @@ function tree(x,z,s=1){
 }
 function onRoad(x,z){return Math.abs(x)<5.2||Math.abs(x+48)<4.2||Math.abs(x-48)<4.2||Math.abs(z-38)<5.2||Math.abs(z+52)<4.8}
 for(let i=0;i<105;i++){
- let x,z,tries=0;do{x=(Math.random()-.5)*220;z=(Math.random()-.5)*220;tries++}while((onRoad(x,z)||(Math.abs(x)<22&&z>-27&&z<17)||houseZones.some(h=>Math.abs(x-h.x)<h.w/2+2.5&&Math.abs(z-h.z)<h.d/2+2.5))&&tries<45);
+ let x,z,tries=0;do{x=(Math.random()-.5)*340;z=(Math.random()-.5)*340;tries++}while((onRoad(x,z)||(Math.abs(x)<22&&z>-27&&z<17)||houseZones.some(h=>Math.abs(x-h.x)<h.w/2+2.5&&Math.abs(z-h.z)<h.d/2+2.5))&&tries<45);
  if(!onRoad(x,z)&&!houseZones.some(h=>Math.abs(x-h.x)<h.w/2+2.5&&Math.abs(z-h.z)<h.d/2+2.5))tree(x,z,.7+Math.random()*.9);
 }
 // Unterholz, Grasbüschel und Blumen – niemals mitten auf der Straße.
 for(let i=0;i<280;i++){
- const x=(Math.random()-.5)*430,z=(Math.random()-.5)*430;
- if(onRoad(x,z)||Math.abs(x)>238||Math.abs(z)>238)continue;
+ const x=(Math.random()-.5)*700,z=(Math.random()-.5)*700;
+ if(onRoad(x,z)||Math.abs(x)>378||Math.abs(z)>378)continue;
  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
  const green=[0x3e7337,0x507f3e,0x668c43,0x47703b][Math.floor(Math.random()*4)];
  if(i%5===0){ // kleine Büsche
@@ -269,6 +269,43 @@ for(let i=0;i<22;i++){
  const r=cube(scene,x,.3,z,rw,.5+Math.random()*1.4,rd,i%3?crateMat:concrete);
  r.rotation.y=Math.random()*Math.PI;
 }
+// v2.9: neue Straßenzüge, dezente Straßenlaternen, Waldstücke und Blumenwiesen.
+const streetLampLights=[];
+function streetLamp(x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ cube(g,0,2.15,0,.13,4.3,.13,mat(0x424b49,.5,.4));
+ cube(g,.55,4.15,0,1.15,.12,.12,mat(0x424b49,.5,.4));
+ cube(g,1.08,3.98,0,.34,.18,.34,mat(0x303735,.4,.4));
+ const bulb=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),new THREE.MeshBasicMaterial({color:0xffe0a0}));bulb.position.set(1.08,3.82,0);g.add(bulb);
+ const light=new THREE.PointLight(0xffd99a,.48,12,2);light.position.set(1.08,3.7,0);g.add(light);streetLampLights.push(light);
+}
+// Main road runs north/south and side roads branch through the expanded map.
+for(let z=-330;z<=330;z+=38){streetLamp(6,z);streetLamp(-6,z)}
+for(let x=-300;x<=300;x+=42){streetLamp(x,44);streetLamp(x,-66)}
+// Forest clusters at the expanded edges, leaving corridors between them.
+for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-310]]){
+ for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,.8+Math.random()*1.25)}
+}
+// Wide, colorful wildflower meadows in several clearings.
+for(const center of [[-225,30],[225,-25],[-35,245],[155,275],[-270,-80]]){
+ for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
+}
+// Three marked boss locations. Their rewards are unique and only drop from their boss.
+const bossSites=[
+ {x:260,z:130,name:'Der Panzerkoloss',color:0x9b3b2f,weapon:'Kolossbrecher',icon:'🟥',hp:1600,speed:.72},
+ {x:-265,z:-170,name:'Die Schattenkönigin',color:0x633f8f,weapon:'Schattenlanze',icon:'🟪',hp:1250,speed:1.15},
+ {x:110,z:290,name:'Der Seuchenwächter',color:0x6b8a39,weapon:'Seuchenwerfer',icon:'🟩',hp:1900,speed:.62}
+];
+for(const site of bossSites){
+ // Distinct, fortified arena with a colored beacon so players can spot it from afar.
+ const shell=mat(site.color,.75,.18);const x=site.x,z=site.z;
+ cube(scene,x,1.2,z-13,26,2.4,.7,shell);cube(scene,x-13,1.2,z, .7,2.4,26,shell);cube(scene,x+13,1.2,z,.7,2.4,26,shell);
+ for(let k=-1;k<=1;k++){cube(scene,x+k*8,2.7,z-13,1.2,.6,.9,metal);cube(scene,x-13,2.7,z+k*8,.9,.6,1.2,metal);cube(scene,x+13,2.7,z+k*8,.9,.6,1.2,metal)}
+ const beacon=new THREE.PointLight(site.color,1.3,28,2);beacon.position.set(x,5,z);scene.add(beacon);
+ const tower=cube(scene,x,4.3,z-13,1.2,4.2,1.2,shell);tower.rotation.y=.25;
+ const labelCanvas=document.createElement('canvas');labelCanvas.width=512;labelCanvas.height=96;const ctx=labelCanvas.getContext('2d');ctx.fillStyle='#101510dd';ctx.fillRect(0,0,512,96);ctx.fillStyle='#fff';ctx.font='bold 34px system-ui';ctx.textAlign='center';ctx.fillText('BOSS: '+site.name,256,60);const tex=new THREE.CanvasTexture(labelCanvas);const sign=new THREE.Mesh(new THREE.PlaneGeometry(12,2.25),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide}));sign.position.set(x,5.3,z-13.5);scene.add(sign);
+}
+
 // Player and camera
 const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true,hunger:100,water:100,infected:false,infectionTime:0,money:0,vy:0,onGround:true};
 let selectedItem="medicine";
@@ -287,7 +324,7 @@ const dynamicGun=new THREE.Group();handRig.add(dynamicGun);
 let flashTime=0, shotHeld=false, shotVisuals=[], energyProjectiles=[], impactMarks=[], fireZones=[];
 let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false, resettingGame=false;
 const keys={};
-let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false;
+let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false, sneaking=false, noiseTimer=0;
 const zombies=[], allies=[], supplies=[], droppedItems=[], hitParticles=[];
 let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0, worldTime=.23;
 const $=id=>document.getElementById(id);
@@ -297,7 +334,7 @@ function updateHUD(){
  $('health').style.width=Math.max(0,player.health)+'%';
  $('allyLabel').textContent='Verbündete: '+allies.length;
  $('hungerBar').style.width=Math.max(0,player.hunger)+'%';$('waterBar').style.width=Math.max(0,player.water)+'%';
- $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3) und hilf dem Soldaten.`;
+ $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3), hilf dem Soldaten oder suche Boss-Arenen nach seltenen Waffen.`;
 }
 function makePerson(isZombie=false){
  const g=new THREE.Group();
@@ -328,9 +365,17 @@ function makeZombie(x,z){
  zombies.push(obj);return obj;
 }
 for(let i=0;i<28;i++){
- let x,z; do{x=(Math.random()-.5)*250;z=(Math.random()-.5)*250;}while(Math.hypot(x,z-12)<20);
+ let x,z; do{x=(Math.random()-.5)*360;z=(Math.random()-.5)*360;}while(Math.hypot(x,z-12)<20);
  makeZombie(x,z);
 }
+// Bosses are placed at their own special sites; their unique weapons are boss-only rewards.
+for(const site of bossSites){
+ const boss=makeZombie(site.x,site.z);boss.boss=true;boss.bossName=site.name;boss.bossWeapon=site.weapon;boss.hp=site.hp;boss.maxHp=site.hp;boss.speed=site.speed;boss.group.scale.set(2.05,2.05,2.05);
+ const badge=cube(boss.group,0,2.65,0,.95,.18,.12,mat(site.color));
+ const crown=cube(boss.group,0,2.95,0,.62,.22,.35,mat(site.color));
+ boss.group.userData.bossParts=[badge,crown];
+}
+
 // Lootkisten und Versorgungspakete
 const inventory = { medicine:0, food:0, water:0, lantern:0, grenades:0, ammo:18, weapons:{Blaster:1} };
 let lanternEquipped=false;
@@ -524,7 +569,7 @@ function interact(){
    updateInventory();saveProgress();return;
  }
  const near=nearInteractable();
- if(near&&near.type==='door'){const d=near.obj;d.open=!d.open;d.pivot.rotation.y=d.open?-Math.PI/2:0;d.obstacle.active=!d.open;message(d.open?'Tür geöffnet.':'Tür geschlossen. Zombies können nicht hinein!',1.5);saveProgress();return}
+ if(near&&near.type==='door'){const d=near.obj;player.noise=5;d.open=!d.open;d.pivot.rotation.y=d.open?-Math.PI/2:0;d.obstacle.active=!d.open;message(d.open?'Tür geöffnet.':'Tür geschlossen. Zombies können nicht hinein!',1.5);saveProgress();return}
  if(!near){if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}if(selectedItem==='food'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Essen benutzt.');updateInventory();return}if(selectedItem==='water'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
  if(near.type==='droppedItem'){const d=near.obj;d.found=true;scene.remove(d.group);if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count}else if(d.item==='ammo')inventory.ammo+=d.count;else inventory[d.item]=(inventory[d.item]||0)+d.count;message('Aufgehoben: '+d.label);updateInventory();saveProgress();return}
  if(near.type==='hiddenChest'){
@@ -588,13 +633,15 @@ createGroundItem('weapon:Raketenwerfer',1,{x:-56,z:-54},'Raketenwerfer');
 createGroundItem('weapon:Granatwerfer',1,{x:72,z:68},'Granatwerfer');
 
 function dropZombieLoot(pos){
+ const defeatedBoss=zombies.find(z=>z.boss&&!z.rewardGiven&&distanceXZ(z.group.position,pos)<.05);
+ if(defeatedBoss){defeatedBoss.rewardGiven=true;const w=defeatedBoss.bossWeapon;createGroundItem('weapon:'+w,1,{x:pos.x+2,z:pos.z+1},w);message('BOSS BESIEGT! Einzigartige Waffe liegt bei der Arena: '+w+'!',4);lootToast('Seltener Boss-Loot: '+w);updateInventory();saveProgress();return;}
  const lanternDrop=Math.random()<.01;const grenadeDrop=!lanternDrop&&Math.random()<.05;const r=Math.random();let item,n=1,label='';
  if(lanternDrop){item='lantern';label='Laterne'}
  else if(grenadeDrop){item='grenades';label='Granate'}
  else if(r<.14){item='food';label='Essen'}
  else if(r<.23){item='medicine';label='Medizin'}
  else if(r<.34){item='water';label='Trinkwasser'}
- else if(r<.39){const choices=Object.keys(weaponStats).filter(n=>n!=='Blaster');item='weapon:'+choices[Math.floor(Math.random()*choices.length)];label=item.slice(7)}
+ else if(r<.39){const choices=Object.keys(weaponStats).filter(n=>!['Blaster','Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(n));item='weapon:'+choices[Math.floor(Math.random()*choices.length)];label=item.slice(7)}
  else if(r<.62){item='money';n=5+Math.floor(Math.random()*16);player.money+=n;label='Geld';}
  else {item='ammo';n=5+Math.floor(Math.random()*10);label='Munition'}
  if(item!=='money')createGroundItem(item,n,pos,label);
@@ -643,7 +690,7 @@ function shoot(){
  }
  if(!unlimitedLaser){ammoLoaded--;updateInventory()} fireCooldown=wstats.cooldown;
  flashTime=.08;muzzle.visible=true;flashLight.intensity=4;
- playTone(180,.09,'sawtooth',.045);
+ playTone(180,.09,'sawtooth',.045);player.noise=7;
 
  // small muzzle flash
  const origin=camera.position.clone();
@@ -769,6 +816,9 @@ document.querySelectorAll('button').forEach(btn=>btn.addEventListener('pointerdo
 
 $('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
 $('runBtn').addEventListener('touchend',()=>sprinting=false);
+function toggleSneak(){sneaking=!sneaking;$('sneakBtn').classList.toggle('active',sneaking);$('sneakBtn').setAttribute('aria-pressed',String(sneaking));$('sneakBtn').textContent=sneaking?'🕵️ SCHLEICHEN AN':'🕵️ SCHLEICHEN AUS';message(sneaking?'Schleichen aktiv: Zombies bemerken dich nicht, solange du leise bleibst.':'Schleichen deaktiviert.',2);}
+$('sneakBtn').addEventListener('click',toggleSneak);
+document.addEventListener('keydown',e=>{if(e.code==='KeyC'&&!e.repeat)toggleSneak()});
 const base=$('stickBase'),stick=$('stick');
 let stickId=null;
 base.addEventListener('pointerdown',e=>{stickId=e.pointerId;base.setPointerCapture(stickId);moveStick(e)});
@@ -834,7 +884,7 @@ function animate(){
    else if(['medicine','food','water','ammo'].includes(d.item)){inventory[d.item]=(inventory[d.item]||0)+d.count;message('Aufgesammelt: '+(d.label||d.item),1.1);}
    updateInventory();saveProgress();
   }
-  fireCooldown=Math.max(0,fireCooldown-dt);
+  fireCooldown=Math.max(0,fireCooldown-dt);noiseTimer=Math.max(0,noiseTimer-dt);player.noise=Math.max(0,(player.noise||0)-dt);
   player.hunger=Math.max(0,player.hunger-dt*(.12+(autoJump? .20:0)+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
   if(player.water<=0){thirstDamageTimer+=dt;if(thirstDamageTimer>=5){thirstDamageTimer-=5;damagePlayer(20);message('Du verdurstest! Trinkwasser finden!',2)}}else thirstDamageTimer=0;
   if(player.hunger<=0)damagePlayer(2*dt);
@@ -844,7 +894,7 @@ function animate(){
     zombieSpawnTimer=0;
     let sx=player.pos.x,sz=player.pos.z,tries=0;
     do{const a=Math.random()*Math.PI*2,r=32+Math.random()*38;sx=player.pos.x+Math.cos(a)*r;sz=player.pos.z+Math.sin(a)*r;tries++}while((blockedAt(sx,sz)||Math.hypot(sx-player.pos.x,sz-player.pos.z)<28)&&tries<20);
-    sx=Math.max(-238,Math.min(238,sx));sz=Math.max(-238,Math.min(238,sz));makeZombie(sx,sz);
+    sx=Math.max(-378,Math.min(378,sx));sz=Math.max(-378,Math.min(378,sz));makeZombie(sx,sz);
   }
   if(player.infected){player.infectionTime-=dt;if(player.infectionTime<=0){damagePlayer(8*dt);message('Infektion verschlimmert sich! Medizin nötig!',1);}}
   player.vy-=15*dt;player.pos.y+=player.vy*dt;if(player.pos.y<=1.7){player.pos.y=1.7;player.vy=0;player.onGround=true;}
@@ -855,20 +905,21 @@ function animate(){
   let forward=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
   let side=(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
   const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
-  const sprint=sprinting||keys.ShiftLeft||keys.ShiftRight;
-  const speed=player.speed*(sprint?1.55:1);
+  const sprint=(sprinting||keys.ShiftLeft||keys.ShiftRight)&&!sneaking;
+  const speed=player.speed*(sneaking?.42:(sprint?1.55:1));
   const nextX=player.pos.x+(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
   const nextZ=player.pos.z+(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
   if(!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
   if(!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
-  player.pos.x=Math.max(-238,Math.min(238,player.pos.x));player.pos.z=Math.max(-238,Math.min(238,player.pos.z));
+  player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
-   const p=z.group.position,d=distanceXZ(player.pos,p);let target=player.pos,nearest=d;
+   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=sneaking&&(player.noise||0)<=0&&d>3.2;let target=playerHidden?null:player.pos,nearest=playerHidden?Infinity:d;
    for(const a of allies){const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position}}
+   if(!target)continue;
    if(nearest>1.35){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;const nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;if(!blockedAt(nx,p.z,.56))p.x=nx;if(!blockedAt(p.x,nz,.56))p.z=nz;z.group.rotation.y=Math.atan2(dx,dz);}
    else if(target===player.pos){z.attack-=dt;if(z.attack<=0){damagePlayer(7);if(!player.infected&&Math.random()<.10){player.infected=true;player.infectionTime=120;message('Du wurdest gebissen! Nimm innerhalb von 2 Minuten Medizin!',4)}z.attack=1.05}}
   }
