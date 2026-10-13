@@ -76,7 +76,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
-    <p class="small">Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
@@ -605,7 +605,7 @@ function interact(){
  }
  updateHUD();
 }
-function createGroundItem(item,count,pos,label){
+function createGroundItem(item,count,pos,label,createdAt=Date.now()){
  const g=new THREE.Group();g.position.set(pos.x,.08,pos.z);scene.add(g);
  const M=(c)=>mat(c,.55,.25);
  if(item.startsWith('weapon:')){
@@ -627,7 +627,7 @@ function createGroundItem(item,count,pos,label){
  }else if(item==='grenades'){
    const bomb=new THREE.Mesh(new THREE.SphereGeometry(.14,10,8),M(0x4b5945));bomb.position.y=.16;g.add(bomb);cube(g,0,.3,0,.07,.045,.07,M(0x252a23));
  }else cube(g,0,.12,0,.2,.17,.16,M(0xb9a65e));
- droppedItems.push({group:g,item,count,found:false,label:label||item});
+ droppedItems.push({group:g,item,count,found:false,label:label||item,createdAt:Number.isFinite(createdAt)?createdAt:Date.now()});
 }
 
 // Guaranteed pickups at the military camps make these two weapons findable without rare random drops.
@@ -662,7 +662,7 @@ function spawnEnergyProjectile(origin,dir,color,kind){
  const glow=new THREE.Mesh(glowGeo,glowMat);glow.position.copy(orb.position);scene.add(glow);
  const trailGeo=new THREE.BufferGeometry().setFromPoints([orb.position.clone(),orb.position.clone()]);
  const trailMat=new THREE.LineBasicMaterial({color,transparent:true,opacity:.95});const trail=new THREE.Line(trailGeo,trailMat);scene.add(trail);
- energyProjectiles.push({orb,glow,trail,trailGeo,trailMat,geo,material,origin:origin.clone(),end,dir:dir.clone(),life:(kind==='rocket'||kind==='grenade')?.55:.32,age:0,kind});
+ const projectile={orb,glow,trail,trailGeo,trailMat,geo,material,origin:origin.clone(),end,dir:dir.clone(),life:(kind==='rocket'||kind==='grenade')?.55:.32,age:0,kind};energyProjectiles.push(projectile);return projectile;
 }
 
 function spawnBlast(pos,color,kind='rocket'){
@@ -700,7 +700,8 @@ function shoot(){
  const ray=new THREE.Raycaster(origin,dir,0,wstats.range);
  // Visible weapon-specific shot streak
  const beamColor=wstats.kind==='flamethrower'?0xff5a12:wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='plasma'?0xc95cff: wstats.kind==='sniper'?0xffdca0:0xffd36a;
- if(['greenlaser','pinklaser','plasma','shock','rocket','grenade'].includes(wstats.kind))spawnEnergyProjectile(origin,dir,beamColor,wstats.kind);
+ const rocketProjectile=wstats.kind==='rocket'?spawnEnergyProjectile(origin,dir,beamColor,'rocket'):null;
+ if(['greenlaser','pinklaser','plasma','shock','grenade'].includes(wstats.kind))spawnEnergyProjectile(origin,dir,beamColor,wstats.kind);
  if(wstats.kind==='flamethrower'){const flameEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,10));const flameGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),flameEnd]);const flameLine=new THREE.Line(flameGeo,new THREE.LineBasicMaterial({color:0xff7a16,transparent:true,opacity:.9}));scene.add(flameLine);shotVisuals.push({obj:flameLine,geo:flameGeo,material:flameLine.material,life:.12});for(let i=0;i<7;i++){const t=.15+Math.random()*.8;const pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,10)*t);const flame=cube(scene,pt.x+(Math.random()-.5)*.5,pt.y+(Math.random()-.5)*.5,pt.z+(Math.random()-.5)*.5,.12+Math.random()*.13,.12+Math.random()*.16,.12+Math.random()*.13,mat(Math.random()<.55?0xff6a12:0xffd33d),false);shotVisuals.push({obj:flame,life:.1+Math.random()*.16,geo:flame.geometry,material:flame.material});}}
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
@@ -742,9 +743,10 @@ function shoot(){
  if(hits.length){
   const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
   if(target){
-   target.hp-=wstats.damage;target.group.rotation.z=.04;
+   if(wstats.kind!=='rocket')target.hp-=wstats.damage;target.group.rotation.z=.04;
    if(wstats.kind==='flamethrower'){target.burningTimer=3.8;target.burnTick=0;for(let q=0;q<4;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.45,.55+Math.random()*1.35,target.group.position.z+(Math.random()-.5)*.4,.09,.16,.09,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.45+Math.random()*.3,vx:(Math.random()-.5)*.35,vy:.8+Math.random()*.5,vz:(Math.random()-.5)*.35})}message('🔥 Zombie brennt!',.65)}
-   if(wstats.kind==='rocket'||wstats.kind==='grenade'){detonateExplosive(target.group.position,wstats,beamColor)}
+   if(wstats.kind==='rocket'&&rocketProjectile){rocketProjectile.end.copy(target.group.position);rocketProjectile.dir.copy(rocketProjectile.end).sub(rocketProjectile.origin).normalize();rocketProjectile.life=Math.max(.22,Math.min(.75,rocketProjectile.origin.distanceTo(rocketProjectile.end)/42));rocketProjectile.impactStats={...wstats};rocketProjectile.impactColor=beamColor;}
+   if(wstats.kind==='grenade'){detonateExplosive(target.group.position,wstats,beamColor)}
    if(wstats.kind==='shock'){target.stunned=7;message('Zombie geschockt! 7 Sekunden betäubt.',1.2); for(let q=0;q<9;q++){const spark=cube(scene,target.group.position.x+(Math.random()-.5)*.8,1+Math.random()*1.1,target.group.position.z+(Math.random()-.5)*.8,.06,.13,.06,mat(0x398dff),false);hitParticles.push({mesh:spark,life:.55,vx:(Math.random()-.5)*1.5,vy:Math.random()*1.4,vz:(Math.random()-.5)*1.5});}}
    if(wstats.kind==='sniper')message('Sniper-Treffer!',.7);
    if(wstats.kind==='pinklaser'||wstats.kind==='plasma'){
@@ -762,9 +764,9 @@ function shoot(){
    }
    for(let i=0;i<5;i++){const p=cube(scene,target.group.position.x+(Math.random()-.5)*.6,1.1+Math.random()*.7,target.group.position.z+(Math.random()-.5)*.5,.07,.07,.07,mat(0xa93632),false);hitParticles.push({mesh:p,life:.35,vx:(Math.random()-.5)*2,vy:1+Math.random()*1.5,vz:(Math.random()-.5)*2})}if(target.hp<=0){target.dead=true;dropZombieLoot(target.group.position);scene.remove(target.group);message('Zombie ausgeschaltet!');}}
  }else if(wstats.kind==='rocket'||wstats.kind==='grenade'){
-  // Explosives always detonate: at the first wall hit, or at the end of their range.
+  // Rockets visibly fly to the wall/range endpoint before exploding.
   const impact=(wallHits.length&&wallHits[0].distance<wstats.range)?wallHits[0].point:origin.clone().addScaledVector(dir,wstats.range);
-  detonateExplosive(impact,wstats,beamColor);
+  if(wstats.kind==='rocket'&&rocketProjectile){rocketProjectile.end.copy(impact);rocketProjectile.dir.copy(impact).sub(rocketProjectile.origin).normalize();rocketProjectile.life=Math.max(.22,Math.min(.9,rocketProjectile.origin.distanceTo(impact)/42));rocketProjectile.impactStats={...wstats};rocketProjectile.impactColor=beamColor;}else detonateExplosive(impact,wstats,beamColor);
  }else{message('Daneben!',.7)}
 }
 function damagePlayer(amount){
@@ -786,12 +788,12 @@ $('soldierToggle').addEventListener('click',()=>{soldiersEnabled=!soldiersEnable
 $('reviveBtn').addEventListener('click',revivePlayer);
 $('newRunBtn').addEventListener('click',resetGame);
 const SAVE_KEY='deadzone-survival-save-v18';
-function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,lanternEquipped,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,lanternEquipped,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
 function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.lantern=d.inventory.lantern||0;inventory.grenades=d.inventory.grenades||0;inventory.ammo=d.inventory.ammo??18;inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;rebuildLantern();if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
  if(soldierRecruited&&!soldier.recruited&&!soldier.dead){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:soldier})}
  if(Array.isArray(d.recruitedExtras))for(const i of d.recruitedExtras){const es=extraSoldiers[i];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:es})}}
  if(Array.isArray(d.allyStates))for(const st of d.allyStates){const a=allies.find(q=>q.offset===st.offset);if(a){a.hp=st.hp??100;if(st.dead){a.dead=true;scene.remove(a.group)}}}for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();
- if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[])createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label);camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();rebuildHandProp();rebuildLantern();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
+ if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[]){if(Date.now()-(q.createdAt||Date.now())<120000)createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label,q.createdAt||Date.now())}camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();rebuildHandProp();rebuildLantern();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
 window.addEventListener('pagehide',saveProgress);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveProgress()});setInterval(()=>{if(started&&!gameOver)saveProgress()},5000);
 
 window.addEventListener('deadzone-start',()=>{
@@ -880,7 +882,7 @@ function animate(){
  const dt=Math.min(clock.getDelta(),.04);
  if(started&&!gameOver)updateDayNight(dt);
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.life<=0){scene.remove(v.obj);v.geo.dispose();v.material.dispose();shotVisuals.splice(i,1)}else v.material.opacity=Math.max(0,v.life*5)}
- for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
+ for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){if(q.kind==='rocket'&&q.impactStats){detonateExplosive(q.end,q.impactStats,q.impactColor||0xffd36a)}scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
  for(let i=thrownGrenades.length-1;i>=0;i--){const g=thrownGrenades[i];g.age+=dt;const t=Math.min(1,g.age/g.life);g.bomb.position.set(g.start.x+(g.target.x-g.start.x)*t,g.start.y+(g.target.y-g.start.y)*t+Math.sin(t*Math.PI)*2.1,g.start.z+(g.target.z-g.start.z)*t);g.bomb.rotation.x+=dt*8;g.bomb.rotation.z+=dt*5;if(g.age>=g.life){const p=g.target.clone();scene.remove(g.bomb);g.bomb.geometry.dispose();g.bomb.material.dispose();detonateThrownGrenade(p);thrownGrenades.splice(i,1)}}
  for(let i=fireZones.length-1;i>=0;i--){const f=fireZones[i];f.age+=dt;f.life-=dt;f.smokeTimer-=dt;f.disk.material.opacity=.24+Math.random()*.25;f.inner.material.opacity=.28+Math.random()*.36;for(const z of zombies){if(!z.dead&&distanceXZ(z.group.position,{x:f.x,z:f.z})<4.8){z.hp-=dt*13;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group)}}}if(f.smokeTimer<=0&&f.life>0){f.smokeTimer=.16;const puff=new THREE.Mesh(new THREE.SphereGeometry(.18+Math.random()*.2,7,6),new THREE.MeshBasicMaterial({color:0x454844,transparent:true,opacity:.52,depthWrite:false}));puff.position.set(f.x+(Math.random()-.5)*5,.2,f.z+(Math.random()-.5)*5);scene.add(puff);hitParticles.push({mesh:puff,life:1.5+Math.random(),vx:(Math.random()-.5)*.45,vy:.9+Math.random()*.7,vz:(Math.random()-.5)*.45,smoke:true})}if(f.life<=0){scene.remove(f.disk,f.inner);f.disk.geometry.dispose();f.disk.material.dispose();f.inner.geometry.dispose();f.inner.material.dispose();fireZones.splice(i,1)}}
  for(let i=impactMarks.length-1;i>=0;i--){const m=impactMarks[i];m.life-=dt;if(m.life<=0){scene.remove(m.obj,m.ring);m.obj.geometry.dispose();m.obj.material.dispose();m.ring.geometry.dispose();m.ring.material.dispose();impactMarks.splice(i,1)}}
@@ -889,7 +891,10 @@ function animate(){
  if(started&&!gameOver){
   // Loot drops are collected automatically when the player walks over them.
   for(const d of droppedItems){
-   if(d.found||distanceXZ(player.pos,d.group.position)>=1.15)continue;
+   if(d.found)continue;
+   // Ground items disappear two real-time minutes after they appear.
+   if(Date.now()-d.createdAt>=120000){d.found=true;scene.remove(d.group);continue;}
+   if(distanceXZ(player.pos,d.group.position)>=1.15)continue;
    d.found=true;scene.remove(d.group);
    if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count;message('Aufgesammelt: '+w,1.1);}
    else if(['medicine','food','water','ammo'].includes(d.item)){inventory[d.item]=(inventory[d.item]||0)+d.count;message('Aufgesammelt: '+(d.label||d.item),1.1);}
