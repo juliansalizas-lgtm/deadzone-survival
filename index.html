@@ -316,7 +316,7 @@ const muzzle=cube(handRig,0,.005,-.36,.085,.075,.12,blasterGlow,false);
 muzzle.visible=false;
 const flashLight=new THREE.PointLight(0x73d8cb,0,3);flashLight.position.set(0,.02,-.4);handRig.add(flashLight);
 // Dauerhafter, schmaler Lichtkegel nach vorne – wie eine kleine Waffen-Taschenlampe.
-const weaponBeam=new THREE.SpotLight(0xffe7b5,22,62,Math.PI/4.2,0.48,0.72);weaponBeam.castShadow=false;weaponBeam.decay=0.72;const weaponBeamTarget=new THREE.Object3D();weaponBeam.target=weaponBeamTarget;scene.add(weaponBeam,weaponBeamTarget);const weaponBeamDirection=new THREE.Vector3();
+const weaponBeam=new THREE.SpotLight(0xfff1c7,58,8.5,Math.PI/18,0.42,0.55);weaponBeam.castShadow=false;weaponBeam.decay=0.45;const weaponBeamTarget=new THREE.Object3D();weaponBeam.target=weaponBeamTarget;scene.add(weaponBeam,weaponBeamTarget);const weaponBeamDirection=new THREE.Vector3();
 const dynamicGun=new THREE.Group();handRig.add(dynamicGun);
 let flashTime=0, shotHeld=false, shotVisuals=[], energyProjectiles=[], impactMarks=[], fireZones=[];
 let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false, resettingGame=false;
@@ -393,7 +393,7 @@ const weaponStats = {
  PlasmaPistole:{damage:38,cooldown:.24,mag:20,icon:'🟣',range:48,kind:'plasma'},
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
  Laserpistole:{damage:30,cooldown:.26,mag:18,icon:'🔴',range:42,kind:'pinklaser'},
- Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}
+ Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
 function updateWeaponCrosshair(){
@@ -705,8 +705,9 @@ function shoot(){
  const dir=new THREE.Vector3();camera.getWorldDirection(dir);
  const ray=new THREE.Raycaster(origin,dir,0,wstats.range);
  // Visible weapon-specific shot streak
- const beamColor=wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='plasma'?0xc95cff: wstats.kind==='sniper'?0xffdca0:0xffd36a;
+ const beamColor=wstats.kind==='flamethrower'?0xff5a12:wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='plasma'?0xc95cff: wstats.kind==='sniper'?0xffdca0:0xffd36a;
  if(['greenlaser','pinklaser','plasma','shock','rocket','grenade'].includes(wstats.kind))spawnEnergyProjectile(origin,dir,beamColor,wstats.kind);
+ if(wstats.kind==='flamethrower'){const flameEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,10));const flameGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),flameEnd]);const flameLine=new THREE.Line(flameGeo,new THREE.LineBasicMaterial({color:0xff7a16,transparent:true,opacity:.9}));scene.add(flameLine);shotVisuals.push({obj:flameLine,geo:flameGeo,material:flameLine.material,life:.12});for(let i=0;i<7;i++){const t=.15+Math.random()*.8;const pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,10)*t);const flame=cube(scene,pt.x+(Math.random()-.5)*.5,pt.y+(Math.random()-.5)*.5,pt.z+(Math.random()-.5)*.5,.12+Math.random()*.13,.12+Math.random()*.16,.12+Math.random()*.13,mat(Math.random()<.55?0xff6a12:0xffd33d),false);shotVisuals.push({obj:flame,life:.1+Math.random()*.16,geo:flame.geometry,material:flame.material});}}
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
  const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:beamColor,transparent:true,opacity:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
@@ -748,6 +749,7 @@ function shoot(){
   const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
   if(target){
    target.hp-=wstats.damage;target.group.rotation.z=.04;
+   if(wstats.kind==='flamethrower'){target.burningTimer=3.8;target.burnTick=0;for(let q=0;q<4;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.45,.55+Math.random()*1.35,target.group.position.z+(Math.random()-.5)*.4,.09,.16,.09,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.45+Math.random()*.3,vx:(Math.random()-.5)*.35,vy:.8+Math.random()*.5,vz:(Math.random()-.5)*.35})}message('🔥 Zombie brennt!',.65)}
    if(wstats.kind==='rocket'||wstats.kind==='grenade'){detonateExplosive(target.group.position,wstats,beamColor)}
    if(wstats.kind==='shock'){target.stunned=7;message('Zombie geschockt! 7 Sekunden betäubt.',1.2); for(let q=0;q<9;q++){const spark=cube(scene,target.group.position.x+(Math.random()-.5)*.8,1+Math.random()*1.1,target.group.position.z+(Math.random()-.5)*.8,.06,.13,.06,mat(0x398dff),false);hitParticles.push({mesh:spark,life:.55,vx:(Math.random()-.5)*1.5,vy:Math.random()*1.4,vz:(Math.random()-.5)*1.5});}}
    if(wstats.kind==='sniper')message('Sniper-Treffer!',.7);
@@ -941,10 +943,11 @@ function animate(){
   player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
-  camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.y-=0.34;weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.16,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,48);weaponBeamTarget.position.y-=5.5;
+  camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.y-=0.30;weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.20,0)).addScaledVector(weaponBeamDirection,.18);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,3.2);weaponBeamTarget.position.y-=.65;
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
+   if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
    const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=sneaking&&(player.noise||0)<=0&&d>3.2;let target=playerHidden?null:player.pos,nearest=playerHidden?Infinity:d;
    let targetAlly=null; if(soldiersEnabled)for(const a of allies){if(a.dead)continue;const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position;targetAlly=a}}
