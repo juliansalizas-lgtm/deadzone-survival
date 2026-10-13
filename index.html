@@ -44,8 +44,8 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #jumpBtn.active{background:#8b7530;border-color:#ffe36a;box-shadow:0 0 0 2px #ffe36a55}
 @media(max-width:700px){#lootPanel{width:min(300px,70vw);max-height:27vh;bottom:8px;left:8px;padding:7px}#inventoryItems button{height:43px}#inventoryItems button .slotIcon{font-size:16px}#status{max-width:165px}}
 
-#inventoryOpenBtn{position:fixed;right:14px;top:112px;z-index:30;pointer-events:auto;touch-action:manipulation;background:#26372de8;border:2px solid #9cac91}
-#inventoryModal{position:fixed;inset:0;z-index:40;pointer-events:auto;display:none;align-items:center;justify-content:center;background:#000a;padding:12px}
+#inventoryOpenBtn{position:fixed;right:14px;top:112px;z-index:10000;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:#26372de8;border:3px solid #d2dfc8;box-shadow:0 3px 14px #000b;min-height:48px} #inventoryOpenBtn:active{transform:scale(.97)}
+#inventoryModal{position:fixed;inset:0;z-index:10001;pointer-events:auto;display:none;align-items:center;justify-content:center;background:#000a;padding:12px}
 #inventoryCard{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#343a34;border:3px solid #a6ad9d;border-radius:12px;padding:14px;box-shadow:0 12px 45px #000b}
 #inventoryCard h2{margin:0 0 8px;font-size:20px}#inventoryCard #inventoryItems button{height:62px;font-size:11px}#inventoryCard .invActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#inventoryCard .invActions button{flex:1;min-width:110px}
 #lootToast{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;text-align:center;background:#101a16e8;border:1px solid #ffffff35;border-radius:12px;padding:12px 16px;opacity:0;transition:opacity .2s;pointer-events:none}
@@ -57,19 +57,17 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 1.4</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 1.5</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Er kann nicht endgültig sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button>
-    <p class="small">Version 1.4: Neustartfehler behoben · Speichern, Inventar-Menü, fallengelassene Items, Camps und Hügel.</p>
+    <p class="small">Version 1.5: Inventar-Knopf außerhalb der Touch-Ebene · Speichern, Inventar-Menü, fallengelassene Items, Camps und Hügel.</p>
   </div>
 </div>
 <div id="hud">
   <div id="status" class="panel"><b>ÜBERLEBEN</b><div id="healthLabel">Leben: 100</div><div id="healthOuter"><div id="health"></div></div><div>Hunger</div><div class="barOuter"><div id="hungerBar" class="barFill"></div></div><div>Wasser</div><div class="barOuter"><div id="waterBar" class="barFill"></div></div><div id="ammoLabel">Munition: 12 / 18</div><div id="allyLabel">Verbündete: 0</div><div id="survivalLabel">💰 Geld: 0</div></div>
   
-  <button id="inventoryOpenBtn" type="button">🎒 INVENTAR</button>
-  <div id="inventoryModal"><div id="inventoryCard"><h2>🎒 INVENTAR</h2><div id="inventoryLabel">Wähle einen Slot.</div><div id="inventoryItems"></div><div id="itemActions" class="invActions" style="display:none"><button id="equipItemBtn">ITEM AUSRÜSTEN</button><button id="dropItemBtn">ITEM FALLEN LASSEN</button><button id="cancelItemBtn">ABBRECHEN</button></div><div style="margin-top:10px"><button id="closeInventoryBtn">SCHLIESSEN</button></div><p class="small">Wähle einen Slot und danach eine Aktion. Items auf dem Boden kannst du mit AKTION einsammeln.</p></div></div>
   <div id="lootToast"></div>
   <div id="objective" class="panel">Aufgabe: Finde 3 Versorgungskisten für den Soldaten.</div>
   <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>Shift: Sprinten</div>
@@ -77,6 +75,8 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
   <div id="message"></div>
   <button id="interact">AKTION</button>
 </div>
+  <button id="inventoryOpenBtn" type="button">🎒 INVENTAR</button>
+  <div id="inventoryModal"><div id="inventoryCard"><h2>🎒 INVENTAR</h2><div id="inventoryLabel">Wähle einen Slot.</div><div id="inventoryItems"></div><div id="itemActions" class="invActions" style="display:none"><button id="equipItemBtn">ITEM AUSRÜSTEN</button><button id="dropItemBtn">ITEM FALLEN LASSEN</button><button id="cancelItemBtn">ABBRECHEN</button></div><div style="margin-top:10px"><button id="closeInventoryBtn">SCHLIESSEN</button></div><p class="small">Wähle einen Slot und danach eine Aktion. Items auf dem Boden kannst du mit AKTION einsammeln.</p></div></div>
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
@@ -496,8 +496,11 @@ $('lookArea').addEventListener('pointermove',e=>{
 $('lookArea').addEventListener('pointerup',()=>draggingLook=false);
 $('lookArea').addEventListener('pointercancel',()=>draggingLook=false);
 
+function openInventory(e){if(e){e.preventDefault();e.stopPropagation()}$('inventoryModal').style.display='flex';$('inventoryModal').style.pointerEvents='auto';updateInventory()}
 $('inventoryOpenBtn').addEventListener('pointerdown',e=>{e.stopPropagation()});
-$('inventoryOpenBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();$('inventoryModal').style.display='flex';updateInventory()});
+$('inventoryOpenBtn').addEventListener('pointerup',openInventory);
+$('inventoryOpenBtn').addEventListener('click',openInventory);
+$('inventoryOpenBtn').addEventListener('touchend',openInventory,{passive:false});
 $('closeInventoryBtn').addEventListener('click',()=>{$('inventoryModal').style.display='none';$('itemActions').style.display='none'});
 $('cancelItemBtn').addEventListener('click',()=>{$('itemActions').style.display='none'});
 $('equipItemBtn').addEventListener('click',()=>{if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','medicine','ammo'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',medicine:'Medizin',ammo:'Munition'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
