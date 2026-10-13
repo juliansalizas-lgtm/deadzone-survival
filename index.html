@@ -188,10 +188,25 @@ function tree(x,z,s=1){
  const c3=cube(g,-.05,4.9,0,1.15,1.35,1.15,leaf);
  c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;
 }
-for(let i=0;i<80;i++){
- let x=(Math.random()-.5)*112,z=(Math.random()-.5)*112;
- if(Math.abs(x)<22&&z>-27&&z<17)continue;
- tree(x,z,.7+Math.random()*.75);
+function onRoad(x,z){return Math.abs(x)<5.2||Math.abs(x+48)<4.2||Math.abs(x-48)<4.2||Math.abs(z-38)<5.2||Math.abs(z+52)<4.8}
+for(let i=0;i<105;i++){
+ let x,z,tries=0;do{x=(Math.random()-.5)*220;z=(Math.random()-.5)*220;tries++}while((onRoad(x,z)||(Math.abs(x)<22&&z>-27&&z<17))&&tries<30);
+ if(!onRoad(x,z))tree(x,z,.7+Math.random()*.9);
+}
+// Unterholz, Grasbüschel und Blumen – niemals mitten auf der Straße.
+for(let i=0;i<280;i++){
+ const x=(Math.random()-.5)*430,z=(Math.random()-.5)*430;
+ if(onRoad(x,z)||Math.abs(x)>238||Math.abs(z)>238)continue;
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const green=[0x3e7337,0x507f3e,0x668c43,0x47703b][Math.floor(Math.random()*4)];
+ if(i%5===0){ // kleine Büsche
+   for(let j=0;j<3;j++){const b=cube(g,(Math.random()-.5)*.65,.25+Math.random()*.12,(Math.random()-.5)*.55,.45,.45,.45,mat(green));b.rotation.y=Math.random()*2}
+ }else if(i%4===0){ // Blumen mit Stängel und Blüte
+   cube(g,0,.16,0,.045,.32,.045,mat(0x4b843b));
+   cube(g,0,.34,0,.16,.12,.16,mat([0xe8c6ed,0xf2d55b,0xd96c77,0xf0eee1][Math.floor(Math.random()*4)]));
+ }else{ // Grasbüschel
+   for(let j=0;j<3;j++){const blade=cube(g,(Math.random()-.5)*.2,.16,(Math.random()-.5)*.2,.045,.32,.045,mat(green));blade.rotation.z=(Math.random()-.5)*.65}
+ }
 }
 // rubble / boxes
 for(let i=0;i<22;i++){
@@ -221,7 +236,7 @@ let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=fal
 const keys={};
 let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false;
 const zombies=[], allies=[], supplies=[], droppedItems=[], hitParticles=[];
-let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0;
+let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0;
 const $=id=>document.getElementById(id);
 function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
 function updateHUD(){
@@ -449,11 +464,11 @@ function interact(){
   playTone(620,.12,'triangle',.06);
   message(`Kiste geplündert (${suppliesFound}/3).`,2.4);
   if(suppliesFound>=3)message('Alle Vorräte gefunden! Kehre zum Soldaten zurück.',4);
- }else if(near.type==='extraSoldier'){const es=near.obj;const need={food:['Nahrung',inventory.food,1],ammo:['Munition',inventory.ammo,5],medicine:['Medizin',inventory.medicine,1],water:['Wasser',inventory.water,1],money:['Geld',player.money,15],weapon:['eine Waffe',Object.values(inventory.weapons).reduce((a,b)=>a+b,0),1]}[es.mission];if(need[1]>=need[2]){if(es.mission==='food')inventory.food--;else if(es.mission==='ammo')inventory.ammo-=5;else if(es.mission==='medicine')inventory.medicine--;else if(es.mission==='water')inventory.water--;else if(es.mission==='money')player.money-=15;else {const wn=Object.keys(inventory.weapons).find(k=>inventory.weapons[k]>0);if(wn)inventory.weapons[wn]--;}es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length});message('Mission erfüllt: '+need[0]+' übergeben! Soldat folgt dir.');}else{message('Mission: Gib dem Soldaten '+need[2]+' '+need[0]+'.');} }else{
+ }else if(near.type==='extraSoldier'){const es=near.obj;const need={food:['Nahrung',inventory.food,1],ammo:['Munition',inventory.ammo,5],medicine:['Medizin',inventory.medicine,1],water:['Wasser',inventory.water,1],money:['Geld',player.money,15],weapon:['eine Waffe',Object.values(inventory.weapons).reduce((a,b)=>a+b,0),1]}[es.mission];if(need[1]>=need[2]){if(es.mission==='food')inventory.food--;else if(es.mission==='ammo')inventory.ammo-=5;else if(es.mission==='medicine')inventory.medicine--;else if(es.mission==='water')inventory.water--;else if(es.mission==='money')player.money-=15;else {const wn=Object.keys(inventory.weapons).find(k=>inventory.weapons[k]>0);if(wn)inventory.weapons[wn]--;}es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length});message('Mission erfüllt: '+need[0]+' übergeben! Soldat folgt dir.');saveProgress();}else{message('Mission: Gib dem Soldaten '+need[2]+' '+need[0]+'.');} }else{
   if(suppliesFound<3){message(`Soldat: Ich brauche noch ${3-suppliesFound} Versorgungskisten!`);return}
   soldier.recruited=true;
   const ally={group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length};
-  allies.push(ally);message('Mission erfüllt! Der Soldat schließt sich dir an.',4);
+  allies.push(ally);soldierRecruited=true;message('Mission erfüllt! Der Soldat schließt sich dir an.',4);saveProgress();
  }
  updateHUD();
 }
@@ -530,9 +545,12 @@ function showRestart(){
  $('startCard').querySelector('p').innerHTML='Du wurdest überwältigt. Starte neu und versuche, den Soldaten zu rekrutieren.';
 }
 function resetGame(){if(resettingGame)return;resettingGame=true;try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem('deadzone-survival-save-v11')}catch(e){};started=false;gameOver=false;location.replace(location.pathname+'?newgame='+Date.now())}
-const SAVE_KEY='deadzone-survival-save-v11';
-function saveProgress(){if(resettingGame)return;try{const data={player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
-function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.ammo=d.inventory.ammo??18;inventory.weapons=d.inventory.weapons||{Blaster:1}}if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[])createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label);camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();rebuildHandProp();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
+const SAVE_KEY='deadzone-survival-save-v18';
+function saveProgress(){if(resettingGame)return;try{const data={player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.ammo=d.inventory.ammo??18;inventory.weapons=d.inventory.weapons||{Blaster:1}}if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;
+ if(soldierRecruited&&!soldier.recruited){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length})}
+ if(Array.isArray(d.recruitedExtras))for(const i of d.recruitedExtras){const es=extraSoldiers[i];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length})}}
+ if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[])createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label);camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();rebuildHandProp();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
 window.addEventListener('pagehide',saveProgress);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveProgress()});setInterval(()=>{if(started&&!gameOver)saveProgress()},5000);
 
 window.addEventListener('deadzone-start',()=>{
@@ -600,7 +618,17 @@ function animate(){
  for(let i=hitParticles.length-1;i>=0;i--){const p=hitParticles[i];p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=5*dt;if(p.life<=0){scene.remove(p.mesh);hitParticles.splice(i,1)}}
  if(started&&!gameOver){
   fireCooldown=Math.max(0,fireCooldown-dt);
-  player.hunger=Math.max(0,player.hunger-dt*(.12+(autoJump? .20:0)+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);if(player.hunger<=0||player.water<=0)damagePlayer(2*dt);
+  player.hunger=Math.max(0,player.hunger-dt*(.12+(autoJump? .20:0)+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
+  if(player.water<=0){thirstDamageTimer+=dt;if(thirstDamageTimer>=5){thirstDamageTimer-=5;damagePlayer(20);message('Du verdurstest! Trinkwasser finden!',2)}}else thirstDamageTimer=0;
+  if(player.hunger<=0)damagePlayer(2*dt);
+  // Zombies erscheinen laufend neu, mit Abstand zum Spieler und einer Leistungsgrenze.
+  zombieSpawnTimer+=dt;
+  if(zombieSpawnTimer>=3.5&&zombies.filter(z=>!z.dead).length<42){
+    zombieSpawnTimer=0;
+    let sx=player.pos.x,sz=player.pos.z,tries=0;
+    do{const a=Math.random()*Math.PI*2,r=32+Math.random()*38;sx=player.pos.x+Math.cos(a)*r;sz=player.pos.z+Math.sin(a)*r;tries++}while((blockedAt(sx,sz)||Math.hypot(sx-player.pos.x,sz-player.pos.z)<28)&&tries<20);
+    sx=Math.max(-238,Math.min(238,sx));sz=Math.max(-238,Math.min(238,sz));makeZombie(sx,sz);
+  }
   if(player.infected){player.infectionTime-=dt;if(player.infectionTime<=0){damagePlayer(8*dt);message('Infektion verschlimmert sich! Medizin nötig!',1);}}
   player.vy-=15*dt;player.pos.y+=player.vy*dt;if(player.pos.y<=1.7){player.pos.y=1.7;player.vy=0;player.onGround=true;}
   if(autoJump&&player.onGround&&(mobileMove.y<-.15||Math.abs(mobileMove.x)>.15||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD)){jump()}
