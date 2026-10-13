@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Deadzone – Zombie Survival Prototyp</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111;font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#fff}
+canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none}
+.panel{background:rgba(10,15,13,.72);border:1px solid rgba(255,255,255,.17);border-radius:12px;padding:10px 13px;backdrop-filter:blur(5px);text-shadow:0 1px 2px #000}
+#status{position:absolute;left:14px;top:14px;min-width:180px;font-size:14px}
+#healthOuter{height:9px;background:#4c2424;border-radius:10px;overflow:hidden;margin-top:6px}
+#health{height:100%;width:100%;background:#c9493e;transition:width .15s}
+#objective{position:absolute;left:50%;top:14px;transform:translateX(-50%);max-width:min(480px,70vw);text-align:center;font-size:14px}
+#help{position:absolute;right:14px;top:14px;max-width:225px;font-size:12px;line-height:1.5}
+#message{position:absolute;left:50%;bottom:19%;transform:translateX(-50%);font-weight:700;text-align:center;background:rgba(0,0,0,.65);border-radius:10px;padding:9px 14px;opacity:0;transition:opacity .2s;max-width:85vw}
+#crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:300;color:#fff;text-shadow:0 0 4px #000}
+#interact{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);pointer-events:auto;display:none}
+button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px}
+#mobileControls{display:none;position:fixed;inset:0;pointer-events:none}
+#stickBase{position:absolute;left:24px;bottom:28px;width:120px;height:120px;border-radius:50%;background:#ffffff20;border:2px solid #ffffff55;pointer-events:auto;touch-action:none}
+#stick{position:absolute;left:36px;top:36px;width:44px;height:44px;border-radius:50%;background:#ffffff9c;border:2px solid white}
+#lookArea{position:absolute;right:0;top:0;width:58%;height:75%;pointer-events:auto;touch-action:none}
+#mobileActions{position:absolute;right:20px;bottom:26px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
+#mobileActions button{width:94px;min-height:48px;background:#17251fe8}
+#startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,rgba(7,13,12,.94),rgba(24,32,27,.82)),radial-gradient(ellipse at center,#465347,#0a0d0b);z-index:5;padding:20px}
+#startCard{max-width:550px;width:100%;padding:28px;border:1px solid #ffffff2e;background:#111b17e8;border-radius:20px;box-shadow:0 20px 80px #0008}
+#startCard h1{margin:0 0 8px;font-size:clamp(28px,5vw,44px);letter-spacing:.04em}
+#startCard p{color:#cbd5ce;line-height:1.55}
+#startBtn{margin-top:10px;width:100%;padding:15px;background:#42674c;border:1px solid #87aa8e;font-size:16px}
+.small{font-size:12px;color:#aebbb2}
+@media (pointer:coarse){#mobileControls{display:block}#help{display:none}#objective{top:12px}#interact{bottom:170px}}
+</style>
+</head>
+<body>
+<div id="startScreen">
+  <div id="startCard">
+    <div class="small">SPIELBARER PROTOTYP · VERSION 0.1</div>
+    <h1>DEADZONE</h1>
+    <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Er kann nicht endgültig sterben.</p>
+    <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
+    <button id="startBtn">SPIEL STARTEN</button>
+    <p class="small">Prototyp: einfache Platzhaltermodelle, noch keine finalen Animationen oder detaillierten Grafiken.</p>
+  </div>
+</div>
+<div id="hud">
+  <div id="status" class="panel"><b>ÜBERLEBEN</b><div id="healthLabel">Leben: 100</div><div id="healthOuter"><div id="health"></div></div><div id="ammoLabel">Munition: ∞</div><div id="allyLabel">Verbündete: 0</div></div>
+  <div id="objective" class="panel">Aufgabe: Finde 3 Versorgungskisten für den Soldaten.</div>
+  <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>Shift: Sprinten</div>
+  <div id="crosshair">+</div>
+  <div id="message"></div>
+  <button id="interact">AKTION</button>
+</div>
+<div id="mobileControls">
+  <div id="lookArea"></div>
+  <div id="stickBase"><div id="stick"></div></div>
+  <div id="mobileActions"><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button></div>
+</div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x9ba9a0);
+scene.fog = new THREE.Fog(0x9ba9a0, 34, 115);
+const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 180);
+camera.rotation.order = 'YXZ';
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0xdde8e4,0x394139,2.0));
+const sun = new THREE.DirectionalLight(0xffedcf,2.3);
+sun.position.set(-25,42,20); sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-55; sun.shadow.camera.right=55; sun.shadow.camera.top=55; sun.shadow.camera.bottom=-55;
+scene.add(sun);
+
+const mat=(color,roughness=.9,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+const grass=mat(0x4e6048), dirt=mat(0x514d40), concrete=mat(0x666a65), dark=mat(0x242a28), wood=mat(0x554638), leaf=mat(0x344b37), leaf2=mat(0x465b3c), bark=mat(0x514236), metal=mat(0x555f5c,.65,.35), crateMat=mat(0x7b6848), skin=mat(0x9baf83), uniform=mat(0x3d5147), pants=mat(0x343f3b), zombieSkin=mat(0x71836b), zombieCloth=mat(0x514b45), red=mat(0x732e28);
+const boxGeo=new THREE.BoxGeometry(1,1,1);
+function cube(parent, x,y,z, sx,sy,sz, material, cast=true) {
+ const m=new THREE.Mesh(boxGeo,material); m.position.set(x,y,z); m.scale.set(sx,sy,sz); m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m;
+}
+function groundPatch(x,z,w,d,material,y=.015){return cube(scene,x,y,z,w,.08,d,material,false)}
+groundPatch(0, -4, 150, 150, grass,-.12);
+groundPatch(0, 2, 13, 92, dirt,-.055);
+groundPatch(-4, 0, 25, 22, concrete,-.01);
+// Road edge and scattered slabs
+for(let z=-42;z<45;z+=8){cube(scene,0,.002,z,0.22,.02,3.2,mat(0xb2ad92),false)}
+// low hills / perimeter rocks
+for(let i=0;i<28;i++){
+ const a=i/28*Math.PI*2, r=53+(i%3)*3;
+ const rock=cube(scene,Math.cos(a)*r,1.1,Math.sin(a)*r,5+Math.random()*5,2+Math.random()*5,5+Math.random()*6,mat(i%2?0x596257:0x666a5c));
+ rock.rotation.y=Math.random()*2;
+}
+// Buildings
+function building(x,z,w,d,h,color=0x797c74){
+ const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
+ cube(g,0,h/2,0,w,h,d,mat(color));
+ cube(g,0,h+.18,0,w+.5,.36,d+.5,dark);
+ for(let xx=-w/2+1;xx<w/2;xx+=2.4){cube(g,xx,h*.62,d/2+.012,.9,1.1,.06,mat(0x2b3938))}
+ return g;
+}
+building(-10,-5,9,9,4.2,0x747970);
+building(9,-15,12,8,4.5,0x686f6a);
+building(14,8,7,7,3.5,0x77786d);
+// entrance and barrier
+cube(scene,-1,1.4,-14,10,2.8,.5,mat(0x4a554e));
+cube(scene,-1,2.95,-14,10,.25,.65,metal);
+for(let x=-5;x<=3;x+=2) cube(scene,x,1.25,-13.65,.16,2.5,.18,metal);
+for(let x=-7;x<=7;x+=2.3) {cube(scene,x,.65,-22,1.2,1.3,1.2,crateMat); cube(scene,x,.66,-22,1.23,.12,1.23,wood)}
+// sandbags
+for(let i=0;i<8;i++){const s=cube(scene,-7+i*1.05,.38,-8,.95,.65,.62,mat(0x8a826d));s.rotation.y=(i%2)*.1}
+// Trees, with simple layered canopy
+function tree(x,z,s=1){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
+ cube(g,0,1.4,0,.48,2.8,.48,bark);
+ const c1=cube(g,0,3.0,0,2.6,2.2,2.6,leaf);
+ const c2=cube(g,.1,4.1,.05,1.9,1.8,1.9,leaf2);
+ const c3=cube(g,-.05,4.9,0,1.15,1.35,1.15,leaf);
+ c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;
+}
+for(let i=0;i<80;i++){
+ let x=(Math.random()-.5)*112,z=(Math.random()-.5)*112;
+ if(Math.abs(x)<22&&z>-27&&z<17)continue;
+ tree(x,z,.7+Math.random()*.75);
+}
+// rubble / boxes
+for(let i=0;i<22;i++){
+ const x=(Math.random()-.5)*38,z=(Math.random()-.5)*42;
+ if(Math.abs(x)<5&&z>-25&&z<8)continue;
+ const r=cube(scene,x,.3,z,.5+Math.random()*1.2,.5+Math.random()*1.4,.5+Math.random(),i%3?crateMat:concrete);
+ r.rotation.y=Math.random()*Math.PI;
+}
+// Player and camera
+const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true};
+camera.position.copy(player.pos);
+let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false;
+const keys={};
+let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false;
+const zombies=[], allies=[], supplies=[];
+let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0;
+const $=id=>document.getElementById(id);
+function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
+function updateHUD(){
+ $('healthLabel').textContent='Leben: '+Math.max(0,Math.ceil(player.health));
+ $('health').style.width=Math.max(0,player.health)+'%';
+ $('allyLabel').textContent='Verbündete: '+allies.length;
+ $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3) und hilf dem Soldaten.`;
+}
+function makePerson(isZombie=false){
+ const g=new THREE.Group();
+ const body=cube(g,0,1.05,0,.62, .9,.34,isZombie?zombieCloth:uniform);
+ const head=cube(g,0,1.78,0,.43,.43,.42,isZombie?zombieSkin:skin);
+ const legs=[];
+ for(const x of [-.18,.18])legs.push(cube(g,x,.43,0,.22,.68,.25,isZombie?zombieCloth:pants));
+ const arms=[];
+ for(const x of [-.42,.42])arms.push(cube(g,x,1.12,0,.2,.78,.23,isZombie?zombieSkin:uniform));
+ if(!isZombie){cube(g,0,1.8,.218,.24,.05,.02,mat(0x2b302c));}
+ else {cube(g,-.11,1.82,.216,.07,.05,.025,red);cube(g,.11,1.82,.216,.07,.05,.025,red);}
+ g.userData={body,head,legs,arms,isZombie};
+ return g;
+}
+function makeZombie(x,z){
+ const g=makePerson(true);g.position.set(x,0,z);scene.add(g);
+ const obj={group:g,hp:100,speed:1.25+Math.random()*.45,attack:0,dead:false};
+ zombies.push(obj);return obj;
+}
+for(let i=0;i<7;i++){
+ let x,z; do{x=(Math.random()-.5)*46;z=(Math.random()-.5)*46;}while(Math.hypot(x,z-12)<13);
+ makeZombie(x,z);
+}
+// Supply crates
+function makeSupply(x,z){
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ cube(g,0,.48,0,1.0,.9,.9,crateMat);
+ for(const y of [.2,.7]) cube(g,0,y,.461,1.02,.08,.04,metal);
+ cube(g,0,1.0,0,.25,.12,.25,mat(0xb2a36d));
+ supplies.push({group:g,found:false});
+}
+makeSupply(-13,4);makeSupply(12,1);makeSupply(4,-27);
+// Soldier at camp
+const soldierGroup=makePerson(false);soldierGroup.position.set(2,0,-8);scene.add(soldierGroup);
+const soldier={group:soldierGroup, recruited:false, health:100, attack:0, home:new THREE.Vector3(2,0,-8), bob:0};
+function distanceXZ(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
+function nearInteractable(){
+ let best=null,bd=3.2;
+ for(const s of supplies){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'supply',obj:s,d};bd=d}}
+ if(!soldier.recruited){const d=distanceXZ(player.pos,soldier.group.position);if(d<bd){best={type:'soldier',obj:soldier,d};bd=d}}
+ return best;
+}
+function interact(){
+ if(!started)return;
+ const near=nearInteractable();
+ if(!near){message('Nichts in Reichweite.');return}
+ if(near.type==='supply'){
+  near.obj.found=true;near.obj.group.visible=false;suppliesFound++;
+  message(`Versorgung gefunden (${suppliesFound}/3).`);
+  if(suppliesFound>=3)message('Alle Vorräte gefunden! Kehre zum Soldaten zurück.',4);
+ }else{
+  if(suppliesFound<3){message(`Soldat: Ich brauche noch ${3-suppliesFound} Versorgungskisten!`);return}
+  soldier.recruited=true;
+  const ally={group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length};
+  allies.push(ally);message('Mission erfüllt! Der Soldat schließt sich dir an.',4);
+ }
+ updateHUD();
+}
+function shoot(){
+ if(!started||gameOver||fireCooldown>0)return;
+ fireCooldown=.28;
+ // small muzzle flash
+ const origin=camera.position.clone();
+ const dir=new THREE.Vector3();camera.getWorldDirection(dir);
+ const ray=new THREE.Raycaster(origin,dir,0,42);
+ const candidates=[];
+ for(const z of zombies)if(!z.dead){z.group.traverse(o=>{if(o.isMesh)candidates.push(o)})}
+ const hits=ray.intersectObjects(candidates,false);
+ if(hits.length){
+  const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
+  if(target){target.hp-=50;target.group.rotation.z=.04;if(target.hp<=0){target.dead=true;scene.remove(target.group);message('Zombie ausgeschaltet!');}}
+ }else{message('Daneben!',.7)}
+}
+function damagePlayer(amount){
+ if(gameOver)return;player.health-=amount;updateHUD();
+ if(player.health<=0){player.health=0;gameOver=true;message('Du bist überwältigt. Tippe auf SPIEL NEU STARTEN.',999);showRestart()}
+}
+function showRestart(){
+ const b=$('startBtn');b.textContent='SPIEL NEU STARTEN';$('startScreen').style.display='flex';
+ $('startCard').querySelector('p').innerHTML='Du wurdest überwältigt. Starte neu und versuche, den Soldaten zu rekrutieren.';
+}
+function resetGame(){location.reload()}
+$('startBtn').addEventListener('click',()=>{
+ if(gameOver){resetGame();return}
+ started=true;$('startScreen').style.display='none';lastTime=performance.now();
+ if(matchMedia('(pointer:fine)').matches && renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();
+ message('Finde die 3 Versorgungskisten. Der Soldat wartet im Lager.',4);
+});
+document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement});
+document.addEventListener('mousemove',e=>{
+ if(!started||gameOver)return;
+ if(pointerLocked){player.yaw-=e.movementX*.0022;player.pitch-=e.movementY*.0022;player.pitch=Math.max(-1.45,Math.min(1.45,player.pitch))}
+});
+document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')interact();if(e.code==='Space')e.preventDefault();});
+document.addEventListener('keyup',e=>keys[e.code]=false);
+renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(pointer:coarse)').matches&&!pointerLocked&&renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();else if(started)shoot()});
+$('interact').addEventListener('click',interact);
+$('actionBtn').addEventListener('click',interact);
+$('fireBtn').addEventListener('touchstart',e=>{e.preventDefault();shoot()},{passive:false});
+$('fireBtn').addEventListener('click',shoot);
+$('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
+$('runBtn').addEventListener('touchend',()=>sprinting=false);
+const base=$('stickBase'),stick=$('stick');
+let stickId=null;
+base.addEventListener('pointerdown',e=>{stickId=e.pointerId;base.setPointerCapture(stickId);moveStick(e)});
+base.addEventListener('pointermove',e=>{if(e.pointerId===stickId)moveStick(e)});
+function moveStick(e){
+ const r=base.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+ let dx=e.clientX-cx,dy=e.clientY-cy;const max=37,len=Math.hypot(dx,dy);
+ if(len>max){dx=dx/len*max;dy=dy/len*max}
+ stick.style.left=(36+dx)+'px';stick.style.top=(36+dy)+'px';mobileMove={x:dx/max,y:dy/max};
+}
+function resetStick(){stickId=null;stick.style.left='36px';stick.style.top='36px';mobileMove={x:0,y:0}}
+base.addEventListener('pointerup',resetStick);base.addEventListener('pointercancel',resetStick);
+$('lookArea').addEventListener('pointerdown',e=>{draggingLook=true;lastLook={x:e.clientX,y:e.clientY};$('lookArea').setPointerCapture(e.pointerId)});
+$('lookArea').addEventListener('pointermove',e=>{
+ if(!draggingLook||!started)return;
+ const dx=e.clientX-lastLook.x,dy=e.clientY-lastLook.y;lastLook={x:e.clientX,y:e.clientY};
+ player.yaw-=dx*.004;player.pitch-=dy*.004;player.pitch=Math.max(-1.35,Math.min(1.35,player.pitch));
+});
+$('lookArea').addEventListener('pointerup',()=>draggingLook=false);
+$('lookArea').addEventListener('pointercancel',()=>draggingLook=false);
+
+const clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04);
+ if(started&&!gameOver){
+  fireCooldown=Math.max(0,fireCooldown-dt);
+  // PC or mobile movement, relative to camera direction
+  let forward=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
+  let side=(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
+  const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
+  const sprint=sprinting||keys.ShiftLeft||keys.ShiftRight;
+  const speed=player.speed*(sprint?1.55:1);
+  player.pos.x+=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
+  player.pos.z+=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
+  player.pos.x=Math.max(-48,Math.min(48,player.pos.x));player.pos.z=Math.max(-48,Math.min(48,player.pos.z));
+  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+  // Zombie AI
+  for(const z of zombies){
+   if(z.dead)continue;
+   const p=z.group.position,d=distanceXZ(player.pos,p);let target=player.pos,nearest=d;
+   for(const a of allies){const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position}}
+   if(nearest>1.35){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;p.x+=dx/dd*z.speed*dt;p.z+=dz/dd*z.speed*dt;z.group.rotation.y=Math.atan2(dx,dz);}
+   else if(target===player.pos){z.attack-=dt;if(z.attack<=0){damagePlayer(7);z.attack=1.05}}
+  }
+  // Allies follow player, attack closest zombie; they never die
+  for(let i=0;i<allies.length;i++){
+   const a=allies[i],g=a.group;const back= new THREE.Vector3(Math.sin(player.yaw),0,Math.cos(player.yaw));
+   const desired=new THREE.Vector3(player.pos.x+back.x*(2+i*.8)+Math.cos(i*2)*1.1,0,player.pos.z+back.z*(2+i*.8)+Math.sin(i*2)*1.1);
+   if(distanceXZ(g.position,desired)>1.2){g.position.x+=(desired.x-g.position.x)*Math.min(1,dt*2.6);g.position.z+=(desired.z-g.position.z)*Math.min(1,dt*2.6)}
+   let nearest=null,nd=16;
+   for(const z of zombies){if(z.dead)continue;const d=distanceXZ(g.position,z.group.position);if(d<nd){nd=d;nearest=z}}
+   if(nearest){g.rotation.y=Math.atan2(nearest.group.position.x-g.position.x,nearest.group.position.z-g.position.z);a.attack-=dt;if(a.attack<=0){nearest.hp-=25;a.attack=1.0;if(nearest.hp<=0){nearest.dead=true;scene.remove(nearest.group);message('Dein Verbündeter hat einen Zombie ausgeschaltet!',1.5)}}}
+  }
+  // soldier waits until recruited
+  if(!soldier.recruited)soldier.group.rotation.y=Math.sin(performance.now()*.0005)*.12;
+  const near=nearInteractable();
+  $('interact').style.display=near?'block':'none';
+  $('actionBtn').textContent=near?'AKTION':'AKTION';
+  if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
+  updateHUD();
+ }
+ renderer.render(scene,camera);
+}
+animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>
