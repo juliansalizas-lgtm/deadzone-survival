@@ -51,18 +51,32 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #lootToast{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;text-align:center;background:#101a16e8;border:1px solid #ffffff35;border-radius:12px;padding:12px 16px;opacity:0;transition:opacity .2s;pointer-events:none}
 .lootIcon{color:#d9c58c;font-weight:800}
 @media (pointer:coarse){#mobileControls{display:block}#help{display:none}#objective{top:12px}#interact{bottom:170px}}
+
+/* v2.0 TOUCH FIX: Die WebGL-Leinwand darf keine Bedienknöpfe überdecken. */
+html,body{position:relative;isolation:isolate;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+canvas{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:auto}
+#hud{z-index:10!important;pointer-events:none!important}
+#hud button,#interact,#aimBtn{pointer-events:auto!important;position:relative;z-index:12!important;touch-action:manipulation}
+#mobileControls{z-index:20!important;pointer-events:none!important}
+#stickBase,#lookArea,#mobileActions{pointer-events:auto!important}
+#mobileActions{z-index:25!important}
+#mobileActions button{position:relative;z-index:26!important;pointer-events:auto!important;touch-action:manipulation}
+#inventoryOpenBtn{z-index:10000!important;pointer-events:auto!important;touch-action:manipulation!important}
+#inventoryModal{z-index:10001!important;pointer-events:auto!important}
+#inventoryCard,#inventoryCard button,#inventoryItems button,button{pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#startScreen{z-index:20000!important}
 </style>
 </head>
 <body>
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 1.5</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 2.0</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Er kann nicht endgültig sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button>
-    <p class="small">Version 1.7: größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 2.0: Tag-Nacht-Zyklus, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
@@ -86,6 +100,9 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 <script type="module">
 window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
 window.addEventListener('unhandledrejection', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Ladefehler: '+(e.reason?.message||String(e.reason)||'Unbekannter Fehler');}});
+// Safari/iPad: prevent double-tap and gesture zoom from interrupting gameplay.
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
+let lastTouchEnd=0;document.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTouchEnd<330)e.preventDefault();lastTouchEnd=now;},{passive:false});
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const scene = new THREE.Scene();
@@ -136,11 +153,37 @@ function blockedAt(x,z){const r=.42;return solidObstacles.some(o=>x+r>o.x-o.hx&&
 
 // Buildings
 function building(x,z,w,d,h,color=0x797c74){
- const g=new THREE.Group(); g.position.set(x,0,z); scene.add(g);
- addObstacle(x,z,w/2,d/2);
- cube(g,0,h/2,0,w,h,d,mat(color));
- cube(g,0,h+.18,0,w+.5,.36,d+.5,dark);
- for(let xx=-w/2+1;xx<w/2;xx+=2.4){cube(g,xx,h*.62,d/2+.012,.9,1.1,.06,mat(0x2b3938))}
+ const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ // Roofless shell so the player can enter and see the furnished interior.
+ const wall=mat(color), inside=mat(0x5e6259), floor=mat(0x77756b);
+ cube(g,0,.08,0,w,.16,d,floor,false);
+ const th=.28, doorW=Math.min(2.0,w*.28), frontZ=d/2-th/2;
+ // back wall and side walls
+ cube(g,0,h/2,-d/2,w,h,th,wall);
+ cube(g,-w/2+th/2,h/2,0,th,h,d,wall);
+ cube(g,w/2-th/2,h/2,0,th,h,d,wall);
+ // front wall with an actual doorway gap
+ const sideW=(w-doorW)/2;
+ cube(g,-(doorW/2+sideW/2),h/2,frontZ,sideW,h,th,wall);
+ cube(g, (doorW/2+sideW/2),h/2,frontZ,sideW,h,th,wall);
+ cube(g,0,h-.22,frontZ,doorW,.44,th,wall);
+ addObstacle(x,z-d/2,w/2,.22); addObstacle(x-w/2,z,.22,d/2); addObstacle(x+w/2,z,.22,d/2);
+ addObstacle(x-doorW/2-sideW/2,z+d/2,sideW/2,.22); addObstacle(x+doorW/2+sideW/2,z+d/2,sideW/2,.22);
+ // Furniture: bed, table, shelves and a storage cabinet; collision boxes included.
+ const bedX=-w*.24, bedZ=-d*.20;
+ cube(g,bedX,.35,bedZ,Math.min(2.4,w*.32),.45,Math.min(3,d*.28),mat(0x51473f));
+ cube(g,bedX,.62,bedZ-.15,Math.min(2.2,w*.29),.18,Math.min(2.5,d*.23),mat(0x9b9b89));
+ addObstacle(x+bedX,z+bedZ,.75,.9);
+ const tx=w*.22,tz=d*.18;
+ cube(g,tx,.72,tz,Math.min(1.4,w*.2),.14,Math.min(1.2,d*.18),wood);
+ for(const dx of [-.48,.48])for(const dz of [-.38,.38])cube(g,tx+dx,.36,tz+dz,.1,.7,.1,wood);
+ addObstacle(x+tx,z+tz,.65,.6);
+ const cabX=w*.27,cabZ=-d*.27;
+ cube(g,cabX,.8,cabZ,Math.min(1.0,w*.16),1.6,.65,mat(0x62513f));
+ cube(g,cabX,.8,cabZ+.34,Math.min(.7,w*.11),.08,.03,metal);
+ addObstacle(x+cabX,z+cabZ,.45,.4);
+ // Window panels
+ for(const xx of [-w*.22,w*.22])cube(g,xx,h*.64,-d/2-.012,.9,.85,.035,mat(0x283b3e,.35,.1),false);
  return g;
 }
 building(-10,-5,9,9,4.2,0x747970);
@@ -236,7 +279,7 @@ let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=fal
 const keys={};
 let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false;
 const zombies=[], allies=[], supplies=[], droppedItems=[], hitParticles=[];
-let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0;
+let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0, worldTime=.23;
 const $=id=>document.getElementById(id);
 function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
 function updateHUD(){
@@ -320,7 +363,13 @@ function rebuildHandProp(){
    const neck=new THREE.Mesh(new THREE.CylinderGeometry(.028,.035,.06,10),mat(0x9bc6d4));neck.position.set(0,.16,-.035);handProp.add(neck);
    cube(handProp,0,.2,-.035,.065,.035,.065,mat(0xd8d5bd));cube(handProp,0,.015,.04,.08,.12,.012,mat(0x9de3ef,.2,.1));
  }else if(id==='medicine'){
-   cube(handProp,0,.01,-.035,.2,.17,.12,mat(0xe5e5d8));cube(handProp,0,.01,-.102,.085,.085,.025,mat(0x4eaa66));cube(handProp,0,.01,-.12,.03,.055,.015,mat(0xe5e5d8));
+   // Visible wrist and a first-aid kit with a raised cross.
+   cube(handProp,-.045,-.085,.02,.16,.10,.22,mat(0x9baf83));
+   cube(handProp,0,.015,-.035,.22,.18,.14,mat(0xe9e9dd));
+   cube(handProp,0,.015,-.112,.11,.105,.025,mat(0x268c52));
+   cube(handProp,0,.015,-.13,.035,.075,.018,mat(0xf5f5e8));
+   cube(handProp,0,.015,-.133,.075,.03,.018,mat(0xf5f5e8));
+   cube(handProp,-.075,-.005,-.04,.035,.12,.11,mat(0x4d9862));
  }else if(id==='ammo'){
    for(let i=0;i<4;i++){const b=cube(handProp,(i-1.5)*.052,0,0,.035,.13,.04,mat(0xc49b4b,.5,.25));b.rotation.z=.06}
  }else if(id.startsWith('weapon:')){
@@ -503,12 +552,13 @@ function jump(){if(started&&!gameOver&&player.onGround){player.vy=7.1;player.onG
 $('jumpBtn').addEventListener('click',()=>{autoJump=!autoJump;$('jumpBtn').classList.toggle('active',autoJump);$('jumpBtn').textContent=autoJump?'AUTO-SPRUNG AN':'AUTO-SPRUNG AUS';if(autoJump)jump()});
 function shoot(){
  if(!started||gameOver||fireCooldown>0)return;
- if(ammoLoaded<=0){
+ const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
+ const unlimitedLaser=wstats.kind==='greenlaser'||wstats.kind==='pinklaser';
+ if(!unlimitedLaser&&ammoLoaded<=0){
    if(inventory.ammo>0){const load=Math.min((weaponStats[equippedWeapon]||weaponStats.Blaster).mag,inventory.ammo);inventory.ammo-=load;ammoLoaded=load;updateInventory();message('Nachgeladen: '+load+' Schuss.',1.2);playTone(280,.12,'square',.035);}
    else {message('Keine Munition! Durchsuche weitere Kisten.',1.5);playTone(130,.08,'sawtooth',.025);return;}
  }
- const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
- ammoLoaded--;updateInventory();fireCooldown=wstats.cooldown;
+ if(!unlimitedLaser){ammoLoaded--;updateInventory()} fireCooldown=wstats.cooldown;
  flashTime=.08;muzzle.visible=true;flashLight.intensity=4;
  playTone(180,.09,'sawtooth',.045);
 
@@ -520,8 +570,14 @@ function shoot(){
  const beamColor=wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='sniper'?0xffdca0:0xffd36a;
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
- const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:beamColor,transparent:true,opacity:.95}));
- scene.add(beam);setTimeout(()=>{scene.remove(beam);beamGeo.dispose();beam.material.dispose()},wstats.kind?160:70);
+ const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:beamColor,transparent:true,opacity:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
+ scene.add(beam);
+ let beamGlow=null;
+ if(wstats.kind==='greenlaser'||wstats.kind==='pinklaser'||wstats.kind==='shock'){
+   beamGlow=new THREE.Mesh(new THREE.CylinderGeometry(.055,.11,origin.distanceTo(beamEnd),8,1,true),new THREE.MeshBasicMaterial({color:beamColor,transparent:true,opacity:.38,blending:THREE.AdditiveBlending,depthWrite:false}));
+   beamGlow.position.copy(origin).add(beamEnd).multiplyScalar(.5);beamGlow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir);scene.add(beamGlow);
+ }
+ setTimeout(()=>{scene.remove(beam);beamGeo.dispose();beam.material.dispose();if(beamGlow){scene.remove(beamGlow);beamGlow.geometry.dispose();beamGlow.material.dispose()}},wstats.kind?230:90);
  $('crosshair').style.color='#'+beamColor.toString(16).padStart(6,'0');
  setTimeout(()=>$('crosshair').style.color='#fff',180);
  const candidates=[];
@@ -533,6 +589,15 @@ function shoot(){
    target.hp-=wstats.damage;target.group.rotation.z=.04;
    if(wstats.kind==='shock'){target.stunned=5;message('Zombie geschockt! 5 Sekunden betäubt.',1.2);}
    if(wstats.kind==='sniper')message('Sniper-Treffer!',.7);
+   if(wstats.kind==='greenlaser'){
+    for(let a=0;a<7;a++){
+      const p1=new THREE.Vector3(target.group.position.x+(Math.random()-.5)*.9,.5+Math.random()*1.8,target.group.position.z+(Math.random()-.5)*.7);
+      const p2=new THREE.Vector3(p1.x+(Math.random()-.5)*.7,p1.y+(Math.random()-.5)*.8,p1.z+(Math.random()-.5)*.7);
+      const geo=new THREE.BufferGeometry().setFromPoints([p1,p2]);
+      const arc=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x54ff64,transparent:true,opacity:1}));
+      scene.add(arc);shotVisuals.push({obj:arc,life:.18+Math.random()*.18,geo,material:arc.material});
+    }
+   }
    for(let i=0;i<5;i++){const p=cube(scene,target.group.position.x+(Math.random()-.5)*.6,1.1+Math.random()*.7,target.group.position.z+(Math.random()-.5)*.5,.07,.07,.07,mat(0xa93632),false);hitParticles.push({mesh:p,life:.35,vx:(Math.random()-.5)*2,vy:1+Math.random()*1.5,vz:(Math.random()-.5)*2})}if(target.hp<=0){target.dead=true;dropZombieLoot(target.group.position);scene.remove(target.group);message('Zombie ausgeschaltet!');}}
  }else{message('Daneben!',.7)}
 }
@@ -546,8 +611,8 @@ function showRestart(){
 }
 function resetGame(){if(resettingGame)return;resettingGame=true;try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem('deadzone-survival-save-v11')}catch(e){};started=false;gameOver=false;location.replace(location.pathname+'?newgame='+Date.now())}
 const SAVE_KEY='deadzone-survival-save-v18';
-function saveProgress(){if(resettingGame)return;try{const data={player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
-function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.ammo=d.inventory.ammo??18;inventory.weapons=d.inventory.weapons||{Blaster:1}}if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;
+function saveProgress(){if(resettingGame)return;try{const data={worldTime,player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.ammo=d.inventory.ammo??18;inventory.weapons=d.inventory.weapons||{Blaster:1}}if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;
  if(soldierRecruited&&!soldier.recruited){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length})}
  if(Array.isArray(d.recruitedExtras))for(const i of d.recruitedExtras){const es=extraSoldiers[i];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,immortal:true,offset:allies.length})}}
  if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[])createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label);camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();rebuildHandProp();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
@@ -577,6 +642,7 @@ $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
+document.querySelectorAll('button').forEach(btn=>btn.addEventListener('pointerdown',e=>e.stopPropagation()));
 
 $('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
 $('runBtn').addEventListener('touchend',()=>sprinting=false);
@@ -602,21 +668,44 @@ $('lookArea').addEventListener('pointerup',()=>draggingLook=false);
 $('lookArea').addEventListener('pointercancel',()=>draggingLook=false);
 
 function openInventory(e){if(e){e.preventDefault();e.stopPropagation()}$('inventoryModal').style.display='flex';$('inventoryModal').style.pointerEvents='auto';updateInventory()}
-$('inventoryOpenBtn').addEventListener('pointerdown',e=>{e.stopPropagation()});
-$('inventoryOpenBtn').addEventListener('pointerup',openInventory);
 $('inventoryOpenBtn').addEventListener('click',openInventory);
-$('inventoryOpenBtn').addEventListener('touchend',openInventory,{passive:false});
+$('inventoryOpenBtn').addEventListener('pointerdown',e=>{e.stopPropagation()});
 $('closeInventoryBtn').addEventListener('click',()=>{$('inventoryModal').style.display='none';$('itemActions').style.display='none'});
 $('cancelItemBtn').addEventListener('click',()=>{$('itemActions').style.display='none'});
 $('equipItemBtn').addEventListener('click',()=>{if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','medicine','ammo'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',medicine:'Medizin',ammo:'Munition'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
 $('dropItemBtn').addEventListener('click',()=>{let label=selectedItem,count=1;if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(!inventory.weapons[w])return;inventory.weapons[w]--;label=w;createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},w);if(equippedWeapon===w){equippedWeapon='Blaster';selectedItem='weapon:Blaster'}}else if(selectedItem==='ammo'){if(inventory.ammo<=0)return;inventory.ammo=Math.max(0,inventory.ammo-5);count=5;label='Munition';createGroundItem('ammo',count,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else if(['food','water','medicine'].includes(selectedItem)){if(inventory[selectedItem]<=0)return;inventory[selectedItem]--;label=selectedItem==='food'?'Essen':selectedItem==='water'?'Trinkwasser':'Medizin';createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else return;message(label+' fallengelassen.');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress()});
 loadProgress();
 const clock=new THREE.Clock();
+// One full day/night cycle is about four minutes.
+const daySky=new THREE.Color(0x9ba9a0),nightSky=new THREE.Color(0x101a2b),dayFog=new THREE.Color(0x9ba9a0),nightFog=new THREE.Color(0x101a2b);
+function updateDayNight(dt){
+ worldTime=(worldTime+dt/240)%1;
+ const phase=worldTime*Math.PI*2-Math.PI/2;
+ const daylight=Math.max(0,Math.sin(phase));
+ const dawn=Math.max(0,1-Math.abs(worldTime-.25)*8),dusk=Math.max(0,1-Math.abs(worldTime-.75)*8);
+ sun.position.set(Math.cos(phase)*80,Math.sin(phase)*75,25);
+ sun.intensity=.16+daylight*2.1;
+ sun.color.setHex((dawn+dusk)>.2?0xffb16a:0xffedcf);
+ scene.background.copy(daySky).lerp(nightSky,1-daylight);
+ scene.fog.color.copy(dayFog).lerp(nightFog,1-daylight);
+ for(const o of scene.children){if(o.isHemisphereLight)o.intensity=.25+daylight*1.75;}
+ renderer.toneMappingExposure=.72+daylight*.35;
+}
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04);
+ if(started&&!gameOver)updateDayNight(dt);
+ for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.life<=0){scene.remove(v.obj);v.geo.dispose();v.material.dispose();shotVisuals.splice(i,1)}else v.material.opacity=Math.max(0,v.life*5)}
  for(let i=hitParticles.length-1;i>=0;i--){const p=hitParticles[i];p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-=5*dt;if(p.life<=0){scene.remove(p.mesh);hitParticles.splice(i,1)}}
  if(started&&!gameOver){
+  // Loot drops are collected automatically when the player walks over them.
+  for(const d of droppedItems){
+   if(d.found||distanceXZ(player.pos,d.group.position)>=1.15)continue;
+   d.found=true;scene.remove(d.group);
+   if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count;message('Aufgesammelt: '+w,1.1);}
+   else if(['medicine','food','water','ammo'].includes(d.item)){inventory[d.item]=(inventory[d.item]||0)+d.count;message('Aufgesammelt: '+(d.label||d.item),1.1);}
+   updateInventory();saveProgress();
+  }
   fireCooldown=Math.max(0,fireCooldown-dt);
   player.hunger=Math.max(0,player.hunger-dt*(.12+(autoJump? .20:0)+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
   if(player.water<=0){thirstDamageTimer+=dt;if(thirstDamageTimer>=5){thirstDamageTimer-=5;damagePlayer(20);message('Du verdurstest! Trinkwasser finden!',2)}}else thirstDamageTimer=0;
