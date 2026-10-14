@@ -643,6 +643,39 @@ function playTone(freq=540,duration=.09,type='sine',volume=.045){
     osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);
   }catch(e){}
 }
+function playWeaponSound(kind='rifle'){
+  // Layered synthesized game audio: short transient plus a weapon-specific tonal tail.
+  try{
+    const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+    const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();
+    const now=ctx.currentTime;
+    const presets={
+      colossus:{f:72,d:.34,t:'sawtooth',v:.12,tail:46},
+      shadow:{f:410,d:.22,t:'triangle',v:.065,tail:760},
+      acid:{f:190,d:.24,t:'sawtooth',v:.075,tail:115},
+      throwingKnife:{f:880,d:.11,t:'triangle',v:.035,tail:520},
+      melee:{f:115,d:.14,t:'triangle',v:.065,tail:75},
+      rocket:{f:95,d:.36,t:'sawtooth',v:.11,tail:58},
+      sniper:{f:105,d:.24,t:'square',v:.09,tail:65},
+      laser:{f:660,d:.13,t:'sine',v:.045,tail:990},
+      default:{f:145,d:.17,t:'sawtooth',v:.07,tail:92}
+    };
+    const k=kind==='greenlaser'||kind==='pinklaser'||kind==='plasma'||kind==='shock'?'laser':(presets[kind]?kind:'default');
+    const a=presets[k];
+    const osc=ctx.createOscillator(),gain=ctx.createGain();
+    osc.type=a.t;osc.frequency.setValueAtTime(a.f,now);osc.frequency.exponentialRampToValueAtTime(a.tail,now+a.d);
+    gain.gain.setValueAtTime(.001,now);gain.gain.linearRampToValueAtTime(a.v,now+.012);gain.gain.exponentialRampToValueAtTime(.001,now+a.d);
+    osc.connect(gain);gain.connect(ctx.destination);osc.start(now);osc.stop(now+a.d);
+    // Tiny filtered noise burst gives gunshots and impacts a punchier attack.
+    if(['default','colossus','sniper','rocket','melee'].includes(k)){
+      const n=Math.floor(ctx.sampleRate*.075),buf=ctx.createBuffer(1,n,ctx.sampleRate),data=buf.getChannelData(0);
+      for(let i=0;i<n;i++)data[i]=(Math.random()*2-1)*(1-i/n);
+      const src=ctx.createBufferSource(),ng=ctx.createGain(),filter=ctx.createBiquadFilter();
+      filter.type='lowpass';filter.frequency.value=k==='melee'?520:1700;ng.gain.setValueAtTime(k==='colossus'?.095:.045,now);ng.gain.exponentialRampToValueAtTime(.001,now+.075);
+      src.buffer=buf;src.connect(filter);filter.connect(ng);ng.connect(ctx.destination);src.start(now);src.stop(now+.075);
+    }
+  }catch(e){}
+}
 function lootToast(text){
   const el=$('lootToast');el.textContent=text;el.style.opacity='1';
   clearTimeout(lootToast.timer);lootToast.timer=setTimeout(()=>el.style.opacity='0',2100);
@@ -949,8 +982,8 @@ function shoot(){
    else {message(arrowWeapon?'Keine Pfeile! Suche Zombies oder Kisten ab.':(specialWeapon?'Keine Spezial-Laserzellen! Suche violette Munitionskisten.':'Keine Munition! Durchsuche weitere Kisten.'),1.5);playTone(130,.08,'sawtooth',.025);return;}
  }
  if(!meleeWeapon&&!infiniteAmmoWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
- flashTime=.08;muzzle.visible=true;flashLight.intensity=4;
- playTone(180,.09,'sawtooth',.045);player.noise=7;
+ flashTime=.08;muzzle.visible=true;flashLight.intensity=4;player.weaponKick=Math.min(.09,(player.weaponKick||0)+(wstats.kind==='colossus'?.075:.025));
+ playWeaponSound(meleeWeapon?'melee':wstats.kind==='throwingKnife'?'throwingKnife':wstats.kind);player.noise=7;
 
  // small muzzle flash
  const origin=camera.position.clone();
@@ -1249,10 +1282,23 @@ function animate(){
   for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z<=st.zStart+.5 && player.pos.z>=st.zEnd-.5 && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const stairY=st.baseY+t*(st.topY-st.baseY);if(stairY>=player.pos.y-.65&&stairY<=player.pos.y+1.1){player.pos.y=stairY;player.vy=0;player.onGround=true;}}}
   // Stockwerk-Böden fangen den Spieler zuverlässig auf; jede Etage bleibt begehbar.
   for(const f of buildingFloors){if(Math.abs(player.pos.x-f.x)<f.w/2-.45&&Math.abs(player.pos.z-f.z)<f.d/2-.45){const eyeY=f.y+1.7;if(player.vy<=0&&player.pos.y<=eyeY+.22&&player.pos.y>=eyeY-.95){player.pos.y=eyeY;player.vy=0;player.onGround=true;}}}
-  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
+  if(dynamicGun){dynamicGun.position.z=-.35+Math.sin(performance.now()*.012)*.008;dynamicGun.rotation.x=Math.sin(performance.now()*.009)*.012;}
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
   lanternBeam.position.copy(camera.position).add(new THREE.Vector3(-.28,-.18,0));lanternBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,24).add(new THREE.Vector3(0,-.28,0));lanternGlow.position.copy(camera.position).add(new THREE.Vector3(-.3,-.16,-.42));lanternBeam.visible=lanternEquipped;lanternGlow.visible=lanternEquipped;
+  // Subtle procedural zombie animation: uneven shamble, head sway and occasional distant groans.
+  for(const z of zombies){
+   if(z.dead)continue;
+   z.animClock=(z.animClock||Math.random()*6)+dt;
+   const moving=!!z.target || distanceXZ(z.group.position,player.pos)<24;
+   const wobble=Math.sin(z.animClock*(moving?8.5:2.3));
+   z.group.rotation.z=(z.group.rotation.z||0)*.92+(moving?wobble*.035:Math.sin(z.animClock)*.012);
+   if(!z.boss){const baseY=z.baseY??0;z.group.position.y=baseY+(moving?Math.abs(wobble)*.035:Math.sin(z.animClock*1.7)*.012);}
+   z.groanTimer=(z.groanTimer||3+Math.random()*6)-dt;
+   if(z.groanTimer<=0&&distanceXZ(z.group.position,player.pos)<16){z.groanTimer=7+Math.random()*9;playTone(72+Math.random()*32,.28,'sawtooth',.012);}
+  }
+  if(player.weaponKick>0){const kick=player.weaponKick;camera.rotation.x-=kick*.22;player.weaponKick=Math.max(0,kick-dt*.32);}
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
