@@ -110,7 +110,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
-  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button></div>
+  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
 <script type="module">
 window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
@@ -376,9 +376,9 @@ for(const b of biomeZones){
 }
 // Three marked boss locations. Their rewards are unique and only drop from their boss. Each arena has extra props and a clear boss spawn point.
 const bossSites=[
- {x:260,z:130,name:'Der Panzerkoloss',color:0x9b3b2f,weapon:'Kolossbrecher',icon:'🟥',hp:1600,speed:.72},
- {x:-265,z:-170,name:'Die Schattenkönigin',color:0x633f8f,weapon:'Schattenlanze',icon:'🟪',hp:1250,speed:1.15},
- {x:110,z:290,name:'Der Seuchenwächter',color:0x6b8a39,weapon:'Seuchenwerfer',icon:'🟩',hp:1900,speed:.62}
+ {x:260,z:130,name:'Der Panzerkoloss',color:0x9b3b2f,weapon:'Kolossbrecher',icon:'🟥',hp:3200,speed:1.12},
+ {x:-265,z:-170,name:'Die Schattenkönigin',color:0x633f8f,weapon:'Schattenlanze',icon:'🟪',hp:2800,speed:1.65},
+ {x:110,z:290,name:'Der Seuchenwächter',color:0x6b8a39,weapon:'Seuchenwerfer',icon:'🟩',hp:3800,speed:1.05}
 ];
 for(const site of bossSites){
  // Distinct, fortified arena with a colored beacon so players can spot it from afar.
@@ -500,7 +500,7 @@ const armorTypes=[{key:'helmet',label:'Helm',icon:'🪖'},{key:'chest',label:'Br
 const equippedArmor={helmet:null,chest:null,pants:null,boots:null};
 const itemRarities={Blaster:'common',medicine:'common',food:'common',water:'common',ammo:'common',arrows:'common',specialAmmo:'uncommon',lantern:'uncommon',grenades:'rare',nightVision:'epic'};
 const weaponRarities={Blaster:'common'};
-function ensureWeaponRarity(name){if(['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(name))weaponRarities[name]='mythic';else if(!weaponRarities[name])weaponRarities[name]=chooseRarity();return weaponRarities[name]}
+function ensureWeaponRarity(name){if(name==='Wurfmesser')weaponRarities[name]='epic';if(['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(name))weaponRarities[name]='mythic';else if(!weaponRarities[name])weaponRarities[name]=chooseRarity();return weaponRarities[name]}
 function ensureItemRarity(id){if(id.startsWith('weapon:'))return ensureWeaponRarity(id.slice(7));if(id.startsWith('armor:')){const a=inventory.armorPieces.find(x=>'armor:'+x.id===id);return a?.rarity||'common'}return itemRarities[id]||(itemRarities[id]=chooseRarity())}
 const rarities=['common','uncommon','rare','epic','legendary','mythic','ultra'];const rarityDE={common:'Common',uncommon:'Uncommon',rare:'Rare',epic:'Epic',legendary:'Legendary',mythic:'Mythic',ultra:'ULTRA'};
 function chooseRarity(){const r=Math.random();return r<.60?'common':r<.82?'uncommon':r<.94?'rare':r<.985?'epic':r<.997?'legendary':r<.9995?'mythic':'ultra';}
@@ -525,7 +525,7 @@ const weaponStats = {
  PlasmaPistole:{damage:38,cooldown:.24,mag:20,icon:'🟣',range:48,kind:'plasma'},
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
  Laserpistole:{damage:30,cooldown:.26,mag:18,icon:'🔴',range:42,kind:'pinklaser'},
- Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}, Seuchenwerfer:{damage:32,cooldown:.16,mag:999999,icon:'☣️',range:24,kind:'acid',price:0}, Kolossbrecher:{damage:9999,cooldown:5,mag:999999,icon:'💥',range:78,kind:'colossus',price:0}, Schattenlanze:{damage:185,cooldown:.55,mag:999999,icon:'🌌',range:62,kind:'shadow',price:0},
+ Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}, Seuchenwerfer:{damage:32,cooldown:.16,mag:999999,icon:'☣️',range:24,kind:'acid',price:0}, Kolossbrecher:{damage:9999,cooldown:5,mag:999999,icon:'💥',range:78,kind:'colossus',price:0}, Schattenlanze:{damage:95,cooldown:.55,mag:999999,icon:'🌌',range:62,kind:'shadow',price:0}, Wurfmesser:{damage:72,cooldown:.85,mag:1,icon:'🗡️',range:36,kind:'throwingKnife',rarity:'epic'},
  Stock:{damage:18,cooldown:.42,mag:1,icon:'👊',range:2.3,kind:'melee'}, Baseballschläger:{damage:34,cooldown:.62,mag:1,icon:'🏏',range:3.1,kind:'melee'}, Brecheisen:{damage:42,cooldown:.72,mag:1,icon:'🛠️',range:2.8,kind:'melee'}, Rohrzange:{damage:30,cooldown:.55,mag:1,icon:'🔧',range:2.5,kind:'melee'}, Küchenmesser:{damage:27,cooldown:.28,mag:1,icon:'🔪',range:1.8,kind:'melee'}, Machete:{damage:48,cooldown:.48,mag:1,icon:'🗡️',range:2.7,kind:'melee'}, Axt:{damage:58,cooldown:.78,mag:1,icon:'🪓',range:2.7,kind:'melee'}, 'Feuerwehr-Axt':{damage:72,cooldown:.9,mag:1,icon:'🪓',range:2.9,kind:'melee'}, Katana:{damage:68,cooldown:.52,mag:1,icon:'⚔️',range:3.0,kind:'melee'}, Speer:{damage:45,cooldown:.6,mag:1,icon:'🔱',range:3.8,kind:'melee'}, Hammer:{damage:52,cooldown:.7,mag:1,icon:'🔨',range:2.5,kind:'melee'}, Vorschlaghammer:{damage:88,cooldown:1.05,mag:1,icon:'🔨',range:2.8,kind:'melee'}, Kettenkeule:{damage:62,cooldown:.82,mag:1,icon:'⛓️',range:3.2,kind:'melee'}, MacheteMk2:{damage:59,cooldown:.4,mag:1,icon:'🗡️',range:2.9,kind:'melee'}, TaktischesMesser:{damage:36,cooldown:.24,mag:1,icon:'🔪',range:2.0,kind:'melee'}, Elektroschlagstock:{damage:40,cooldown:.42,mag:1,icon:'⚡',range:2.4,kind:'melee'}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
@@ -730,13 +730,13 @@ const tradeCatalog={
  ammo:{label:'Munition x30',icon:'📦',price:225,kind:'ammo',count:30},specialAmmo:{label:'Spezialmunition x20',icon:'⚡',price:450,kind:'specialAmmo',count:20},
  medicine:{label:'Medizin',icon:'🧪',price:450,kind:'medicine',count:1},food:{label:'Militär-Ration',icon:'🥫',price:175,kind:'food',count:1},water:{label:'Wasserflasche',icon:'💧',price:140,kind:'water',count:1},grenades:{label:'Granate',icon:'💣',price:1200,kind:'grenades',count:1},
  lantern:{label:'Militär-Laterne',icon:'🏮',price:625,kind:'lantern',count:1},nightVision:{label:'Nachtsichtgerät',icon:'🟢',price:6250,kind:'nightVision',count:1},
- weapon1:{label:'Sturmgewehr',icon:'🔫',price:4750,kind:'weapon',weapon:'Sturmgewehr'},weapon2:{label:'Schrotblaster',icon:'💥',price:5750,kind:'weapon',weapon:'Schrotblaster'},weapon3:{label:'Präzisionsgewehr',icon:'🎯',price:13000,kind:'weapon',weapon:'Präzisionsgewehr'},weapon4:{label:'Laserkarabiner',icon:'🟢',price:16000,kind:'weapon',weapon:'Laserkarabiner'},weapon5:{label:'Raketenwerfer',icon:'🚀',price:42500,kind:'weapon',weapon:'Raketenwerfer'},weapon6:{label:'Katana',icon:'⚔️',price:3900,kind:'weapon',weapon:'Katana'},weapon7:{label:'Feuerwehr-Axt',icon:'🪓',price:4900,kind:'weapon',weapon:'Feuerwehr-Axt'},weapon8:{label:'Vorschlaghammer',icon:'🔨',price:6250,kind:'weapon',weapon:'Vorschlaghammer'},glider:{label:'Taktischer Gleiter',icon:'🪂',price:1800,kind:'glider',count:1},armorRare:{label:'Seltene Rüstung',icon:'🛡️',price:7250,kind:'armor',rarity:'rare'},armorEpic:{label:'Epische Rüstung',icon:'🛡️',price:16000,kind:'armor',rarity:'epic'},armorLegendary:{label:'Legendäre Rüstung',icon:'🛡️',price:34000,kind:'armor',rarity:'legendary'},armorMythic:{label:'Mythische Rüstung',icon:'✨',price:72500,kind:'armor',rarity:'mythic'},armorUltra:{label:'ULTRA-Rüstung',icon:'🌌',price:350000,kind:'armor',rarity:'ultra'}
+ weapon1:{label:'Sturmgewehr',icon:'🔫',price:4750,kind:'weapon',weapon:'Sturmgewehr'},weapon2:{label:'Schrotblaster',icon:'💥',price:5750,kind:'weapon',weapon:'Schrotblaster'},weapon3:{label:'Präzisionsgewehr',icon:'🎯',price:13000,kind:'weapon',weapon:'Präzisionsgewehr'},weapon4:{label:'Laserkarabiner',icon:'🟢',price:16000,kind:'weapon',weapon:'Laserkarabiner'},weapon5:{label:'Raketenwerfer',icon:'🚀',price:42500,kind:'weapon',weapon:'Raketenwerfer'},weapon6:{label:'Katana',icon:'⚔️',price:3900,kind:'weapon',weapon:'Katana'},weapon7:{label:'Feuerwehr-Axt',icon:'🪓',price:4900,kind:'weapon',weapon:'Feuerwehr-Axt'}, throwingKnife:{label:'Wurfmesser',icon:'🗡️',price:950,kind:'weapon',weapon:'Wurfmesser'},weapon8:{label:'Vorschlaghammer',icon:'🔨',price:6250,kind:'weapon',weapon:'Vorschlaghammer'},glider:{label:'Taktischer Gleiter',icon:'🪂',price:1800,kind:'glider',count:1},armorRare:{label:'Seltene Rüstung',icon:'🛡️',price:7250,kind:'armor',rarity:'rare'},armorEpic:{label:'Epische Rüstung',icon:'🛡️',price:16000,kind:'armor',rarity:'epic'},armorLegendary:{label:'Legendäre Rüstung',icon:'🛡️',price:34000,kind:'armor',rarity:'legendary'},armorMythic:{label:'Mythische Rüstung',icon:'✨',price:72500,kind:'armor',rarity:'mythic'},armorUltra:{label:'ULTRA-Rüstung',icon:'🌌',price:350000,kind:'armor',rarity:'ultra'}
 };
 function offersForTrader(t){
  if(t.tradeOffers)return t.tradeOffers;
  const keysByMission={ammo:['ammo','specialAmmo','weapon1','weapon2'],medicine:['medicine','water','food','nightVision'],food:['food','water','medicine','ammo'],water:['water','food','medicine','ammo'],weapon:['weapon1','weapon2','weapon3','weapon6','weapon7'],money:['ammo','food','water','grenades']};
  const keys=keysByMission[t.mission]||['ammo','medicine','weapon1','weapon6'];
- const extra=['glider','grenades','lantern','nightVision','weapon3','weapon4','weapon5','weapon7','weapon8','armorRare','armorEpic','armorLegendary','armorMythic','armorUltra'];
+ const extra=['glider','grenades','lantern','nightVision','weapon3','weapon4','weapon5','weapon7','throwingKnife','weapon8','armorRare','armorEpic','armorLegendary','armorMythic','armorUltra'];
  const chosen=[...keys];
  const pool=extra.filter(k=>!chosen.includes(k));
  while(chosen.length<5){const i=Math.floor(Math.random()*pool.length);chosen.push(pool.splice(i,1)[0]);}
@@ -964,6 +964,10 @@ function shoot(){
  if(wstats.kind==='shadow'){for(let i=0;i<12;i++){const p=cube(scene,origin.x+(Math.random()-.5)*.5,origin.y+(Math.random()-.5)*.5,origin.z+(Math.random()-.5)*.5,.06,.06,.06,mat(i%2?0x9b43ff:0x39eaff),false);shotVisuals.push({obj:p,geo:p.geometry,material:p.material,life:.22+Math.random()*.2});}}
  if(wstats.kind==='acid'){const acidEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,24));const acidGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),acidEnd]);const acidLine=new THREE.Line(acidGeo,new THREE.LineBasicMaterial({color:0x6dff18,transparent:true,opacity:.95}));scene.add(acidLine);shotVisuals.push({obj:acidLine,geo:acidGeo,material:acidLine.material,life:.16});for(let i=0;i<20;i++){const t=.1+Math.random()*.9,pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,24)*t);const drop=cube(scene,pt.x+(Math.random()-.5)*.7,pt.y+(Math.random()-.5)*.55,pt.z+(Math.random()-.5)*.7,.055+Math.random()*.07,.07+Math.random()*.1,.055+Math.random()*.07,mat(Math.random()<.5?0x5dff16:0xb8ff42),false);shotVisuals.push({obj:drop,life:.15+Math.random()*.22,geo:drop.geometry,material:drop.material});}}
  if(wstats.kind==='flamethrower'){const flameEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,10));const flameGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),flameEnd]);const flameLine=new THREE.Line(flameGeo,new THREE.LineBasicMaterial({color:0xff7a16,transparent:true,opacity:.9}));scene.add(flameLine);shotVisuals.push({obj:flameLine,geo:flameGeo,material:flameLine.material,life:.12});for(let i=0;i<7;i++){const t=.15+Math.random()*.8;const pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,10)*t);const flame=cube(scene,pt.x+(Math.random()-.5)*.5,pt.y+(Math.random()-.5)*.5,pt.z+(Math.random()-.5)*.5,.12+Math.random()*.13,.12+Math.random()*.16,.12+Math.random()*.13,mat(Math.random()<.55?0xff6a12:0xffd33d),false);shotVisuals.push({obj:flame,life:.1+Math.random()*.16,geo:flame.geometry,material:flame.material});}}
+ if(wstats.kind==='throwingKnife'){
+  const knifeGroup=new THREE.Group();const blade=new THREE.Mesh(new THREE.BoxGeometry(.055,.34,.035),new THREE.MeshStandardMaterial({color:0xdce4e8,metalness:.8,roughness:.25}));blade.position.y=.11;const grip=new THREE.Mesh(new THREE.BoxGeometry(.065,.16,.055),new THREE.MeshStandardMaterial({color:0x33271f,roughness:.8}));grip.position.y=-.13;knifeGroup.add(blade,grip);knifeGroup.position.copy(origin).addScaledVector(dir,.65);scene.add(knifeGroup);
+  const end=origin.clone().addScaledVector(dir,Math.min(wstats.range,36));shotVisuals.push({obj:knifeGroup,life:.8,knifeReturn:true,start:knifeGroup.position.clone(),end,age:0});
+ }
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,meleeWeapon?2.1:22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
  const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:meleeWeapon?0xffe0a0:beamColor,transparent:true,opacity:meleeWeapon?.3:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
@@ -1077,7 +1081,7 @@ document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')int
 document.addEventListener('keyup',e=>keys[e.code]=false);
 renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(pointer:coarse)').matches&&!pointerLocked&&renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();else if(started)shoot()});
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&started&&pointerLocked)shotHeld=true});
-renderer.domElement.addEventListener('pointerdown',e=>{if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.15;gliderBoostCooldown=1.35;player.vy=Math.max(player.vy,-.25);message('🪂 BOOST! Du gleitest schneller!',.9)});
+
 window.addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();shotHeld=true;shoot()});
 $('aimBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon)){message('Rüste zuerst Scharfschützengewehr oder Sniper aus.',1.5);return}setSniperZoom(!sniperZoom)});
@@ -1090,6 +1094,10 @@ $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
+const gliderBoostBtn=$('gliderBoostBtn');
+function boostGlider(){if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.65;gliderBoostCooldown=2.4;player.vy=Math.max(player.vy,-.18);message('🪂 BOOST! Mehr Geschwindigkeit!',1.1);}
+if(gliderBoostBtn){gliderBoostBtn.addEventListener('click',boostGlider);gliderBoostBtn.addEventListener('pointerup',e=>{e.preventDefault();boostGlider()});}
+
 document.querySelectorAll('button').forEach(btn=>btn.addEventListener('pointerdown',e=>e.stopPropagation()));
 
 $('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
@@ -1248,6 +1256,17 @@ function animate(){
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
+   if(z.boss){
+    z.bossClock=(z.bossClock||0)+dt;
+    if(z.bossName==='Die Schattenkönigin'){
+     z.group.position.y=1.4+Math.sin(z.bossClock*2.1)*.75;
+     z.group.rotation.z=Math.sin(z.bossClock*1.5)*.08;
+     if(!z.bossPulse||z.bossPulse<=0){z.bossPulse=5.5;const center=z.group.position;for(let k=0;k<10;k++){const a=k*Math.PI/5,orb=cube(scene,center.x+Math.cos(a)*2,.8,center.z+Math.sin(a)*2,.18,.18,.18,mat(0xa94cff),false);hitParticles.push({mesh:orb,life:.9,vx:Math.cos(a)*1.4,vy:.3,vz:Math.sin(a)*1.4})}}else z.bossPulse-=dt;
+    }else if(z.bossName==='Der Seuchenwächter'){
+     z.group.position.y=Math.max(0,Math.sin(z.bossClock*1.7)*.22);
+     if(!z.bossPulse||z.bossPulse<=0){z.bossPulse=4.8;const p=z.group.position;const disk=new THREE.Mesh(new THREE.CircleGeometry(2.5,20),new THREE.MeshBasicMaterial({color:0x70ff26,transparent:true,opacity:.22,side:THREE.DoubleSide}));disk.rotation.x=-Math.PI/2;disk.position.set(p.x,.035,p.z);scene.add(disk);fireZones.push({x:p.x,z:p.z,age:0,life:2.4,smokeTimer:.2,disk,inner:disk})}else z.bossPulse-=dt;
+    }else{z.group.position.y=Math.max(0,Math.sin(z.bossClock*1.25)*.12)}
+   }
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
@@ -1298,6 +1317,8 @@ function animate(){
   // Ein-/Ausblenden der rekrutierten Soldaten; Aus blendet sie aus und pausiert ihre KI.
   for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;
   if(gliderVisual)gliderVisual.visible=gliderEquipped&&!player.onGround&&player.pos.y>4.2;
+  if(gliderBoostBtn){const canBoost=gliderEquipped&&!player.onGround&&player.pos.y>4.2;gliderBoostBtn.style.display=canBoost?'block':'none';gliderBoostBtn.disabled=gliderBoostCooldown>0;if(canBoost)gliderBoostBtn.textContent=gliderBoostCooldown>0?'BOOST '+gliderBoostCooldown.toFixed(1)+'s':'🪂 BOOSTEN';}
+
   const near=nearInteractable();
   refreshGiveWeaponButton();
   $('interact').style.display=near?'block':'none';
