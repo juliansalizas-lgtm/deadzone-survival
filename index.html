@@ -304,7 +304,7 @@ for(const site of bossSites){
 // Player and camera
 const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true,hunger:100,water:100,infected:false,infectionTime:0,money:0,vy:0,onGround:true};
 let selectedItem="medicine";
-let autoJump=false;
+const autoJump=false;
 camera.position.copy(player.pos);
 // Fiktiver, stilisierter Sci-Fi-Energieblaster als sichtbares First-Person-Modell
 const handRig=new THREE.Group();camera.add(handRig);handRig.position.set(.36,-.32,-.68);
@@ -657,7 +657,9 @@ function dropZombieLoot(pos){
  updateInventory();lootToast('Zombie hat Beute fallen gelassen: '+label+(n>1?' ×'+n:''));saveProgress();
 }
 function jump(){if(started&&!gameOver&&player.onGround){player.vy=7.1;player.onGround=false;player.hunger=Math.max(0,player.hunger-1.2);playTone(250,.06,'triangle',.02)}}
-$('jumpBtn').addEventListener('click',()=>{autoJump=!autoJump;$('jumpBtn').classList.toggle('active',autoJump);$('jumpBtn').textContent=autoJump?'AUTO-SPRUNG AN':'AUTO-SPRUNG AUS';if(autoJump)jump()});
+$('jumpBtn').textContent='SPRUNG';
+$('jumpBtn').classList.remove('active');
+$('jumpBtn').addEventListener('click',jump);
 function spawnEnergyProjectile(origin,dir,color,kind){
  const length=(kind==='rocket'||kind==='grenade')?Math.min(46,weaponStats[equippedWeapon]?.range||46):kind==='plasma'?26:kind==='pinklaser'?30:34;
  const end=origin.clone().add(dir.clone().multiplyScalar(length));
@@ -909,7 +911,7 @@ function animate(){
    updateInventory();saveProgress();
   }
   fireCooldown=Math.max(0,fireCooldown-dt);noiseTimer=Math.max(0,noiseTimer-dt);player.noise=Math.max(0,(player.noise||0)-dt);
-  player.hunger=Math.max(0,player.hunger-dt*(.12+(autoJump? .20:0)+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
+  player.hunger=Math.max(0,player.hunger-dt*(.12+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
   if(player.water<=0){thirstDamageTimer+=dt;if(thirstDamageTimer>=5){thirstDamageTimer-=5;damagePlayer(20);message('Du verdurstest! Trinkwasser finden!',2)}}else thirstDamageTimer=0;
   if(player.hunger<=0)damagePlayer(2*dt);
   // Zombies erscheinen laufend neu, mit Abstand zum Spieler und einer Leistungsgrenze.
@@ -948,7 +950,6 @@ function animate(){
    if(roofY!==null&&player.vy<0){player.pos.y=roofY;player.vy=0;player.onGround=true;}
    else if(player.pos.y<=1.7){player.pos.y=1.7;player.vy=0;player.onGround=true;}
   }
-  if(autoJump&&player.onGround&&!climbingLadder&&(mobileMove.y<-.15||Math.abs(mobileMove.x)>.15||keys.KeyW||keys.KeyA||keys.KeyS||keys.KeyD)){jump()}
   if(flashTime>0){flashTime-=dt;if(flashTime<=0){muzzle.visible=false;flashLight.intensity=0}}
   if(shotHeld&&fireCooldown<=0)shoot();
   // PC or mobile movement, relative to camera direction
