@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v4.7</title>
+<title>Deadzone Survival v4.8</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -42,7 +42,7 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #inventoryItems button.selected{border-color:#f4d35e;background:linear-gradient(145deg,#6a6947,#3b3b28);box-shadow:0 0 0 1px #f4d35e}
 #lootPanel .small{margin-top:6px;font-size:10px}
 #jumpBtn.active{background:#8b7530;border-color:#ffe36a;box-shadow:0 0 0 2px #ffe36a55}
-@media(max-width:700px){#aimBtn{display:block!important} #lootPanel{width:min(300px,70vw);max-height:27vh;bottom:8px;left:8px;padding:7px}#inventoryItems button{height:43px}#inventoryItems button .slotIcon{font-size:16px}#status{max-width:165px}}
+@media(max-width:700px){#lootPanel{width:min(300px,70vw);max-height:27vh;bottom:8px;left:8px;padding:7px}#inventoryItems button{height:43px}#inventoryItems button .slotIcon{font-size:16px}#status{max-width:165px}}
 
 #inventoryOpenBtn{position:fixed;right:14px;top:112px;z-index:10000;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;background:#26372de8;border:3px solid #d2dfc8;box-shadow:0 3px 14px #000b;min-height:48px} #inventoryOpenBtn:active{transform:scale(.97)}
 #inventoryModal{position:fixed;inset:0;z-index:10001;pointer-events:auto;display:none;align-items:center;justify-content:center;background:#000a;padding:12px}
@@ -87,7 +87,6 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>Shift: Sprinten · Leitern: beim Dagegenlaufen automatisch klettern</div>
   <div id="crosshair">+</div>
   <button id="soldierToggle" type="button" style="position:fixed;left:14px;bottom:78px;z-index:9000;background:#315d45">🪖 SOLDATEN: AN</button>
-  <button id="aimBtn" type="button" style="position:fixed;right:14px;bottom:165px;z-index:9000;display:none">🔭 ZIELEN</button>
   <div id="message"></div>
   <button id="interact">AKTION</button>
 </div>
@@ -96,7 +95,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
-  <div id="mobileActions"><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button></div>
+  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button></div>
 </div>
 <script type="module">
 window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
@@ -430,7 +429,7 @@ let equippedWeapon='Blaster', ammoLoaded = 12;
 function updateWeaponCrosshair(){
  const c=$('crosshair'); if(!c)return;
  const w=equippedWeapon;
- const aim=$('aimBtn'); if(aim){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(w);aim.style.display=canZoom?'block':'none';aim.style.position='fixed';aim.style.right='14px';aim.style.bottom='165px';aim.style.zIndex='9000';aim.textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';aim.setAttribute('aria-pressed',String(!!sniperZoom));}
+ const aim=$('aimBtn'); if(aim){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(w);aim.style.display=canZoom?'block':'none';aim.style.position='relative';aim.style.right='auto';aim.style.bottom='auto';aim.style.zIndex='26';aim.style.order='-1';aim.textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';aim.setAttribute('aria-pressed',String(!!sniperZoom));}
  if(w==='Schockpistole'){c.textContent='✣';c.style.color='#55aaff';c.style.textShadow='0 0 7px #168cff';}
  else if(w==='Laserkarabiner'){c.textContent='⊕';c.style.color='#48ff69';c.style.textShadow='0 0 7px #1aff42';}
  else if(w==='Laserpistole'){c.textContent='✛';c.style.color='#ff54dc';c.style.textShadow='0 0 7px #ff20cc';}
