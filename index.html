@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v5.4.9</title>
+<title>Deadzone Survival v5.6.0</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -20,6 +20,10 @@ canvas{display:block}
 #help{position:absolute;right:14px;top:14px;max-width:225px;font-size:12px;line-height:1.5}
 #message{position:absolute;left:50%;bottom:19%;transform:translateX(-50%);font-weight:700;text-align:center;background:rgba(0,0,0,.65);border-radius:10px;padding:9px 14px;opacity:0;transition:opacity .2s;max-width:85vw}
 #crosshair{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:300;color:#fff;text-shadow:0 0 4px #000}
+#hotbar{position:fixed;left:50%;bottom:8px;transform:translateX(-50%);display:grid;grid-template-columns:repeat(10,minmax(38px,52px));gap:4px;z-index:45;pointer-events:auto;width:max-content;max-width:96vw}
+.hotSlot{position:relative!important;min-width:0!important;width:100%;height:52px;padding:3px!important;border:2px solid #9da89b!important;border-radius:7px!important;background:rgba(15,22,18,.9)!important;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px!important;line-height:1.05;overflow:hidden}
+.hotSlot .hotIcon{font-size:19px;line-height:22px}.hotSlot .hotNum{position:absolute;left:3px;top:1px;font-size:9px;color:#d7e0d6}.hotSlot .hotCount{position:absolute;right:3px;bottom:1px;font-size:10px}.hotSlot.active{border-color:#ffe36a!important;box-shadow:0 0 0 2px #ffe36a,0 0 12px #ffe36a55;background:#4c4b2c!important}
+@media(max-width:700px){#hotbar{bottom:3px;grid-template-columns:repeat(10,minmax(26px,1fr));gap:2px;width:calc(100vw - 8px)}.hotSlot{height:44px;padding:1px!important;font-size:8px!important}.hotSlot .hotIcon{font-size:15px;line-height:17px}#waveHUD{top:58px;font-size:12px;min-width:190px;padding:7px 9px}#mobileActions{bottom:64px}}
 #interact{position:absolute;left:50%;bottom:9%;transform:translateX(-50%);pointer-events:auto;display:none}
 button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;border-radius:12px;padding:12px 16px;font-weight:700;font-size:14px}
 #mobileControls{display:none;position:fixed;inset:0;pointer-events:none;z-index:2}
@@ -77,7 +81,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 5.5.0</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 5.6.0</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>NEU v5.5:</b> Drei Boss-Strukturen mit Bossen und mehr Dekorationen auf der Karte.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
@@ -92,6 +96,8 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <div id="objective" class="panel">Aufgabe: Finde 3 Versorgungskisten für den Soldaten.</div>
   <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>Shift: Sprinten · Leitern: beim Dagegenlaufen automatisch klettern</div>
   <div id="crosshair">+</div>
+  <div id="waveHUD" class="panel" style="position:absolute;left:50%;top:58px;transform:translateX(-50%);min-width:220px;text-align:center;font-weight:800;z-index:40">Nächste Zombie-Welle in <span id="waveClock">03:00</span></div>
+  <div id="hotbar" aria-label="Hotbar mit zehn Slots"></div>
   <button id="soldierToggle" type="button" style="position:fixed;left:14px;bottom:78px;z-index:9000;background:#315d45">🪖 SOLDATEN: AN</button>
   <div id="message"></div>
   <button id="interact">AKTION</button>
@@ -444,7 +450,7 @@ const keys={};
 let mobileMove={x:0,y:0}, draggingLook=false, lastLook={x:0,y:0}, sprinting=false, sneaking=false, noiseTimer=0;
 const zombies=[], allies=[], supplies=[], droppedItems=[], hitParticles=[];
 let soldiersEnabled=true;
-let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0, worldTime=.23;
+let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thirstDamageTimer=0, zombieSpawnTimer=0, worldTime=.23, hotbarRefreshTimer=0;
 const $=id=>document.getElementById(id);
 function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
 function updateHUD(){
@@ -738,9 +744,77 @@ function updateInventory(){
   });
   $('inventoryItems').appendChild(b);
  }
+ refreshHotbar();
  const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
  $('ammoLabel').textContent=equippedWeapon+' · '+(specialWeapon?'Spezialzellen: '+ammoLoaded+' / '+inventory.specialAmmo:(arrowWeapon?'Pfeile: ':'Munition: ')+ammoLoaded+' / '+(arrowWeapon?inventory.arrows:inventory.ammo));
  $('survivalLabel').textContent='💰 Geld: '+player.money+(player.infected?' · ☣️ INFIZIERT':'');
+}
+
+
+// Ten-slot quick-select hotbar, rebuilt from items the player currently owns.
+const hotbarIds=[];let activeHotbarIndex=0;
+function collectHotbarItems(){
+ const list=[];
+ if(equippedWeapon&&inventory.weapons[equippedWeapon])list.push({id:'weapon:'+equippedWeapon,label:equippedWeapon,icon:weaponStats[equippedWeapon]?.icon||'🔫',count:inventory.weapons[equippedWeapon]});
+ for(const [name,count] of Object.entries(inventory.weapons||{}))if(name!==equippedWeapon&&count>0)list.push({id:'weapon:'+name,label:name,icon:weaponStats[name]?.icon||'🔫',count});
+ const misc=[['medicine','💊','Medizin'],['grenades','💣','Granaten'],['food','🍎','Essen'],['water','💧','Wasser'],['ammo','📦','Munition'],['specialAmmo','🟣','Spezialzellen'],['arrows','🏹','Pfeile'],['nightVision','🟢','Nachtsicht'],['lantern','🏮','Laterne'],['glider','🪂','Gleiter']];
+ for(const [id,icon,label] of misc)if((inventory[id]||0)>0)list.push({id,label,icon,count:inventory[id]});
+ for(const a of inventory.armorPieces||[])list.push({id:'armor:'+a.id,label:a.label,icon:a.icon||'🛡️',count:1});
+ return list.slice(0,10);
+}
+function refreshHotbar(){
+ const el=$('hotbar');if(!el)return;const items=collectHotbarItems();hotbarIds.length=0;items.forEach(x=>hotbarIds.push(x.id));el.innerHTML='';
+ for(let i=0;i<10;i++){
+  const it=items[i],b=document.createElement('button');b.type='button';b.className='hotSlot'+(i===activeHotbarIndex?' active':'');
+  if(it){b.innerHTML=`<span class="hotNum">${i+1}</span><span class="hotIcon">${it.icon}</span><span>${it.label}</span>${it.count>1?`<span class="hotCount">${it.count}</span>`:''}`;b.title=it.label;b.addEventListener('click',()=>selectHotbarItem(i));}
+  else {b.innerHTML=`<span class="hotNum">${i+1}</span><span style="opacity:.25">＋</span>`;b.disabled=true;}
+  el.appendChild(b);
+ }
+}
+function selectHotbarItem(index){
+ const items=collectHotbarItems(),it=items[index];if(!it)return;activeHotbarIndex=index;selectedItem=it.id;
+ if(it.id.startsWith('weapon:')){const w=it.id.slice(7);if(inventory.weapons[w]){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w]?.mag||12,weaponStats[w]?.mag||12);rebuildHandProp();message(w+' ausgewählt.',.9)}}
+ else {rebuildHandProp();if(it.id==='glider'&&inventory.glider>0)message('Gleiter ausgewählt. Im Inventar ausrüsten.',1.2);else message(it.label+' ausgewählt. Tippe auf AKTION, um es zu benutzen.',1.2)}
+ updateInventory();refreshHotbar();saveProgress();
+}
+window.addEventListener('keydown',e=>{if(!started||e.repeat)return;const n=Number(e.key);if(n>=1&&n<=9)selectHotbarItem(n-1);else if(e.key==='0')selectHotbarItem(9)});
+
+// Timed zombie waves: initial preparation 3–5 minutes; breaks between waves 3–7 minutes.
+const waveState={active:false,remaining:180+Math.random()*120,breakTime:0,number:0,difficulty:'',spawned:0,spawnLeft:0,clearMessage:0};
+const waveDifficulties=[
+ {name:'EINFACH',count:5,normal:1,brute:0,poison:0,mega:0},
+ {name:'MITTEL',count:8,normal:.65,brute:.2,poison:.15,mega:0},
+ {name:'HART',count:11,normal:.45,brute:.25,poison:.3,mega:0},
+ {name:'SCHWER',count:14,normal:.3,brute:.3,poison:.3,mega:.1},
+ {name:'SEHR SCHWER',count:17,normal:.2,brute:.3,poison:.3,mega:.2},
+ {name:'TÖDLICH',count:20,normal:.15,brute:.25,poison:.25,mega:.35}
+];
+function fmtClock(sec){sec=Math.max(0,Math.ceil(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function spawnWaveZombie(diff){
+ const a=Math.random()*Math.PI*2,r=27+Math.random()*16,x=Math.max(-370,Math.min(370,player.pos.x+Math.cos(a)*r)),zpos=Math.max(-370,Math.min(370,player.pos.z+Math.sin(a)*r));
+ const roll=Math.random();let kind='normal';if(roll<diff.mega)kind='mega';else if(roll<diff.mega+diff.poison)kind='poison';else if(roll<diff.mega+diff.poison+diff.brute)kind='brute';
+ const enemy=makeZombie(x,zpos);enemy.waveMember=true;enemy.waveKind=kind;enemy.waveNumber=waveState.number;
+ if(kind==='brute'){enemy.hp=260;enemy.maxHp=260;enemy.speed*=.72;enemy.group.scale.multiplyScalar(1.5);enemy.look.cloth=0x554b40;enemy.group.userData.body.material.color.setHex(0x65564b);enemy.group.userData.head.material.color.setHex(0x8b7968);}
+ if(kind==='poison'){enemy.hp=135;enemy.maxHp=135;enemy.speed*=.94;enemy.acidTimer=0;enemy.group.scale.multiplyScalar(1.12);enemy.group.userData.body.material.color.setHex(0x4a8d39);enemy.group.userData.head.material.color.setHex(0x8fe34c);enemy.wavePoison=true;}
+ if(kind==='mega'){enemy.hp=650;enemy.maxHp=650;enemy.speed*=1.22;enemy.group.scale.multiplyScalar(2.05);enemy.waveMega=true;enemy.megaLaserCooldown=2.5;enemy.group.userData.body.material.color.setHex(0x313a49);enemy.group.userData.head.material.color.setHex(0x697e9e);const eyes=mat(0x45e7ff);cube(enemy.group,-.23,3.55,.43,.13,.1,.06,eyes);cube(enemy.group,.23,3.55,.43,.13,.1,.06,eyes);}
+ waveState.spawned++;waveState.spawnLeft--;return enemy;
+}
+function beginZombieWave(){
+ waveState.active=true;waveState.number++;waveState.spawned=0;waveState.spawnLeft=0;
+ const diff=waveDifficulties[Math.min(waveDifficulties.length-1,Math.floor(Math.random()*waveDifficulties.length))];waveState.difficulty=diff.name;waveState.spawnLeft=diff.count;waveState.spawnTimer=.1;waveState.diff=diff;waveState.clearMessage=0;
+ $('waveHUD').style.borderColor=diff.name==='TÖDLICH'?'#ff3434':diff.name==='EINFACH'?'#72d77b':'#e4bd58';message(`ZOMBIE-WELLE ${waveState.number}: ${diff.name}!`,4);
+}
+function updateWaveSystem(dt){
+ const hud=$('waveHUD');if(!hud)return;
+ if(waveState.clearMessage>0){waveState.clearMessage-=dt;if(waveState.clearMessage<=0){waveState.breakTime=180+Math.random()*240;waveState.active=false;}}
+ if(!waveState.active){
+  if(waveState.number>0&&waveState.breakTime>0){waveState.breakTime-=dt;if(waveState.breakTime<=0){waveState.breakTime=0;beginZombieWave();return;}hud.innerHTML=`Wave ${waveState.number} besiegt · nächste Welle in <span id="waveClock">${fmtClock(waveState.breakTime)}</span>`;return;}
+  waveState.remaining-=dt;if(waveState.remaining<=0){beginZombieWave();}else{hud.innerHTML=`Nächste Zombie-Welle in <span id="waveClock">${fmtClock(waveState.remaining)}</span>`;}return;
+ }
+ if(waveState.spawnLeft>0){waveState.spawnTimer-=dt;if(waveState.spawnTimer<=0&&zombies.filter(z=>!z.dead).length<60){spawnWaveZombie(waveState.diff);waveState.spawnTimer=.65+Math.random()*.55;}}
+ const remaining=zombies.filter(z=>!z.dead&&z.waveMember&&z.waveNumber===waveState.number).length;
+ hud.innerHTML=`WELLE ${waveState.number} · ${waveState.difficulty}<br>Gegner übrig: ${remaining+waveState.spawnLeft}`;
+ if(waveState.spawnLeft===0&&remaining===0){waveState.active=false;waveState.clearMessage=4;hud.innerHTML=`<span style="color:#8cff9b">✓ WAVE BESIEGT!</span>`;message('WAVE BESIEGT! Bereite dich auf die nächste Welle vor.',4);waveState.remaining=0;waveState.breakTime=0;}
 }
 
 function makeSupply(x,z,index){
@@ -763,7 +837,7 @@ for(let i=0;i<14;i++){
  if(Math.random()<.72){for(let j=0;j<3;j++)cube(g,(Math.random()-.5)*.65,.58+Math.random()*.1,(Math.random()-.5)*.55,.25,.1,.25,leaf)}
  hiddenChests.push({group:g,found:false,index:i,hidden:true});
 }
-if(!selectedItem)selectedItem='weapon:'+equippedWeapon;updateInventory();rebuildHandProp();updateWeaponCrosshair();
+if(!selectedItem)selectedItem='weapon:'+equippedWeapon;updateInventory();refreshHotbar();rebuildHandProp();updateWeaponCrosshair();
 // Soldier at camp
 const soldierGroup=makePerson(false);soldierGroup.position.set(2,0,-8);scene.add(soldierGroup);
 const soldier={group:soldierGroup, recruited:false, health:100, attack:0, home:new THREE.Vector3(2,0,-8), bob:0, grade:{name:'Versorgungssoldat'}, mission:'ammo', tradeSeed:Math.random()};
@@ -1241,6 +1315,7 @@ function animate(){
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];if(v.expand){const grow=1+dt*10;v.obj.scale.multiplyScalar(grow);if(v.blastSize){const max=Math.max(v.obj.scale.x,v.obj.scale.y,v.obj.scale.z);if(max>v.blastSize)v.obj.scale.setScalar(v.blastSize)}v.obj.material.opacity=Math.max(0,v.life*1.8)}}
  for(let i=hitParticles.length-1;i>=0;i--){const p=hitParticles[i];p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-= (p.smoke?-.0:5)*dt;if(p.smoke){p.mesh.material.opacity=Math.max(0,p.life*.28);p.mesh.scale.multiplyScalar(1+dt*.55)}if(p.life<=0){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();hitParticles.splice(i,1)}}
  if(started&&!gameOver){
+  updateWaveSystem(dt);
   // Loot drops are collected automatically when the player walks over them.
   for(const d of droppedItems){
    if(d.found)continue;
@@ -1253,7 +1328,7 @@ function animate(){
    else {inventory[d.item]=(inventory[d.item]||0)+d.count;const pickupName=d.label||(d.item==='lantern'?'Laterne':d.item==='grenades'?'Granate':d.item==='specialAmmo'?'Spezial-Laserzellen':d.item);message('Du hast '+(d.item==='lantern'?'eine Laterne':d.item==='grenades'?'Granaten':pickupName)+' aufgesammelt!',2.0);}
    rebuildHandProp();updateInventory();saveProgress();
   }
-  fireCooldown=Math.max(0,fireCooldown-dt);noiseTimer=Math.max(0,noiseTimer-dt);player.noise=Math.max(0,(player.noise||0)-dt);
+  fireCooldown=Math.max(0,fireCooldown-dt);noiseTimer=Math.max(0,noiseTimer-dt);player.noise=Math.max(0,(player.noise||0)-dt);hotbarRefreshTimer-=dt;if(hotbarRefreshTimer<=0){hotbarRefreshTimer=.65;refreshHotbar();}
   player.hunger=Math.max(0,player.hunger-dt*(.12+(sprinting? .12:0)));player.water=Math.max(0,player.water-dt*.18);
   if(player.water<=0){thirstDamageTimer+=dt;if(thirstDamageTimer>=5){thirstDamageTimer-=5;damagePlayer(20);message('Du verdurstest! Trinkwasser finden!',2)}}else thirstDamageTimer=0;
   if(player.hunger<=0)damagePlayer(2*dt);
@@ -1342,6 +1417,10 @@ function animate(){
      z.group.position.y=Math.max(0,Math.sin(z.bossClock*1.7)*.22);
      if(!z.bossPulse||z.bossPulse<=0){z.bossPulse=4.8;const p=z.group.position;const disk=new THREE.Mesh(new THREE.CircleGeometry(2.5,20),new THREE.MeshBasicMaterial({color:0x70ff26,transparent:true,opacity:.22,side:THREE.DoubleSide}));disk.rotation.x=-Math.PI/2;disk.position.set(p.x,.035,p.z);scene.add(disk);fireZones.push({x:p.x,z:p.z,age:0,life:2.4,smokeTimer:.2,disk,inner:disk})}else z.bossPulse-=dt;
     }else{z.group.position.y=Math.max(0,Math.sin(z.bossClock*1.25)*.12)}
+   }
+   if(z.waveMega&&!z.dead){
+    z.megaLaserCooldown=(z.megaLaserCooldown||2)-dt;
+    if(z.megaLaserCooldown<=0&&distanceXZ(z.group.position,player.pos)<34){z.megaLaserCooldown=3.8;const start=new THREE.Vector3(z.group.position.x,z.group.position.y+2.6,z.group.position.z),end=new THREE.Vector3(player.pos.x,player.pos.y-.2,player.pos.z);const geo=new THREE.BufferGeometry().setFromPoints([start,end]);const beam=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x45e7ff,transparent:true,opacity:.95}));scene.add(beam);shotVisuals.push({obj:beam,geo,material:beam.material,life:.24});if(distanceXZ(z.group.position,player.pos)<24)damagePlayer(11);}
    }
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
