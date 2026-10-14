@@ -142,6 +142,18 @@ const sun = new THREE.DirectionalLight(0xffedcf,2.3);
 sun.position.set(-25,42,20); sun.castShadow=true;
 sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-55; sun.shadow.camera.right=55; sun.shadow.camera.top=55; sun.shadow.camera.bottom=-55;
 scene.add(sun);
+// Sichtbare Himmelskörper: Sonne, Mond und leichte Wolken aus einfachen 3D-Formen.
+const sunDisc=new THREE.Mesh(new THREE.SphereGeometry(4.2,18,14),new THREE.MeshBasicMaterial({color:0xffdf8a}));
+const sunGlow=new THREE.PointLight(0xffd58a,1.2,190,1.5); scene.add(sunDisc,sunGlow);
+const moonDisc=new THREE.Mesh(new THREE.SphereGeometry(3.2,18,14),new THREE.MeshStandardMaterial({color:0xe0e8f4,emissive:0x8ba6d8,emissiveIntensity:.75,roughness:1}));
+const moonLight=new THREE.DirectionalLight(0x9dbbff,.0); moonLight.castShadow=false; scene.add(moonDisc,moonLight);
+const cloudGroups=[];
+for(let ci=0;ci<13;ci++){
+ const cg=new THREE.Group(); const cloudMat=new THREE.MeshStandardMaterial({color:0xe3e8e8,roughness:1,transparent:true,opacity:.78,depthWrite:false});
+ const cx=(ci%5-2)*75+(Math.random()-.5)*24, cz=(Math.floor(ci/5)-1)*95+(Math.random()-.5)*28;
+ for(let j=0;j<4;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(4.5+Math.random()*3,9,7),cloudMat);puff.position.set((j-1.5)*5,Math.random()*1.8,Math.sin(j*1.7)*2);puff.scale.y=.42;cg.add(puff)}
+ cg.position.set(cx,53+Math.random()*15,cz);cg.userData.drift=.8+Math.random()*.8;scene.add(cg);cloudGroups.push(cg);
+}
 
 const mat=(color,roughness=.9,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const grass=mat(0x4e6048), dirt=mat(0x514d40), concrete=mat(0x666a65), dark=mat(0x242a28), wood=mat(0x554638), leaf=mat(0x344b37), leaf2=mat(0x465b3c), bark=mat(0x514236), metal=mat(0x555f5c,.65,.35), crateMat=mat(0x7b6848), skin=mat(0x9baf83), uniform=mat(0x3d5147), pants=mat(0x343f3b), zombieSkin=mat(0x71836b), zombieCloth=mat(0x514b45), red=mat(0x732e28);
@@ -537,8 +549,15 @@ function updateWeaponCrosshair(){
  else if(w==='Laserkarabiner'){c.textContent='⊕';c.style.color='#48ff69';c.style.textShadow='0 0 7px #1aff42';}
  else if(w==='Laserpistole'){c.textContent='✛';c.style.color='#ff54dc';c.style.textShadow='0 0 7px #ff20cc';}
  else if(/Sniper|Präzisions|Scharfschützen/i.test(w)){c.textContent='⌖';c.style.color='#ffe7b0';c.style.textShadow='0 0 4px #000';}
- else if(/Flinte/.test(w)){c.textContent='✳';c.style.color='#ffcf86';c.style.textShadow='0 0 4px #000';}
- else {c.textContent='+';c.style.color='#fff';c.style.textShadow='0 0 4px #000';}
+ else if(/Flinte|Schrot/i.test(w)){c.textContent='✳';c.style.color='#ffcf86';c.style.textShadow='0 0 4px #000';}
+ else if(w==='Kolossbrecher'){c.textContent='◎';c.style.color='#ff8a45';c.style.textShadow='0 0 8px #ff3c12';}
+ else if(w==='Schattenlanze'){c.textContent='◇';c.style.color='#c8a1ff';c.style.textShadow='0 0 8px #7c35ff';}
+ else if(w==='Seuchenwerfer'){c.textContent='☣';c.style.color='#8dff56';c.style.textShadow='0 0 8px #38ff16';}
+ else if(w==='Wurfmesser'||/Messer|Machete|Katana|Axt|Hammer|Speer|Brecheisen|Stock|Zange|Keule/i.test(w)){c.textContent='×';c.style.color='#d7e3e8';c.style.textShadow='0 0 5px #8fa4b1';}
+ else if(/Raketen|Granat/i.test(w)){c.textContent='⊙';c.style.color='#ffad62';c.style.textShadow='0 0 7px #ff6a20';}
+ else if(/Plasma/i.test(w)){c.textContent='⦿';c.style.color='#c58cff';c.style.textShadow='0 0 7px #9c45ff';}
+ else if(/Armbrust|Bogen/i.test(w)){c.textContent='⌑';c.style.color='#f1d6a4';c.style.textShadow='0 0 4px #000';}
+ else {c.textContent='⊹';c.style.color='#fff';c.style.textShadow='0 0 4px #000';}
 }
 let sniperZoom=false; const normalFov=74; function setSniperZoom(on){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon);sniperZoom=!!on&&canZoom;camera.fov=sniperZoom?22:normalFov;camera.updateProjectionMatrix();updateNightVisionEffect();updateWeaponCrosshair();$('aimBtn').textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';$('crosshair').style.fontSize=sniperZoom?'17px':'24px';if(sniperZoom)message('Zielfernrohr-Zoom aktiviert. Drücke Z oder ZIELEN zum Zurückzoomen.',1.5);}
 // Separate hand prop: the selected food, drink, medicine or weapon is shown in the player's hand.
@@ -630,6 +649,10 @@ const lootNames = {
  water: 'Trinkwasser',
  ammo: 'Ausrüstungsvorräte'
 };
+// Starte/entsperre WebAudio bereits bei der ersten Nutzerinteraktion, damit Schüsse nicht verspätet klingen.
+function unlockGameAudio(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();}catch(e){}}
+window.addEventListener('pointerdown',unlockGameAudio,{once:true,passive:true});
+window.addEventListener('touchstart',unlockGameAudio,{once:true,passive:true});
 function playTone(freq=540,duration=.09,type='sine',volume=.045){
   try{
     const Ctx=window.AudioContext||window.webkitAudioContext;
@@ -1192,7 +1215,14 @@ function updateDayNight(dt){
  const dusk=worldTime<=dayEnd&&worldTime>dayEnd-.09?Math.max(0,1-(dayEnd-worldTime)/.09):0;
  const sunAngle=worldTime<dayStart?Math.PI+(worldTime+1-dayEnd)/(1/3)*Math.PI:worldTime>dayEnd?Math.PI+(worldTime-dayEnd)/(1/3)*Math.PI:phase;
  sun.position.set(Math.cos(sunAngle)*80,Math.sin(sunAngle)*75,25);
- sun.intensity=.16+daylight*2.1;
+ sunDisc.position.copy(sun.position).multiplyScalar(1.65); sunGlow.position.copy(sunDisc.position);
+ sunDisc.visible=daylight>.025; sunGlow.intensity=daylight*1.25;
+ // Mond steht gegenüber der Sonne und spendet nachts weiches blau-silbriges Licht.
+ const moonAngle=sunAngle+Math.PI; moonDisc.position.set(Math.cos(moonAngle)*118,Math.sin(moonAngle)*95,-28);
+ moonDisc.visible=daylight<.72; moonLight.position.copy(moonDisc.position); moonLight.target.position.set(0,0,0); moonLight.target.updateMatrixWorld();
+ moonLight.intensity=(1-daylight)*.72; moonLight.visible=daylight<.92;
+ for(const cg of cloudGroups){cg.position.x+=dt*cg.userData.drift;if(cg.position.x>360)cg.position.x=-360;}
+ sun.intensity=.06+daylight*2.35;
  sun.color.setHex((dawn+dusk)>.2?0xffb16a:0xffedcf);
  scene.background.copy(daySky).lerp(nightSky,1-daylight);
  scene.fog.color.copy(dayFog).lerp(nightFog,1-daylight);
