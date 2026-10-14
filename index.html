@@ -383,7 +383,8 @@ const bossSites=[
 for(const site of bossSites){
  // Distinct, fortified arena with a colored beacon so players can spot it from afar.
  const shell=mat(site.color,.75,.18);const x=site.x,z=site.z;
- cube(scene,x,1.2,z-13,26,2.4,.7,shell);cube(scene,x-13,1.2,z, .7,2.4,26,shell);cube(scene,x+13,1.2,z,.7,2.4,26,shell);
+ // North side has a real, wide entrance: leave a 7-unit gap in both visuals and collision.
+ cube(scene,x-9.25,1.2,z-13,7.5,2.4,.7,shell);cube(scene,x+9.25,1.2,z-13,7.5,2.4,.7,shell);cube(scene,x-13,1.2,z, .7,2.4,26,shell);cube(scene,x+13,1.2,z,.7,2.4,26,shell);
  for(let k=-1;k<=1;k++){cube(scene,x+k*8,2.7,z-13,1.2,.6,.9,metal);cube(scene,x-13,2.7,z+k*8,.9,.6,1.2,metal);cube(scene,x+13,2.7,z+k*8,.9,.6,1.2,metal)}
  const beacon=new THREE.PointLight(site.color,2.8,62,2);beacon.position.set(x,7,z);scene.add(beacon);
  // Tall, unmistakable colored beacon above each arena.
@@ -403,7 +404,8 @@ for(const site of bossSites){
  }
  // Keep the arena entrance readable; barriers only occupy the perimeter.
  // Boss-Name wird nicht mehr als schwebendes Namensschild angezeigt.
- addObstacle(x, z-13, 13, .55); addObstacle(x-13,z,.55,13); addObstacle(x+13,z,.55,13); addObstacle(x,z+13,13,.55); addObstacle(x,z-13, .8,.8);
+ // Collision matches the opening above; the middle of the north wall is deliberately passable.
+ addObstacle(x-9.25,z-13,3.75,.55); addObstacle(x+9.25,z-13,3.75,.55); addObstacle(x-13,z,.55,13); addObstacle(x+13,z,.55,13); addObstacle(x,z+13,13,.55);
 }
 
 // Player and camera
