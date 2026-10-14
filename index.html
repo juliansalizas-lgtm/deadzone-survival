@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v3.8</title>
+<title>Deadzone Survival v4.7</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -76,7 +76,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
-    <p class="small">Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 4.7: Zoom für Scharfschützengewehr und Sniper über sichtbare Taste, Z-Taste oder rechte Maustaste repariert. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
@@ -148,7 +148,7 @@ for(let i=0;i<68;i++){
  rock.rotation.y=Math.random()*2;
 }
 // Hindernisse muessen vor dem Aufbau der Gebaeude initialisiert sein.
-const solidObstacles=[]; const wallSurfaces=[]; const houseZones=[]; const houseDoors=[]; const houseLadders=[]; let climbingLadder=null;
+const solidObstacles=[]; const wallSurfaces=[]; const houseZones=[]; const houseDoors=[]; const houseLadders=[]; const stairZones=[]; let climbingLadder=null;
 function addObstacle(x,z,hx,hz){const o={x,z,hx,hz,active:true};solidObstacles.push(o);return o}
 function blockedAt(x,z,r=.42){return solidObstacles.some(o=>o.active!==false&&x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
 
@@ -170,8 +170,9 @@ function building(x,z,w,d,h,color=0x797c74){
  wallSurfaces.push(cube(g,0,h-.22,frontZ,doorW,.44,th,wall));
  // Hinged wooden door; closed doors block both the player and zombies.
  const doorPivot=new THREE.Group();doorPivot.position.set(-doorW/2,0,d/2+.035);g.add(doorPivot);
- const doorMesh=cube(doorPivot,doorW/2,h/2,0,doorW,h*.92,.16,mat(0x59412e));
- for(let k=1;k<4;k++)cube(doorPivot,doorW/2,h*k/4,.085,doorW*.92,.045,.025,mat(0x806044));
+ const doorH=Math.min(2.35,h*.52);
+ const doorMesh=cube(doorPivot,doorW/2,doorH/2,0,doorW,doorH,.16,mat(0x59412e));
+ for(let k=1;k<4;k++)cube(doorPivot,doorW/2,doorH*k/4,.085,doorW*.92,.045,.025,mat(0x806044));
  const doorObstacle=addObstacle(x,z+d/2,doorW/2,.42);doorObstacle.active=true;
  const door={pivot:doorPivot,open:false,obstacle:doorObstacle,x:x,z:z+d/2,doorW};houseDoors.push(door);
  addObstacle(x,z-d/2,w/2,th/2+.12);
@@ -199,8 +200,34 @@ function building(x,z,w,d,h,color=0x797c74){
  cube(g,cabX,.8,cabZ,Math.min(1.0,w*.16),1.6,.65,mat(0x62513f));
  cube(g,cabX,.8,cabZ+.34,Math.min(.7,w*.11),.08,.03,metal);
  addObstacle(x+cabX,z+cabZ,.45,.4);
- // Window panels
- for(const xx of [-w*.22,w*.22])cube(g,xx,h*.64,-d/2-.012,.9,.85,.035,mat(0x283b3e,.35,.1),false);
+ // Fensterreihen: bei Hochhäusern auf jedem Stockwerk, bei kleinen Häusern auf Augenhöhe.
+ const glass=mat(0x29454b,.22,.12), frame=mat(0x343b3b,.7,.25);
+ const floors=h>=15?Math.floor(h/4.5):1;
+ for(let fl=0;fl<floors;fl++){
+   const yy=h>=15?2.0+fl*4.35:h*.64;
+   if(yy>h-1)continue;
+   const winH=h>=15?1.45:.85, winW=h>=15?1.35:.9;
+   for(const xx of [-w*.32,0,w*.32]){
+     if(Math.abs(xx)<doorW*.72 && yy<2.8)continue;
+     const pane=cube(g,xx,yy,-d/2-.025,winW,winH,.045,glass,false);
+     cube(g,xx,yy-winH/2, -d/2-.05,winW+.08,.07,.07,frame,false);cube(g,xx,yy+winH/2,-d/2-.05,winW+.08,.07,.07,frame,false);
+   }
+   for(const zz of [-d*.28,0,d*.28]){cube(g,-w/2-.025,yy,zz,.045,winH,winW,glass,false);cube(g,-w/2-.05,yy-winH/2,zz,.07,.07,winW+.08,frame,false);cube(g,-w/2-.05,yy+winH/2,zz,.07,.07,winW+.08,frame,false)}
+ }
+ // Begehbare Optik für mehrere Stockwerke: Teilplattformen lassen einen Treppenlauf frei.
+ if(h>=15){
+   const floorStep=4.5;
+   for(let fy=floorStep;fy<h-.5;fy+=floorStep){
+     cube(g,-w*.22,fy,d*.02,w*.48,.18,d*.82,mat(0x4b514f),false);
+     cube(g,w*.28,fy,-d*.03,w*.38,.18,d*.78,mat(0x4b514f),false);
+   }
+   const runLen=d-4, stepCount=Math.max(12,Math.floor(h/.28));
+   for(let i=0;i<stepCount;i++){
+     const yy=.22+i*(h-1.0)/stepCount, zz=d/2-2-(i/stepCount)*runLen;
+     cube(g,w*.20,yy,zz,w*.28,.16,.52,mat(i%2?0x777b78:0x666d69),false);
+   }
+   stairZones.push({x:x+w*.20,zStart:z+d/2-2,zEnd:z-d/2+2,w:w*.30,height:h,baseY:1.7});
+ }
  return g;
 }
 building(-10,-5,9,9,4.2,0x747970);
@@ -383,8 +410,9 @@ for(const site of bossSites){
 const inventory = { medicine:0, food:0, water:0, lantern:0, grenades:0, ammo:18, specialAmmo:36, weapons:{Blaster:1} };
 let lanternEquipped=false;
 const lanternProp=new THREE.Group();camera.add(lanternProp);lanternProp.position.set(-.42,-.28,-.48);
-const lanternGlow=new THREE.PointLight(0xffd78a,0,12,1.8);lanternGlow.position.set(-.42,-.2,-.62);camera.add(lanternGlow);
-function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=1.9;}
+const lanternGlow=new THREE.PointLight(0xffd78a,0,24,1.15);lanternGlow.position.set(-.30,-.16,-.42);camera.add(lanternGlow);
+const lanternBeam=new THREE.SpotLight(0xffdca0,0,30,Math.PI/5,0.48,1.0);lanternBeam.castShadow=false;const lanternBeamTarget=new THREE.Object3D();camera.add(lanternBeam,lanternBeamTarget);lanternBeam.position.set(-.28,-.18,-.38);lanternBeamTarget.position.set(0,-.28,-18);
+function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=4.2;lanternBeam.intensity=34;}
 
 const weaponStats = {
  Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42},
@@ -402,14 +430,15 @@ let equippedWeapon='Blaster', ammoLoaded = 12;
 function updateWeaponCrosshair(){
  const c=$('crosshair'); if(!c)return;
  const w=equippedWeapon;
+ const aim=$('aimBtn'); if(aim){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(w);aim.style.display=canZoom?'block':'none';aim.style.position='fixed';aim.style.right='14px';aim.style.bottom='165px';aim.style.zIndex='9000';aim.textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';aim.setAttribute('aria-pressed',String(!!sniperZoom));}
  if(w==='Schockpistole'){c.textContent='✣';c.style.color='#55aaff';c.style.textShadow='0 0 7px #168cff';}
  else if(w==='Laserkarabiner'){c.textContent='⊕';c.style.color='#48ff69';c.style.textShadow='0 0 7px #1aff42';}
  else if(w==='Laserpistole'){c.textContent='✛';c.style.color='#ff54dc';c.style.textShadow='0 0 7px #ff20cc';}
- else if(/Sniper|Präzisions|Scharfschützen/.test(w)){c.textContent='⌖';c.style.color='#ffe7b0';c.style.textShadow='0 0 4px #000';}
+ else if(/Sniper|Präzisions|Scharfschützen/i.test(w)){c.textContent='⌖';c.style.color='#ffe7b0';c.style.textShadow='0 0 4px #000';}
  else if(/Flinte/.test(w)){c.textContent='✳';c.style.color='#ffcf86';c.style.textShadow='0 0 4px #000';}
  else {c.textContent='+';c.style.color='#fff';c.style.textShadow='0 0 4px #000';}
 }
-let sniperZoom=false; const normalFov=74; function setSniperZoom(on){sniperZoom=!!on&&/Sniper|Präzisions|Scharfschützen/.test(equippedWeapon);camera.fov=sniperZoom?28:normalFov;camera.updateProjectionMatrix();updateWeaponCrosshair();$('aimBtn').textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';$('crosshair').style.fontSize=sniperZoom?'17px':'24px';}
+let sniperZoom=false; const normalFov=74; function setSniperZoom(on){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon);sniperZoom=!!on&&canZoom;camera.fov=sniperZoom?22:normalFov;camera.updateProjectionMatrix();updateWeaponCrosshair();$('aimBtn').textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';$('crosshair').style.fontSize=sniperZoom?'17px':'24px';if(sniperZoom)message('Zielfernrohr-Zoom aktiviert. Drücke Z oder ZIELEN zum Zurückzoomen.',1.5);}
 // Separate hand prop: the selected food, drink, medicine or weapon is shown in the player's hand.
 const handProp=new THREE.Group();camera.add(handProp);handProp.position.set(.34,-.30,-.62);
 function rebuildHandProp(){
@@ -444,7 +473,7 @@ function rebuildHandProp(){
  }else if(id.startsWith('weapon:')){
    handRig.visible=true;handProp.visible=false;
    const w=id.slice(7), st=weaponStats[w]||weaponStats.Blaster;
-   const isSniper=/Sniper|Präzisions|Scharfschützen/.test(w), isShot=/Flinte/.test(w), isLaser=/Laserkarabiner/.test(w), isPistol=/Pistole/.test(w), isShock=/Schockpistole/.test(w), isRocket=w==='Raketenwerfer', isGrenade=w==='Granatwerfer';
+   const isSniper=/Sniper|Präzisions|Scharfschützen/i.test(w), isShot=/Flinte/.test(w), isLaser=/Laserkarabiner/.test(w), isPistol=/Pistole/.test(w), isShock=/Schockpistole/.test(w), isRocket=w==='Raketenwerfer', isGrenade=w==='Granatwerfer';
    const bodyColor=isLaser?0x263b2b:isShock?0x25374b:(w.includes('Plasma')?0x394d64:0x303a3c);
    const wm=mat(bodyColor,.55,.45);
    // Distinct silhouette: receiver, barrel, grip, magazine and rails
@@ -617,7 +646,7 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
  const g=new THREE.Group();g.position.set(pos.x,.08,pos.z);scene.add(g);
  const M=(c)=>mat(c,.55,.25);
  if(item.startsWith('weapon:')){
-   const w=item.slice(7), laser=w.includes('Laserkarabiner'),shock=w.includes('Schockpistole'),sniper=/Sniper|Präzisions|Scharfschützen/.test(w);
+   const w=item.slice(7), laser=w.includes('Laserkarabiner'),shock=w.includes('Schockpistole'),sniper=/Sniper|Präzisions|Scharfschützen/i.test(w);
    cube(g,0,.12,0,.13,.12,sniper?.9:.48,M(0x303a35));
    cube(g,0,.15,sniper?-.32:-.19,.065,.065,sniper?.5:.28,M(0x151a18));
    cube(g,0,.035,.08,.085,.17,.12,M(0x272c29));
@@ -827,8 +856,11 @@ renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(poin
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&started&&pointerLocked)shotHeld=true});
 window.addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();shotHeld=true;shoot()});
-$('aimBtn').addEventListener('click',()=>{if(!/Sniper|Präzisions|Scharfschützen/.test(equippedWeapon)){message('Zoom gibt es nur mit einem Scharfschützengewehr.',1.5);return}setSniperZoom(!sniperZoom)});
-renderer.domElement.addEventListener('contextmenu',e=>{e.preventDefault();if(/Sniper|Präzisions|Scharfschützen/.test(equippedWeapon))setSniperZoom(!sniperZoom)});
+$('aimBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon)){message('Rüste zuerst Scharfschützengewehr oder Sniper aus.',1.5);return}setSniperZoom(!sniperZoom)});
+renderer.domElement.addEventListener('contextmenu',e=>{e.preventDefault()});
+renderer.domElement.addEventListener('mousedown',e=>{if(e.button===2&&started&&/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon)){e.preventDefault();setSniperZoom(!sniperZoom)}});
+document.addEventListener('keydown',e=>{if(e.code==='KeyZ'&&!e.repeat&&started&&/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon))setSniperZoom(!sniperZoom)});
+updateWeaponCrosshair();
 $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
@@ -966,9 +998,11 @@ function animate(){
   if(player.pos.y>2.5||!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
   if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
   player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
+  for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w/2 && player.pos.z<=st.zStart+.2 && player.pos.z>=st.zEnd-.2){const t=(st.zStart-player.pos.z)/(st.zStart-st.zEnd);const stairY=1.7+Math.max(0,Math.min(1,t))*(st.height-1.7);if(stairY>player.pos.y-.4) {player.pos.y=stairY;player.vy=0;player.onGround=true;} }}
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
+  lanternBeam.position.copy(camera.position).add(new THREE.Vector3(-.28,-.18,0));lanternBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18).add(new THREE.Vector3(0,-.28,0));lanternGlow.position.copy(camera.position).add(new THREE.Vector3(-.3,-.16,-.42));
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
