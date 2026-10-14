@@ -48,6 +48,7 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #inventoryModal{position:fixed;inset:0;z-index:10001;pointer-events:auto;display:none;align-items:center;justify-content:center;background:#000a;padding:12px}
 #inventoryCard{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#343a34;border:3px solid #a6ad9d;border-radius:12px;padding:14px;box-shadow:0 12px 45px #000b}
 #inventoryCard h2{margin:0 0 8px;font-size:20px}#inventoryCard #inventoryItems button{height:62px;font-size:11px}#inventoryCard .invActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#inventoryCard .invActions button{flex:1;min-width:110px}
+#nightVision{display:none;position:fixed;inset:0;z-index:8;pointer-events:none;background:radial-gradient(ellipse at center,rgba(175,255,145,.16) 0%,rgba(90,255,100,.24) 58%,rgba(30,90,40,.52) 100%);box-shadow:inset 0 0 70px rgba(120,255,100,.32);mix-blend-mode:screen}#nightVision::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(220,255,200,.035) 0px,rgba(220,255,200,.035) 1px,transparent 2px,transparent 4px)}
 #lootToast{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;text-align:center;background:#101a16e8;border:1px solid #ffffff35;border-radius:12px;padding:12px 16px;opacity:0;transition:opacity .2s;pointer-events:none}
 .lootIcon{color:#d9c58c;font-weight:800}
 @media (pointer:coarse){#mobileControls{display:block}#help{display:none}#objective{top:12px}#interact{bottom:170px}}
@@ -68,15 +69,16 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 </style>
 </head>
 <body>
+<div id="nightVision"></div>
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 3.5</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 4.9</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
-    <p class="small">Version 4.7: Zoom für Scharfschützengewehr und Sniper über sichtbare Taste, Z-Taste oder rechte Maustaste repariert. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
@@ -166,7 +168,7 @@ function building(x,z,w,d,h,color=0x797c74){
  const sideW=(w-doorW)/2;
  wallSurfaces.push(cube(g,-(doorW/2+sideW/2),h/2,frontZ,sideW,h,th,wall));
  wallSurfaces.push(cube(g, (doorW/2+sideW/2),h/2,frontZ,sideW,h,th,wall));
- wallSurfaces.push(cube(g,0,h-.22,frontZ,doorW,.44,th,wall));
+ const wallAboveDoorH=Math.min(2.35,h*.52); wallSurfaces.push(cube(g,0,(wallAboveDoorH+h)/2,frontZ,doorW,Math.max(.2,h-wallAboveDoorH),th,wall));
  // Hinged wooden door; closed doors block both the player and zombies.
  const doorPivot=new THREE.Group();doorPivot.position.set(-doorW/2,0,d/2+.035);g.add(doorPivot);
  const doorH=Math.min(2.35,h*.52);
@@ -213,19 +215,38 @@ function building(x,z,w,d,h,color=0x797c74){
    }
    for(const zz of [-d*.28,0,d*.28]){cube(g,-w/2-.025,yy,zz,.045,winH,winW,glass,false);cube(g,-w/2-.05,yy-winH/2,zz,.07,.07,winW+.08,frame,false);cube(g,-w/2-.05,yy+winH/2,zz,.07,.07,winW+.08,frame,false)}
  }
- // Begehbare Optik für mehrere Stockwerke: Teilplattformen lassen einen Treppenlauf frei.
+ // Begehbare Stockwerke: volle Bodenflächen mit wechselnder Treppenöffnung.
  if(h>=15){
-   const floorStep=4.5;
-   for(let fy=floorStep;fy<h-.5;fy+=floorStep){
-     cube(g,-w*.22,fy,d*.02,w*.48,.18,d*.82,mat(0x4b514f),false);
-     cube(g,w*.28,fy,-d*.03,w*.38,.18,d*.78,mat(0x4b514f),false);
+   const floorStep=4.5, runLen=d-4, stairW=w*.34;
+   const levels=Math.floor((h-1)/floorStep);
+   for(let level=1;level<=levels;level++){
+     const fy=level*floorStep;
+     const stairRight=(level%2===1); // 1. Stock rechts, 2. links, 3. rechts ...
+     const stairX=stairRight?w*.25:-w*.25;
+     const gapX=stairX;
+     const leftEdge=-w/2+.35, rightEdge=w/2-.35;
+     const gapLeft=gapX-stairW/2, gapRight=gapX+stairW/2;
+     if(gapLeft>leftEdge)cube(g,leftEdge+(gapLeft-leftEdge)/2,fy,0,gapLeft-leftEdge,.18,d-.65,mat(0x4b514f),false);
+     if(gapRight<rightEdge)cube(g,gapRight+(rightEdge-gapRight)/2,fy,0,rightEdge-gapRight,.18,d-.65,mat(0x4b514f),false);
+     // Begehbare Bodenstücke vor und hinter der Treppenöffnung
+     cube(g,gapX,fy,-d/2+.45,stairW,.18,.7,mat(0x4b514f),false);
+     cube(g,gapX,fy,d/2-.45,stairW,.18,.7,mat(0x4b514f),false);
    }
-   const runLen=d-4, stepCount=Math.max(12,Math.floor(h/.28));
-   for(let i=0;i<stepCount;i++){
-     const yy=.22+i*(h-1.0)/stepCount, zz=d/2-2-(i/stepCount)*runLen;
-     cube(g,w*.20,yy,zz,w*.28,.16,.52,mat(i%2?0x777b78:0x666d69),false);
+   for(let level=0;level<levels;level++){
+     const stairRight=(level%2===0), stairX=stairRight?w*.25:-w*.25;
+     const stepCount=18, baseY=level*floorStep+.22, topY=(level+1)*floorStep+.22;
+     for(let i=0;i<stepCount;i++){
+       const t=(i+1)/stepCount, yy=baseY+t*(topY-baseY), zz=d/2-2-t*runLen;
+       cube(g,stairX,yy,zz,stairW,.16,.55,mat(i%2?0x777b78:0x666d69),false);
+     }
+     stairZones.push({x:x+stairX,zStart:z+d/2-2,zEnd:z-d/2+2,w:stairW,height:floorStep,baseY:1.7+level*floorStep,topY:1.7+(level+1)*floorStep});
    }
-   stairZones.push({x:x+w*.20,zStart:z+d/2-2,zEnd:z-d/2+2,w:w*.30,height:h,baseY:1.7});
+   // Lootkisten auf unterschiedlichen Etagen
+   for(let level=0;level<levels;level++){
+     const cx=(level%2===0?-1:1)*w*.30, cz=(level%2===0?-1:1)*d*.22, fy=level*floorStep;
+     cube(g,cx,fy+.48,cz,1.0,.9,.9,crateMat,false);
+     cube(g,cx,fy+.95,cz,1.04,.09,.94,wood,false);
+   }
  }
  return g;
 }
@@ -406,12 +427,14 @@ for(const site of bossSites){
 }
 
 // Lootkisten und Versorgungspakete
-const inventory = { medicine:0, food:0, water:0, lantern:0, grenades:0, ammo:18, specialAmmo:36, weapons:{Blaster:1} };
+const inventory = { medicine:0, food:0, water:0, lantern:0, nightVision:0, grenades:0, ammo:18, specialAmmo:36, weapons:{Blaster:1} };
 let lanternEquipped=false;
+let nightVisionActive=false;
+function updateNightVisionEffect(){const nv=$('nightVision');if(nv)nv.style.display=(nightVisionActive||sniperZoom)?'block':'none';scene.traverse(o=>{if(o.isHemisphereLight)o.intensity=(nightVisionActive||sniperZoom)?3.8:2.0; if(o.isAmbientLight)o.intensity=(nightVisionActive||sniperZoom)?2.0:1.0;});if(nv)nv.style.background=nightVisionActive?'radial-gradient(ellipse at center,rgba(190,255,155,.30) 0%,rgba(95,255,100,.38) 58%,rgba(25,100,35,.62) 100%)':'radial-gradient(ellipse at center,rgba(175,255,145,.16) 0%,rgba(90,255,100,.24) 58%,rgba(30,90,40,.52) 100%)';}
 const lanternProp=new THREE.Group();camera.add(lanternProp);lanternProp.position.set(-.42,-.28,-.48);
-const lanternGlow=new THREE.PointLight(0xffd78a,0,24,1.15);lanternGlow.position.set(-.30,-.16,-.42);camera.add(lanternGlow);
-const lanternBeam=new THREE.SpotLight(0xffdca0,0,30,Math.PI/5,0.48,1.0);lanternBeam.castShadow=false;const lanternBeamTarget=new THREE.Object3D();camera.add(lanternBeam,lanternBeamTarget);lanternBeam.position.set(-.28,-.18,-.38);lanternBeamTarget.position.set(0,-.28,-18);
-function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=4.2;lanternBeam.intensity=34;}
+const lanternGlow=new THREE.PointLight(0xffd78a,0,32,1.0);lanternGlow.position.set(-.30,-.16,-.42);camera.add(lanternGlow);
+const lanternBeam=new THREE.SpotLight(0xffdca0,0,38,Math.PI/4,0.35,1.0);lanternBeam.castShadow=false;const lanternBeamTarget=new THREE.Object3D();scene.add(lanternBeam,lanternBeamTarget);lanternBeam.position.set(-.28,-.18,-.38);
+function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=7.5;lanternBeam.intensity=75;}
 
 const weaponStats = {
  Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42},
@@ -437,7 +460,7 @@ function updateWeaponCrosshair(){
  else if(/Flinte/.test(w)){c.textContent='✳';c.style.color='#ffcf86';c.style.textShadow='0 0 4px #000';}
  else {c.textContent='+';c.style.color='#fff';c.style.textShadow='0 0 4px #000';}
 }
-let sniperZoom=false; const normalFov=74; function setSniperZoom(on){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon);sniperZoom=!!on&&canZoom;camera.fov=sniperZoom?22:normalFov;camera.updateProjectionMatrix();updateWeaponCrosshair();$('aimBtn').textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';$('crosshair').style.fontSize=sniperZoom?'17px':'24px';if(sniperZoom)message('Zielfernrohr-Zoom aktiviert. Drücke Z oder ZIELEN zum Zurückzoomen.',1.5);}
+let sniperZoom=false; const normalFov=74; function setSniperZoom(on){const canZoom=/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon);sniperZoom=!!on&&canZoom;camera.fov=sniperZoom?22:normalFov;camera.updateProjectionMatrix();updateNightVisionEffect();updateWeaponCrosshair();$('aimBtn').textContent=sniperZoom?'🔭 ZOOM AN':'🔭 ZIELEN';$('crosshair').style.fontSize=sniperZoom?'17px':'24px';if(sniperZoom)message('Zielfernrohr-Zoom aktiviert. Drücke Z oder ZIELEN zum Zurückzoomen.',1.5);}
 // Separate hand prop: the selected food, drink, medicine or weapon is shown in the player's hand.
 const handProp=new THREE.Group();camera.add(handProp);handProp.position.set(.34,-.30,-.62);
 function rebuildHandProp(){
@@ -527,6 +550,7 @@ function updateInventory(){
   ['food','🍎','Essen',inventory.food],
   ['water','💧','Wasser',inventory.water],
   ['lantern','🏮','Laterne',inventory.lantern+(lanternEquipped?1:0)],
+  ['nightVision','🟢','Nachtsichtgerät',inventory.nightVision],
   ['grenades','💣','Granaten',inventory.grenades],
   ['ammo','📦','Munition',inventory.ammo],
   ['specialAmmo','🟣','Spezial-Laserzellen',inventory.specialAmmo],
@@ -546,7 +570,7 @@ function updateInventory(){
    if(id==='empty'||count<=0)return;
    selectedItem=id;
    $('itemActions').style.display='flex';
-   $('equipItemBtn').textContent=id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND'));
+   $('equipItemBtn').textContent=id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='nightVision'?'NACHTSICHT AN/AUS':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND')));
    rebuildHandProp();updateInventory();
   });
   $('inventoryItems').appendChild(b);
@@ -571,7 +595,7 @@ const hiddenChests=[];
 for(let i=0;i<14;i++){
  let x,z;do{x=(Math.random()-.5)*300;z=(Math.random()-.5)*300;}while(Math.hypot(x,z-12)<28||Math.hypot(x,z)<16);
  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- cube(g,0,.28,0,.72,.48,.65,mat(i%3===0?0x4d5140:0x514738));cube(g,0,.53,0,.76,.09,.69,mat(0x393d32));cube(g,0,.3,.33,.1,.16,.025,mat(0x656b56));
+ cube(g,0,.28,0,.72,.48,.65,mat(0x633b91,.35,.25));cube(g,0,.53,0,.76,.09,.69,mat(0x38234f,.3,.2));cube(g,0,.3,.33,.1,.16,.025,mat(0xc18cff,.3,.15));cube(g,0,.29,.365,.035,.12,.012,mat(0xe4c8ff));
  // Leaves/grass disguise most of the box, but a small latch can be spotted.
  if(Math.random()<.72){for(let j=0;j<3;j++)cube(g,(Math.random()-.5)*.65,.58+Math.random()*.1,(Math.random()-.5)*.55,.25,.1,.25,leaf)}
  hiddenChests.push({group:g,found:false,index:i,hidden:true});
@@ -597,6 +621,9 @@ function interact(){
  if(!started)return;
  // Usable inventory items take priority over nearby objects, so they still work beside doors, crates or soldiers.
  if(selectedItem==='grenades'&&inventory.grenades>0){inventory.grenades--;const dir=new THREE.Vector3();camera.getWorldDirection(dir);const start=player.pos.clone().add(dir.clone().multiplyScalar(1.2));const target=start.clone().add(dir.clone().multiplyScalar(10));target.y=0;const bomb=new THREE.Mesh(new THREE.SphereGeometry(.18,10,8),mat(0x41483d,.4,.5));bomb.position.copy(start);scene.add(bomb);const fuse={bomb,start,target,age:0,life:.85};thrownGrenades.push(fuse);message('Granate geworfen!');updateInventory();saveProgress();return}
+ if(selectedItem==='nightVision'){
+   if(inventory.nightVision>0){nightVisionActive=!nightVisionActive;updateNightVisionEffect();message(nightVisionActive?'Nachtsichtgerät eingeschaltet. Die Umgebung ist jetzt heller und grünlich.':'Nachtsichtgerät ausgeschaltet.');updateInventory();saveProgress();}else message('Du hast kein Nachtsichtgerät.');return;
+ }
  if(selectedItem==='lantern'){
    if(lanternEquipped){lanternEquipped=false;rebuildLantern();message('Laterne ausgeschaltet.');}
    else if(inventory.lantern>0){inventory.lantern--;lanternEquipped=true;rebuildLantern();message('Laterne eingeschaltet.');}
@@ -606,11 +633,12 @@ function interact(){
  const near=nearInteractable();
  if(near&&near.type==='door'){const d=near.obj;player.noise=5;d.open=!d.open;d.pivot.rotation.y=d.open?-Math.PI/2:0;d.obstacle.active=!d.open;message(d.open?'Tür geöffnet.':'Tür geschlossen. Zombies können nicht hinein!',1.5);saveProgress();return}
  if(!near){if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}if(selectedItem==='food'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Essen benutzt.');updateInventory();return}if(selectedItem==='water'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
- if(near.type==='droppedItem'){const d=near.obj;d.found=true;scene.remove(d.group);if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count}else if(d.item==='ammo')inventory.ammo+=d.count;else if(d.item==='specialAmmo')inventory.specialAmmo+=d.count;else inventory[d.item]=(inventory[d.item]||0)+d.count;message('Du hast '+(d.item==='lantern'?'eine Laterne':d.item==='grenades'?'Granaten':(d.label||d.item))+' aufgesammelt!',2.0);rebuildHandProp();updateInventory();saveProgress();return}
+ if(near.type==='droppedItem'){const d=near.obj;d.found=true;scene.remove(d.group);if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count}else if(d.item==='ammo')inventory.ammo+=d.count;else if(d.item==='specialAmmo')inventory.specialAmmo+=d.count;else inventory[d.item]=(inventory[d.item]||0)+d.count;message('Du hast '+(d.item==='lantern'?'eine Laterne':d.item==='nightVision'?'ein Nachtsichtgerät':d.item==='grenades'?'Granaten':(d.label||d.item))+' aufgesammelt!',2.0);rebuildHandProp();updateInventory();saveProgress();return}
  if(near.type==='hiddenChest'){
   const chest=near.obj;chest.found=true;scene.remove(chest.group);const roll=Math.random();
-  if(roll<.07){inventory.grenades++;message('Kiste: Granate gefunden!')}
-  else if(roll<.22){inventory.lantern++;message('Kiste: Laterne gefunden!')}
+  if(roll<.20){inventory.nightVision=1;message('LILA KISTE: Nachtsichtgerät gefunden! Wähle es im Inventar und aktiviere es.')}
+  else if(roll<.27){inventory.grenades++;message('Kiste: Granate gefunden!')}
+  else if(roll<.39){inventory.lantern++;message('Kiste: Laterne gefunden!')}
   else if(roll<.32){const n=8+Math.floor(Math.random()*13);inventory.specialAmmo+=n;message('Kiste: '+n+' Spezial-Laserzellen gefunden!')}
   else if(roll<.37){const names=Object.keys(weaponStats).filter(n=>n!=='Blaster');const w=names[Math.floor(Math.random()*names.length)];inventory.weapons[w]=(inventory.weapons[w]||0)+1;message('Versteckte Kiste: '+w+' gefunden!');}
   else if(roll<.60){const n=10+Math.floor(Math.random()*21);inventory.ammo+=n;message('Versteckte Kiste: '+n+' Munition gefunden!');}
@@ -656,6 +684,8 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
    const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.085,.095,.3,12),M(0x328fca));bottle.position.y=.2;g.add(bottle);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,.07,10),M(0xa9d7e5));neck.position.y=.385;g.add(neck);cube(g,0,.43,0,.075,.035,.075,M(0xd8d5bd));cube(g,0,.2,.098,.09,.13,.012,M(0x9de3ef));
  }else if(item==='lantern'){
    cube(g,0,.17,0,.18,.25,.13,M(0x343b3a));cube(g,0,.18,-.075,.12,.16,.02,M(0xffd88a));cube(g,0,.32,0,.2,.035,.15,M(0x202522));
+ }else if(item==='nightVision'){
+   cube(g,0,.17,0,.24,.16,.12,M(0x273c2b));cube(g,-.065,.18,-.07,.09,.09,.025,M(0x66ff66));cube(g,.065,.18,-.07,.09,.09,.025,M(0x66ff66));cube(g,0,.28,.02,.16,.035,.08,M(0x1d2a20));
  }else if(item==='medicine'){
    cube(g,0,.16,0,.2,.2,.14,M(0xe5e5d8));cube(g,0,.16,-.078,.085,.085,.025,M(0x4eaa66));cube(g,0,.16,-.095,.03,.055,.015,M(0xe5e5d8));
  }else if(item==='ammo'){
@@ -829,8 +859,8 @@ $('soldierToggle').addEventListener('click',()=>{soldiersEnabled=!soldiersEnable
 $('reviveBtn').addEventListener('click',revivePlayer);
 $('newRunBtn').addEventListener('click',resetGame);
 const SAVE_KEY='deadzone-survival-save-v18';
-function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,lanternEquipped,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
-function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.lantern=d.inventory.lantern||0;inventory.grenades=d.inventory.grenades||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;rebuildLantern();if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
+function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,lanternEquipped,nightVisionActive,equippedWeapon,ammoLoaded,selectedItem,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.map((es,i)=>es.recruited?i:-1).filter(i=>i>=0),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.lantern=d.inventory.lantern||0;inventory.nightVision=d.inventory.nightVision||0;inventory.grenades=d.inventory.grenades||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;nightVisionActive=!!d.nightVisionActive;rebuildLantern();updateNightVisionEffect();if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
  if(soldierRecruited&&!soldier.recruited&&!soldier.dead){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:soldier})}
  if(Array.isArray(d.recruitedExtras))for(const i of d.recruitedExtras){const es=extraSoldiers[i];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:es})}}
  if(Array.isArray(d.allyStates))for(const st of d.allyStates){const a=allies.find(q=>q.offset===st.offset);if(a){a.hp=st.hp??100;if(st.dead){a.dead=true;scene.remove(a.group)}}}for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();
@@ -897,8 +927,8 @@ $('inventoryOpenBtn').addEventListener('click',openInventory);
 $('inventoryOpenBtn').addEventListener('pointerdown',e=>{e.stopPropagation()});
 $('closeInventoryBtn').addEventListener('click',()=>{$('inventoryModal').style.display='none';$('itemActions').style.display='none'});
 $('cancelItemBtn').addEventListener('click',()=>{$('itemActions').style.display='none'});
-$('equipItemBtn').addEventListener('click',()=>{if(selectedItem==='lantern'&&inventory.lantern>0){inventory.lantern--;lanternEquipped=true;rebuildLantern();message('Laterne eingeschaltet.')}else if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','medicine','ammo','specialAmmo','grenades'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',medicine:'Medizin',ammo:'Munition',specialAmmo:'Spezial-Laserzellen',grenades:'Granaten'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
-$('dropItemBtn').addEventListener('click',()=>{let label=selectedItem,count=1;if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(!inventory.weapons[w])return;inventory.weapons[w]--;label=w;createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},w);if(equippedWeapon===w){equippedWeapon='Blaster';selectedItem='weapon:Blaster'}}else if(selectedItem==='ammo'||selectedItem==='specialAmmo'){if(inventory[selectedItem]<=0)return;inventory[selectedItem]=Math.max(0,inventory[selectedItem]-5);count=5;label=selectedItem==='specialAmmo'?'Spezial-Laserzellen':'Munition';createGroundItem(selectedItem,count,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else if(['food','water','medicine','lantern','grenades'].includes(selectedItem)){if(inventory[selectedItem]<=0)return;inventory[selectedItem]--;label=selectedItem==='food'?'Essen':selectedItem==='water'?'Trinkwasser':selectedItem==='lantern'?'Laterne':selectedItem==='grenades'?'Granaten':'Medizin';if(selectedItem==='lantern'&&lanternEquipped){lanternEquipped=false;rebuildLantern()}createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else return;message(label+' fallengelassen.');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress()});
+$('equipItemBtn').addEventListener('click',()=>{if(selectedItem==='nightVision'&&inventory.nightVision>0){nightVisionActive=!nightVisionActive;updateNightVisionEffect();message(nightVisionActive?'Nachtsichtgerät eingeschaltet.':'Nachtsichtgerät ausgeschaltet.')}else if(selectedItem==='lantern'&&inventory.lantern>0){inventory.lantern--;lanternEquipped=true;rebuildLantern();message('Laterne eingeschaltet.')}else if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','medicine','ammo','specialAmmo','grenades'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',medicine:'Medizin',ammo:'Munition',specialAmmo:'Spezial-Laserzellen',grenades:'Granaten'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
+$('dropItemBtn').addEventListener('click',()=>{let label=selectedItem,count=1;if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(!inventory.weapons[w])return;inventory.weapons[w]--;label=w;createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},w);if(equippedWeapon===w){equippedWeapon='Blaster';selectedItem='weapon:Blaster'}}else if(selectedItem==='ammo'||selectedItem==='specialAmmo'){if(inventory[selectedItem]<=0)return;inventory[selectedItem]=Math.max(0,inventory[selectedItem]-5);count=5;label=selectedItem==='specialAmmo'?'Spezial-Laserzellen':'Munition';createGroundItem(selectedItem,count,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else if(['food','water','medicine','lantern','nightVision','grenades'].includes(selectedItem)){if(inventory[selectedItem]<=0)return;inventory[selectedItem]--;label=selectedItem==='food'?'Essen':selectedItem==='water'?'Trinkwasser':selectedItem==='lantern'?'Laterne':selectedItem==='nightVision'?'Nachtsichtgerät':selectedItem==='grenades'?'Granaten':'Medizin';if(selectedItem==='lantern'&&lanternEquipped){lanternEquipped=false;rebuildLantern()}if(selectedItem==='nightVision'&&nightVisionActive){nightVisionActive=false;updateNightVisionEffect()}createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else return;message(label+' fallengelassen.');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress()});
 loadProgress();
 const clock=new THREE.Clock();
 // Ein kompletter Zyklus dauert 8 Minuten: Tag 5:20 Minuten, Nacht 2:40 Minuten.
@@ -918,7 +948,7 @@ function updateDayNight(dt){
  sun.color.setHex((dawn+dusk)>.2?0xffb16a:0xffedcf);
  scene.background.copy(daySky).lerp(nightSky,1-daylight);
  scene.fog.color.copy(dayFog).lerp(nightFog,1-daylight);
- for(const o of scene.children){if(o.isHemisphereLight)o.intensity=.34+daylight*1.66;}
+ for(const o of scene.children){if(o.isHemisphereLight)o.intensity=sniperZoom?3.6:.34+daylight*1.66;}
  renderer.toneMappingExposure=.76+daylight*.31;
 }
 function animate(){
@@ -997,11 +1027,11 @@ function animate(){
   if(player.pos.y>2.5||!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
   if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
   player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
-  for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w/2 && player.pos.z<=st.zStart+.2 && player.pos.z>=st.zEnd-.2){const t=(st.zStart-player.pos.z)/(st.zStart-st.zEnd);const stairY=1.7+Math.max(0,Math.min(1,t))*(st.height-1.7);if(stairY>player.pos.y-.4) {player.pos.y=stairY;player.vy=0;player.onGround=true;} }}
+  for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w/2 && player.pos.z<=st.zStart+.2 && player.pos.z>=st.zEnd-.2){const t=(st.zStart-player.pos.z)/(st.zStart-st.zEnd);const stairY=st.baseY+Math.max(0,Math.min(1,t))*(st.topY-st.baseY);if(stairY>player.pos.y-.4) {player.pos.y=stairY;player.vy=0;player.onGround=true;} }}
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
-  lanternBeam.position.copy(camera.position).add(new THREE.Vector3(-.28,-.18,0));lanternBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18).add(new THREE.Vector3(0,-.28,0));lanternGlow.position.copy(camera.position).add(new THREE.Vector3(-.3,-.16,-.42));
+  lanternBeam.position.copy(camera.position).add(new THREE.Vector3(-.28,-.18,0));lanternBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,24).add(new THREE.Vector3(0,-.28,0));lanternGlow.position.copy(camera.position).add(new THREE.Vector3(-.3,-.16,-.42));lanternBeam.visible=lanternEquipped;lanternGlow.visible=lanternEquipped;
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
@@ -1037,7 +1067,7 @@ function animate(){
   for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;
   const near=nearInteractable();
   $('interact').style.display=near?'block':'none';
-  $('actionBtn').textContent=(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'WAFFE':'AKTION');
+  $('actionBtn').textContent=(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'WAFFE':'AKTION');
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
