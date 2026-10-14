@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v5.5</title>
+<title>Deadzone Survival v5.4.1</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -50,7 +50,7 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #inventoryCard{width:min(620px,96vw);max-height:88vh;overflow:auto;background:#343a34;border:3px solid #a6ad9d;border-radius:12px;padding:14px;box-shadow:0 12px 45px #000b}
 #inventoryCard h2{margin:0 0 8px;font-size:20px}#inventoryCard #inventoryItems button{height:62px;font-size:11px}#inventoryCard .invActions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}#inventoryCard .invActions button{flex:1;min-width:110px}
 #nightVision{display:none;position:fixed;inset:0;z-index:8;pointer-events:none;background:radial-gradient(ellipse at center,rgba(175,255,145,.16) 0%,rgba(90,255,100,.24) 58%,rgba(30,90,40,.52) 100%);box-shadow:inset 0 0 70px rgba(120,255,100,.32);mix-blend-mode:screen}#nightVision::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(220,255,200,.035) 0px,rgba(220,255,200,.035) 1px,transparent 2px,transparent 4px)}
-#lowHealthVignette{display:none;position:fixed;inset:0;z-index:8;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,rgba(120,0,0,.08) 61%,rgba(190,10,16,.38) 82%,rgba(95,0,0,.72) 100%)}#lowHealthVignette::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 4% 15%,rgba(175,0,0,.62),transparent 22%),radial-gradient(ellipse at 95% 22%,rgba(200,12,18,.58),transparent 24%),radial-gradient(ellipse at 7% 90%,rgba(160,0,0,.62),transparent 25%),radial-gradient(ellipse at 93% 88%,rgba(200,5,12,.62),transparent 23%);filter:blur(7px)}#infectionVignette{display:none;position:fixed;inset:0;z-index:9;pointer-events:none;background:radial-gradient(ellipse at center,transparent 42%,rgba(255,115,28,.10) 60%,rgba(255,104,25,.48) 82%,rgba(204,66,12,.72) 100%);mix-blend-mode:screen}#infectionVignette::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 8% 18%,rgba(255,133,40,.46),transparent 23%),radial-gradient(ellipse at 92% 24%,rgba(255,120,20,.42),transparent 25%),radial-gradient(ellipse at 4% 84%,rgba(255,90,20,.5),transparent 24%),radial-gradient(ellipse at 95% 86%,rgba(255,145,35,.45),transparent 24%);filter:blur(9px)}
+#infectionVignette{display:none;position:fixed;inset:0;z-index:9;pointer-events:none;background:radial-gradient(ellipse at center,transparent 42%,rgba(255,115,28,.10) 60%,rgba(255,104,25,.48) 82%,rgba(204,66,12,.72) 100%);mix-blend-mode:screen}#infectionVignette::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 8% 18%,rgba(255,133,40,.46),transparent 23%),radial-gradient(ellipse at 92% 24%,rgba(255,120,20,.42),transparent 25%),radial-gradient(ellipse at 4% 84%,rgba(255,90,20,.5),transparent 24%),radial-gradient(ellipse at 95% 86%,rgba(255,145,35,.45),transparent 24%);filter:blur(9px)}
 #lootToast{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;text-align:center;background:#101a16e8;border:1px solid #ffffff35;border-radius:12px;padding:12px 16px;opacity:0;transition:opacity .2s;pointer-events:none}
 .lootIcon{color:#d9c58c;font-weight:800}
 @media (pointer:coarse){#mobileControls{display:block}#help{display:none}#objective{top:12px}#interact{bottom:170px}}
@@ -72,11 +72,11 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 </head>
 <body>
 <div id="nightVision"></div>
-<div id="infectionVignette" aria-hidden="true"></div><div id="lowHealthVignette" aria-hidden="true"></div>
+<div id="infectionVignette" aria-hidden="true"></div>
 <div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
-    <div class="small">SPIELBARER PROTOTYP · VERSION 5.4</div>
+    <div class="small">SPIELBARER PROTOTYP · VERSION 5.4.1</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
@@ -224,12 +224,6 @@ function building(x,z,w,d,h,color=0x797c74){
    const levels=Math.floor((h-1)/floorStep);
    for(let level=1;level<=levels;level++){
      const fy=level*floorStep; buildingFloors.push({x,z,w,d,y:fy,level});
-     // Jede Etage bekommt eigene Möbel: Schreibtisch, Stühle und Regal.
-     const furnitureMat=mat(level%2?0x6d5038:0x555b5a), deskX=(level%2?-.24:.24)*w, deskZ=-d*.18;
-     cube(g,deskX,fy+.78,deskZ,Math.min(2.2,w*.22),.14,Math.min(1.5,d*.16),furnitureMat);
-     for(const dx of [-.78,.78])for(const dz of [-.48,.48])cube(g,deskX+dx,fy+.39,deskZ+dz,.12,.76,.12,furnitureMat);
-     cube(g,-w*.27,fy+.9,d*.20,Math.min(1.2,w*.13),1.8,.6,mat(0x62513f));
-     cube(g,w*.24,fy+.42,d*.17,Math.min(1.1,w*.12),.8,.9,mat(0x4a514c));
      const stairRight=(level%2===1); // 1. Stock rechts, 2. links, 3. rechts ...
      const stairX=stairRight?w*.25:-w*.25;
      const gapX=stairX;
@@ -387,7 +381,7 @@ let suppliesFound=0, soldierRecruited=false, fireCooldown=0, messageTimer=0, thi
 const $=id=>document.getElementById(id);
 function message(t, duration=2.5){$('message').textContent=t;$('message').style.opacity='1';messageTimer=duration}
 function updateHUD(){
- const infectionOverlay=$('infectionVignette');if(infectionOverlay)infectionOverlay.style.display=player.infected?'block':'none';const lowHealthOverlay=$('lowHealthVignette');if(lowHealthOverlay)lowHealthOverlay.style.display=player.health<30?'block':'none';
+ const infectionOverlay=$('infectionVignette');if(infectionOverlay)infectionOverlay.style.display=player.infected?'block':'none';
  $('healthLabel').textContent='Leben: '+Math.max(0,Math.ceil(player.health));
  $('health').style.width=Math.max(0,player.health)+'%';
  $('allyLabel').textContent='Verbündete: '+allies.filter(a=>!a.dead).length;
@@ -469,7 +463,7 @@ const weaponStats = {
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
  Laserpistole:{damage:30,cooldown:.26,mag:18,icon:'🔴',range:42,kind:'pinklaser'},
  Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'},
- Stock:{damage:18,cooldown:.42,mag:1,icon:'👊',range:2.3,kind:'melee'}, Baseballschläger:{damage:34,cooldown:.62,mag:1,icon:'🏏',range:3.1,kind:'melee'}, Brecheisen:{damage:42,cooldown:.72,mag:1,icon:'🛠️',range:2.8,kind:'melee'}, Rohrzange:{damage:30,cooldown:.55,mag:1,icon:'🔧',range:2.5,kind:'melee'}, Küchenmesser:{damage:27,cooldown:.28,mag:1,icon:'🔪',range:1.8,kind:'melee'}, Machete:{damage:48,cooldown:.48,mag:1,icon:'🗡️',range:2.7,kind:'melee'}, Axt:{damage:58,cooldown:.78,mag:1,icon:'🪓',range:2.7,kind:'melee'}, Feuerwehr-Axt:{damage:72,cooldown:.9,mag:1,icon:'🪓',range:2.9,kind:'melee'}, Katana:{damage:68,cooldown:.52,mag:1,icon:'⚔️',range:3.0,kind:'melee'}, Speer:{damage:45,cooldown:.6,mag:1,icon:'🔱',range:3.8,kind:'melee'}, Hammer:{damage:52,cooldown:.7,mag:1,icon:'🔨',range:2.5,kind:'melee'}, Vorschlaghammer:{damage:88,cooldown:1.05,mag:1,icon:'🔨',range:2.8,kind:'melee'}, Kettenkeule:{damage:62,cooldown:.82,mag:1,icon:'⛓️',range:3.2,kind:'melee'}, MacheteMk2:{damage:59,cooldown:.4,mag:1,icon:'🗡️',range:2.9,kind:'melee'}, TaktischesMesser:{damage:36,cooldown:.24,mag:1,icon:'🔪',range:2.0,kind:'melee'}, Elektroschlagstock:{damage:40,cooldown:.42,mag:1,icon:'⚡',range:2.4,kind:'melee'}
+ Stock:{damage:18,cooldown:.42,mag:1,icon:'👊',range:2.3,kind:'melee'}, Baseballschläger:{damage:34,cooldown:.62,mag:1,icon:'🏏',range:3.1,kind:'melee'}, Brecheisen:{damage:42,cooldown:.72,mag:1,icon:'🛠️',range:2.8,kind:'melee'}, Rohrzange:{damage:30,cooldown:.55,mag:1,icon:'🔧',range:2.5,kind:'melee'}, Küchenmesser:{damage:27,cooldown:.28,mag:1,icon:'🔪',range:1.8,kind:'melee'}, Machete:{damage:48,cooldown:.48,mag:1,icon:'🗡️',range:2.7,kind:'melee'}, Axt:{damage:58,cooldown:.78,mag:1,icon:'🪓',range:2.7,kind:'melee'}, 'Feuerwehr-Axt':{damage:72,cooldown:.9,mag:1,icon:'🪓',range:2.9,kind:'melee'}, Katana:{damage:68,cooldown:.52,mag:1,icon:'⚔️',range:3.0,kind:'melee'}, Speer:{damage:45,cooldown:.6,mag:1,icon:'🔱',range:3.8,kind:'melee'}, Hammer:{damage:52,cooldown:.7,mag:1,icon:'🔨',range:2.5,kind:'melee'}, Vorschlaghammer:{damage:88,cooldown:1.05,mag:1,icon:'🔨',range:2.8,kind:'melee'}, Kettenkeule:{damage:62,cooldown:.82,mag:1,icon:'⛓️',range:3.2,kind:'melee'}, MacheteMk2:{damage:59,cooldown:.4,mag:1,icon:'🗡️',range:2.9,kind:'melee'}, TaktischesMesser:{damage:36,cooldown:.24,mag:1,icon:'🔪',range:2.0,kind:'melee'}, Elektroschlagstock:{damage:40,cooldown:.42,mag:1,icon:'⚡',range:2.4,kind:'melee'}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
 function updateWeaponCrosshair(){
@@ -808,9 +802,8 @@ function shoot(){
  if(wstats.kind==='flamethrower'){const flameEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,10));const flameGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),flameEnd]);const flameLine=new THREE.Line(flameGeo,new THREE.LineBasicMaterial({color:0xff7a16,transparent:true,opacity:.9}));scene.add(flameLine);shotVisuals.push({obj:flameLine,geo:flameGeo,material:flameLine.material,life:.12});for(let i=0;i<7;i++){const t=.15+Math.random()*.8;const pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,10)*t);const flame=cube(scene,pt.x+(Math.random()-.5)*.5,pt.y+(Math.random()-.5)*.5,pt.z+(Math.random()-.5)*.5,.12+Math.random()*.13,.12+Math.random()*.16,.12+Math.random()*.13,mat(Math.random()<.55?0xff6a12:0xffd33d),false);shotVisuals.push({obj:flame,life:.1+Math.random()*.16,geo:flame.geometry,material:flame.material});}}
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,meleeWeapon?2.1:22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
- const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:beamColor,transparent:true,opacity:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
+ const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:meleeWeapon?0xffe0a0:beamColor,transparent:true,opacity:meleeWeapon?.3:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
  scene.add(beam);
- if(meleeWeapon){beam.material.color.setHex(0xffe0a0);beam.material.opacity=.3;}
  let beamGlow=null;
  if(wstats.kind==='greenlaser'||wstats.kind==='pinklaser'||wstats.kind==='shock'||wstats.kind==='plasma'){
    if(wstats.kind==='plasma'){for(let k=0;k<3;k++){const spark=cube(scene,camera.position.x,camera.position.y,camera.position.z,.035,.035,.035,mat([0xd946ef,0xa8edff,0x7c54ff][k]),false);spark.position.copy(camera.position);const dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);shotVisuals.push({obj:spark,geo:spark.geometry,material:spark.material,life:.14});}}
