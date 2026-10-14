@@ -315,8 +315,8 @@ cube(handRig,0,.025,-.25,.11,.1,.18,blasterAccent);
 const muzzle=cube(handRig,0,.005,-.36,.085,.075,.12,blasterGlow,false);
 muzzle.visible=false;
 const flashLight=new THREE.PointLight(0x73d8cb,0,3);flashLight.position.set(0,.02,-.4);handRig.add(flashLight);
-// Dauerhafter, schmaler Lichtkegel nach vorne – wie eine kleine Waffen-Taschenlampe.
-const weaponBeam=new THREE.SpotLight(0xfff1c7,78,8.5,Math.PI/24,0.48,0.45);weaponBeam.castShadow=false;weaponBeam.decay=0.38;const weaponBeamTarget=new THREE.Object3D();weaponBeam.target=weaponBeamTarget;const beamSpill=new THREE.PointLight(0xffe9bd,1.15,4.8,1.35);beamSpill.castShadow=false;scene.add(weaponBeam,weaponBeamTarget,beamSpill);const weaponBeamDirection=new THREE.Vector3();
+// Breiter, weit reichender Waffen-Taschenlampenkegel, direkt auf die Blick- und Schussrichtung ausgerichtet.
+const weaponBeam=new THREE.SpotLight(0xfff1c7,105,22,Math.PI/10,0.42,0.28);weaponBeam.castShadow=false;weaponBeam.decay=0.28;const weaponBeamTarget=new THREE.Object3D();weaponBeam.target=weaponBeamTarget;const beamSpill=new THREE.PointLight(0xffe9bd,1.8,8.5,1.1);beamSpill.castShadow=false;scene.add(weaponBeam,weaponBeamTarget,beamSpill);const weaponBeamDirection=new THREE.Vector3();
 const dynamicGun=new THREE.Group();handRig.add(dynamicGun);
 let flashTime=0, shotHeld=false, shotVisuals=[], energyProjectiles=[], impactMarks=[], fireZones=[];
 let started=false, pointerLocked=false, lastTime=performance.now(), gameOver=false, resettingGame=false;
@@ -956,7 +956,7 @@ function animate(){
   player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
-  camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.y-=0.27;weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.16,0)).addScaledVector(weaponBeamDirection,.22);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,3.8);weaponBeamTarget.position.y-=.42;beamSpill.position.copy(weaponBeamTarget.position);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
+  camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
