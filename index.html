@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v5.4.6</title>
+<title>Deadzone Survival v5.4.9</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -58,9 +58,9 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 /* v2.0 TOUCH FIX: Die WebGL-Leinwand darf keine Bedienknöpfe überdecken. */
 html,body{position:relative;isolation:isolate;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 canvas{position:fixed!important;inset:0!important;width:100%!important;height:100%!important;z-index:0!important;pointer-events:auto}
-#hud{z-index:10!important;pointer-events:none!important}
+#hud{z-index:30!important;pointer-events:none!important}
 #hud button,#interact,#aimBtn{pointer-events:auto!important;position:relative;z-index:12!important;touch-action:manipulation}
-#hud #tradeOpenBtn{position:fixed!important;left:50%!important;bottom:calc(9% + 118px)!important;transform:translateX(-50%)!important;z-index:10050!important;display:none;min-width:190px;min-height:56px;pointer-events:auto!important;touch-action:manipulation!important}
+#hud #tradeOpenBtn{position:fixed!important;left:50%!important;bottom:calc(9% + 118px)!important;transform:translateX(-50%)!important;z-index:10050!important;display:none;min-width:190px;min-height:56px;pointer-events:auto!important;touch-action:manipulation!important;isolation:isolate}
 #mobileControls{z-index:20!important;pointer-events:none!important}
 #stickBase,#lookArea,#mobileActions{pointer-events:auto!important}
 #mobileActions{z-index:25!important}
@@ -102,6 +102,8 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="tradeModal" style="display:none;position:fixed;inset:0;z-index:10010;background:#000b;align-items:center;justify-content:center;padding:12px;pointer-events:auto">
  <div style="width:min(560px,96vw);max-height:86vh;overflow:auto;background:#252e28;border:3px solid #d3bd71;border-radius:14px;padding:15px;box-shadow:0 12px 45px #000c">
   <h2 id="tradeTitle" style="margin:0 0 6px">💰 Soldatenhandel</h2><p id="tradeSubtitle" class="small">Kaufe Ausrüstung für dein Geld.</p><div id="tradeOffers" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:12px 0"></div>
+  <button id="sellItemsOpenBtn" type="button" style="width:100%;margin:0 0 10px;background:#4a633b;border-color:#b8d49c">💸 ITEMS VERKAUFEN</button>
+  <div id="sellItemsPanel" style="display:none;border:1px solid #8da184;border-radius:10px;padding:10px;margin-bottom:10px"><h3 style="margin:0 0 6px">🎒 Items aus deinem Inventar</h3><p class="small">Wähle ein Item zum Verkaufen. Du erhältst einen kleinen Betrag pro Stück.</p><div id="sellItemsList" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px"></div><button id="backToTradeBtn" type="button" style="width:100%;margin-top:8px">ZURÜCK ZUM HANDEL</button></div>
   <button id="closeTradeBtn" type="button" style="width:100%">HANDEL SCHLIESSEN</button>
  </div>
 </div>
@@ -692,7 +694,27 @@ function openTrade(t){
   b.innerHTML=`<div style="font-size:15px;font-weight:800">${item.icon} ${item.label}</div><div style="font-size:13px;margin-top:5px">Preis: ${item.price.toLocaleString('de-DE')} 💰</div>`;
   b.addEventListener('click',()=>buyTradeItem(t,item));list.appendChild(b);
  }
+ $('tradeOffers').style.display='grid';$('sellItemsPanel').style.display='none';$('sellItemsOpenBtn').style.display='block';
  $('tradeModal').style.display='flex';
+}
+function itemSellValue(id,label){
+ if(id.startsWith('weapon:')){const n=id.slice(7);return Math.max(8,Math.round((weaponStats[n]?.price||250)*.12))}
+ if(id.startsWith('armor:'))return 35;
+ const values={medicine:18,food:6,water:5,lantern:15,nightVision:90,grenades:12,ammo:1,arrows:1,specialAmmo:2};
+ return values[id]??5;
+}
+function sellOneInventoryItem(id,label){
+ if(id.startsWith('weapon:')){const name=id.slice(7);if(!inventory.weapons[name])return false;inventory.weapons[name]--;if(inventory.weapons[name]<=0){delete inventory.weapons[name];if(equippedWeapon===name){equippedWeapon='Blaster';ammoLoaded=Math.min(18,inventory.ammo)}}}
+ else if(id.startsWith('armor:')){const armorId=id.slice(6);const i=inventory.armorPieces.findIndex(a=>String(a.id)===armorId);if(i<0)return false;inventory.armorPieces.splice(i,1)}
+ else {if(!Number.isFinite(inventory[id])||inventory[id]<=0)return false;inventory[id]--;if(id==='lantern'&&lanternEquipped&&inventory.lantern===0){lanternEquipped=false;rebuildHandProp()}}
+ player.money+=itemSellValue(id,label);updateInventory();updateHUD();saveProgress();renderSellItems();
+ return true;
+}
+function renderSellItems(){
+ const list=$('sellItemsList');if(!list)return;list.innerHTML='';
+ const items=[['medicine','💊','Medizin',inventory.medicine],['food','🍎','Essen',inventory.food],['water','💧','Wasser',inventory.water],['lantern','🏮','Laterne',inventory.lantern],['nightVision','🟢','Nachtsichtgerät',inventory.nightVision],['grenades','💣','Granate',inventory.grenades],['ammo','📦','Munition',inventory.ammo],['arrows','🏹','Pfeile',inventory.arrows],['specialAmmo','🟣','Spezial-Laserzellen',inventory.specialAmmo],...Object.entries(inventory.weapons).map(([n,c])=>['weapon:'+n,weaponStats[n]?.icon||'🔫',n,c]),...inventory.armorPieces.map(a=>['armor:'+a.id,a.icon||'🛡️',a.label,1])].filter(x=>x[3]>0);
+ if(!items.length){list.innerHTML='<p class="small">Du hast gerade nichts zum Verkaufen.</p>';return}
+ for(const [id,icon,label,count] of items){const price=itemSellValue(id,label);const b=document.createElement('button');b.type='button';b.style.cssText='text-align:left;min-height:58px;background:#34453a;border:1px solid #879a72;padding:8px';b.innerHTML=`<b>${icon} ${label}</b><div style="font-size:12px;margin-top:4px">Im Inventar: ${count} · Verkauf: ${price} 💰 / Stück</div>`;b.addEventListener('click',()=>{if(sellOneInventoryItem(id,label)){message(label+' verkauft für '+price+' 💰',2);$('tradeSubtitle').textContent='Verkauft! Dein Geld: '+player.money+' 💰';}});list.appendChild(b)}
 }
 function buyTradeItem(t,item){
  if(player.money<item.price){message(`Zu teuer! Du brauchst ${item.price.toLocaleString('de-DE')} 💰.`,2.5);return;}
@@ -704,7 +726,9 @@ function buyTradeItem(t,item){
  updateInventory();updateHUD();saveProgress();
  $('tradeSubtitle').textContent='Gekauft! Dein Geld: '+player.money+' 💰 · Dieser Soldat hat eigene Angebote.';
 }
-$('closeTradeBtn').addEventListener('click',()=>{$('tradeModal').style.display='none';currentTrader=null});
+$('sellItemsOpenBtn').addEventListener('click',()=>{renderSellItems();$('tradeOffers').style.display='none';$('sellItemsPanel').style.display='block';$('sellItemsOpenBtn').style.display='none';$('tradeSubtitle').textContent='Verkaufe Items zu günstigen Ankaufspreisen. Dein Geld: '+player.money+' 💰';});
+$('backToTradeBtn').addEventListener('click',()=>{if(currentTrader)openTrade(currentTrader);else{$('sellItemsPanel').style.display='none';$('tradeOffers').style.display='grid';$('sellItemsOpenBtn').style.display='block'}});
+$('closeTradeBtn').addEventListener('click',()=>{$('tradeModal').style.display='none';currentTrader=null;$('sellItemsPanel').style.display='none';$('tradeOffers').style.display='grid';$('sellItemsOpenBtn').style.display='block'});
 function nearestTradeSoldier(maxDistance=5.5){let best=null,bd=maxDistance;const candidates=[soldier,...extraSoldiers];for(const t of candidates){if(t.dead)continue;const d=distanceXZ(player.pos,t.group.position);if(d<bd){best=t;bd=d}}return best?{obj:best,d:bd}:null;}
 $('tradeOpenBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const n=nearestTradeSoldier(6.5);if(n)openTrade(n.obj);else message('Gehe näher an einen Soldaten heran.');});
 
