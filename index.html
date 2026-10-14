@@ -405,7 +405,8 @@ for(const site of bossSites){
  // Keep the arena entrance readable; barriers only occupy the perimeter.
  // Boss-Name wird nicht mehr als schwebendes Namensschild angezeigt.
  // Collision matches the opening above; the middle of the north wall is deliberately passable.
- addObstacle(x-9.25,z-13,3.75,.55); addObstacle(x+9.25,z-13,3.75,.55); addObstacle(x-13,z,.55,13); addObstacle(x+13,z,.55,13); addObstacle(x,z+13,13,.55);
+ // v5.5.4 FIX: Boss arena perimeter has no collision boxes. This prevents any invisible wall from blocking the entrance; the visible walls remain decorative.
+ // (Deliberately omit addObstacle() here so the arena is always enterable.)
 }
 
 // Player and camera
@@ -524,7 +525,7 @@ const weaponStats = {
  PlasmaPistole:{damage:38,cooldown:.24,mag:20,icon:'🟣',range:48,kind:'plasma'},
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
  Laserpistole:{damage:30,cooldown:.26,mag:18,icon:'🔴',range:42,kind:'pinklaser'},
- Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'},
+ Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}, Seuchenwerfer:{damage:32,cooldown:.16,mag:999999,icon:'☣️',range:24,kind:'acid'},
  Stock:{damage:18,cooldown:.42,mag:1,icon:'👊',range:2.3,kind:'melee'}, Baseballschläger:{damage:34,cooldown:.62,mag:1,icon:'🏏',range:3.1,kind:'melee'}, Brecheisen:{damage:42,cooldown:.72,mag:1,icon:'🛠️',range:2.8,kind:'melee'}, Rohrzange:{damage:30,cooldown:.55,mag:1,icon:'🔧',range:2.5,kind:'melee'}, Küchenmesser:{damage:27,cooldown:.28,mag:1,icon:'🔪',range:1.8,kind:'melee'}, Machete:{damage:48,cooldown:.48,mag:1,icon:'🗡️',range:2.7,kind:'melee'}, Axt:{damage:58,cooldown:.78,mag:1,icon:'🪓',range:2.7,kind:'melee'}, 'Feuerwehr-Axt':{damage:72,cooldown:.9,mag:1,icon:'🪓',range:2.9,kind:'melee'}, Katana:{damage:68,cooldown:.52,mag:1,icon:'⚔️',range:3.0,kind:'melee'}, Speer:{damage:45,cooldown:.6,mag:1,icon:'🔱',range:3.8,kind:'melee'}, Hammer:{damage:52,cooldown:.7,mag:1,icon:'🔨',range:2.5,kind:'melee'}, Vorschlaghammer:{damage:88,cooldown:1.05,mag:1,icon:'🔨',range:2.8,kind:'melee'}, Kettenkeule:{damage:62,cooldown:.82,mag:1,icon:'⛓️',range:3.2,kind:'melee'}, MacheteMk2:{damage:59,cooldown:.4,mag:1,icon:'🗡️',range:2.9,kind:'melee'}, TaktischesMesser:{damage:36,cooldown:.24,mag:1,icon:'🔪',range:2.0,kind:'melee'}, Elektroschlagstock:{damage:40,cooldown:.42,mag:1,icon:'⚡',range:2.4,kind:'melee'}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
@@ -681,7 +682,7 @@ function updateInventory(){
   });
   $('inventoryItems').appendChild(b);
  }
- const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
+ const infiniteAmmoWeapon=equippedWeapon==='Seuchenwerfer'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
  $('ammoLabel').textContent=equippedWeapon+' · '+(specialWeapon?'Spezialzellen: '+ammoLoaded+' / '+inventory.specialAmmo:(arrowWeapon?'Pfeile: ':'Munition: ')+ammoLoaded+' / '+(arrowWeapon?inventory.arrows:inventory.ammo));
  $('survivalLabel').textContent='💰 Geld: '+player.money+(player.infected?' · ☣️ INFIZIERT':'');
 }
@@ -941,13 +942,13 @@ function detonateExplosive(pos,wstats,color){
 function shoot(){
  if(!started||gameOver||fireCooldown>0)return;
  const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
- const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
- if(!meleeWeapon&&ammoLoaded<=0){
+ const infiniteAmmoWeapon=equippedWeapon==='Seuchenwerfer'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
+ if(!meleeWeapon&&!infiniteAmmoWeapon&&ammoLoaded<=0){
    const reserve=arrowWeapon?inventory.arrows:(specialWeapon?inventory.specialAmmo:inventory.ammo);
    if(reserve>0){const load=Math.min(wstats.mag,reserve);if(arrowWeapon)inventory.arrows-=load;else if(specialWeapon)inventory.specialAmmo-=load;else inventory.ammo-=load;ammoLoaded=load;updateInventory();message('Nachgeladen: '+load+(specialWeapon?' Spezialzellen.':' Schuss.'),1.2);playTone(280,.12,'square',.035);}
    else {message(arrowWeapon?'Keine Pfeile! Suche Zombies oder Kisten ab.':(specialWeapon?'Keine Spezial-Laserzellen! Suche violette Munitionskisten.':'Keine Munition! Durchsuche weitere Kisten.'),1.5);playTone(130,.08,'sawtooth',.025);return;}
  }
- if(!meleeWeapon){ammoLoaded--;updateInventory();}fireCooldown=wstats.cooldown;
+ if(!meleeWeapon&&!infiniteAmmoWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
  flashTime=.08;muzzle.visible=true;flashLight.intensity=4;
  playTone(180,.09,'sawtooth',.045);player.noise=7;
 
@@ -956,9 +957,10 @@ function shoot(){
  const dir=new THREE.Vector3();camera.getWorldDirection(dir);
  const ray=new THREE.Raycaster(origin,dir,0,wstats.range); if(meleeWeapon)playTone(95,.12,'triangle',.055);
  // Visible weapon-specific shot streak
- const beamColor=wstats.kind==='flamethrower'?0xff5a12:wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='plasma'?0xc95cff: wstats.kind==='sniper'?0xffdca0:0xffd36a;
+ const beamColor=wstats.kind==='acid'?0x62ff24:wstats.kind==='flamethrower'?0xff5a12:wstats.kind==='greenlaser'?0x35ff56:wstats.kind==='pinklaser'?0xff36d5:wstats.kind==='shock'?0x3b9cff:wstats.kind==='plasma'?0xc95cff: wstats.kind==='sniper'?0xffdca0:0xffd36a;
  const rocketProjectile=wstats.kind==='rocket'?spawnEnergyProjectile(origin,dir,beamColor,'rocket'):null;
  if(['greenlaser','pinklaser','plasma','shock','grenade','arrow'].includes(wstats.kind))spawnEnergyProjectile(origin,dir,beamColor,wstats.kind);
+ if(wstats.kind==='acid'){const acidEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,24));const acidGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),acidEnd]);const acidLine=new THREE.Line(acidGeo,new THREE.LineBasicMaterial({color:0x6dff18,transparent:true,opacity:.95}));scene.add(acidLine);shotVisuals.push({obj:acidLine,geo:acidGeo,material:acidLine.material,life:.16});for(let i=0;i<20;i++){const t=.1+Math.random()*.9,pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,24)*t);const drop=cube(scene,pt.x+(Math.random()-.5)*.7,pt.y+(Math.random()-.5)*.55,pt.z+(Math.random()-.5)*.7,.055+Math.random()*.07,.07+Math.random()*.1,.055+Math.random()*.07,mat(Math.random()<.5?0x5dff16:0xb8ff42),false);shotVisuals.push({obj:drop,life:.15+Math.random()*.22,geo:drop.geometry,material:drop.material});}}
  if(wstats.kind==='flamethrower'){const flameEnd=origin.clone().addScaledVector(dir,Math.min(wstats.range,10));const flameGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),flameEnd]);const flameLine=new THREE.Line(flameGeo,new THREE.LineBasicMaterial({color:0xff7a16,transparent:true,opacity:.9}));scene.add(flameLine);shotVisuals.push({obj:flameLine,geo:flameGeo,material:flameLine.material,life:.12});for(let i=0;i<7;i++){const t=.15+Math.random()*.8;const pt=origin.clone().addScaledVector(dir,Math.min(wstats.range,10)*t);const flame=cube(scene,pt.x+(Math.random()-.5)*.5,pt.y+(Math.random()-.5)*.5,pt.z+(Math.random()-.5)*.5,.12+Math.random()*.13,.12+Math.random()*.16,.12+Math.random()*.13,mat(Math.random()<.55?0xff6a12:0xffd33d),false);shotVisuals.push({obj:flame,life:.1+Math.random()*.16,geo:flame.geometry,material:flame.material});}}
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,meleeWeapon?2.1:22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
@@ -1003,6 +1005,7 @@ function shoot(){
   const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
   if(target){
    if(wstats.kind!=='rocket')target.hp-=wstats.damage;target.group.rotation.z=.04;
+   if(wstats.kind==='acid'){target.acidTimer=5.5;target.acidTick=0;for(let q=0;q<12;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.65,.45+Math.random()*1.7,target.group.position.z+(Math.random()-.5)*.55,.08,.13,.08,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.4+Math.random()*.35,vx:(Math.random()-.5)*.55,vy:.45+Math.random()*.6,vz:(Math.random()-.5)*.55})}message('☣️ Säure trifft! Der Zombie wird verätzt.',1.0)}
    if(wstats.kind==='flamethrower'){target.burningTimer=3.8;target.burnTick=0;for(let q=0;q<4;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.45,.55+Math.random()*1.35,target.group.position.z+(Math.random()-.5)*.4,.09,.16,.09,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.45+Math.random()*.3,vx:(Math.random()-.5)*.35,vy:.8+Math.random()*.5,vz:(Math.random()-.5)*.35})}message('🔥 Zombie brennt!',.65)}
    if(wstats.kind==='rocket'&&rocketProjectile){rocketProjectile.end.copy(target.group.position);rocketProjectile.dir.copy(rocketProjectile.end).sub(rocketProjectile.origin).normalize();rocketProjectile.life=Math.max(.22,Math.min(.75,rocketProjectile.origin.distanceTo(rocketProjectile.end)/42));rocketProjectile.impactStats={...wstats};rocketProjectile.impactColor=beamColor;}
    if(wstats.kind==='grenade'){detonateExplosive(target.group.position,wstats,beamColor)}
@@ -1243,6 +1246,7 @@ function animate(){
   // Zombie AI
   for(const z of zombies){
    if(z.dead)continue;
+   if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
    const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=sneaking&&(player.noise||0)<=0&&d>3.2;let target=playerHidden?null:player.pos,nearest=playerHidden?Infinity:d;
