@@ -347,6 +347,33 @@ for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-31
 for(const center of [[-225,30],[225,-25],[-35,245],[155,275],[-270,-80]]){
  for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
 }
+// v5.5.2: recognizable biome zones using low-cost flat meshes and matching props.
+const biomeZones=[
+ {x:-255,z:215,r:78,name:'WALDBIOM',color:0x294d35,ring:0x62a85d,type:'forest'},
+ {x:250,z:-220,r:82,name:'WÜSTENBIOM',color:0xb99a5d,ring:0xe6c879,type:'desert'},
+ {x:20,z:325,r:72,name:'FROSTBIOM',color:0x8eafb9,ring:0xdaf6ff,type:'snow'},
+ {x:315,z:40,r:65,name:'FELSBIOM',color:0x555b5b,ring:0xb0b8b4,type:'rock'},
+ {x:-300,z:-245,r:70,name:'VERDORBENES BIOM',color:0x51445f,ring:0xa779cb,type:'corrupt'}
+];
+for(const b of biomeZones){
+ const disk=new THREE.Mesh(new THREE.CircleGeometry(b.r,48),new THREE.MeshStandardMaterial({color:b.color,roughness:1,transparent:true,opacity:.52}));disk.rotation.x=-Math.PI/2;disk.position.set(b.x,.035,b.z);scene.add(disk);
+ const ring=new THREE.Mesh(new THREE.RingGeometry(b.r-1.1,b.r,48),new THREE.MeshBasicMaterial({color:b.ring,side:THREE.DoubleSide,transparent:true,opacity:.78}));ring.rotation.x=-Math.PI/2;ring.position.set(b.x,.06,b.z);scene.add(ring);
+ // Tall, colored marker makes biome boundaries easier to spot from rooftops.
+ const marker=cube(scene,b.x,3.1,b.z-b.r+5,.55,6.2,.55,mat(b.ring));
+ for(let i=0;i<13;i++){
+  const a=Math.random()*Math.PI*2,rr=12+Math.random()*(b.r-18),x=b.x+Math.cos(a)*rr,z=b.z+Math.sin(a)*rr;
+  if(onRoad(x,z))continue;
+  if(b.type==='desert'){
+   const stem=cube(scene,x,.65,z,.32,1.3,.32,mat(0x4d7541));cube(scene,x+.22,1.02,z,.72,.22,.24,mat(0x4d7541));
+  }else if(b.type==='snow'){
+   const rock=cube(scene,x,.65,z,.8,1.3,.8,mat(0xd3e4e8));rock.rotation.y=Math.random()*2;
+  }else if(b.type==='rock'){
+   const rock=cube(scene,x,.7,z,1.2,1.4,.9,mat(0x737875));rock.rotation.y=Math.random()*2;
+  }else if(b.type==='corrupt'){
+   const crystal=cube(scene,x,.8,z,.45,1.6,.45,mat(0x9164b2));crystal.rotation.z=(Math.random()-.5)*.25;
+  }else tree(x,z,.8+Math.random()*.8);
+ }
+}
 // Three marked boss locations. Their rewards are unique and only drop from their boss. Each arena has extra props and a clear boss spawn point.
 const bossSites=[
  {x:260,z:130,name:'Der Panzerkoloss',color:0x9b3b2f,weapon:'Kolossbrecher',icon:'🟥',hp:1600,speed:.72},
@@ -358,7 +385,10 @@ for(const site of bossSites){
  const shell=mat(site.color,.75,.18);const x=site.x,z=site.z;
  cube(scene,x,1.2,z-13,26,2.4,.7,shell);cube(scene,x-13,1.2,z, .7,2.4,26,shell);cube(scene,x+13,1.2,z,.7,2.4,26,shell);
  for(let k=-1;k<=1;k++){cube(scene,x+k*8,2.7,z-13,1.2,.6,.9,metal);cube(scene,x-13,2.7,z+k*8,.9,.6,1.2,metal);cube(scene,x+13,2.7,z+k*8,.9,.6,1.2,metal)}
- const beacon=new THREE.PointLight(site.color,1.8,38,2);beacon.position.set(x,5,z);scene.add(beacon);
+ const beacon=new THREE.PointLight(site.color,2.8,62,2);beacon.position.set(x,7,z);scene.add(beacon);
+ // Tall, unmistakable colored beacon above each arena.
+ const beam=new THREE.Mesh(new THREE.CylinderGeometry(.42,.9,15,8,1,true),new THREE.MeshBasicMaterial({color:site.color,transparent:true,opacity:.23,depthWrite:false}));beam.position.set(x,8.2,z);scene.add(beam);
+ const beaconTop=cube(scene,x,15.8,z,.9,.9,.9,mat(site.color));
  const tower=cube(scene,x,4.3,z-13,1.2,4.2,1.2,shell);tower.rotation.y=.25;
  // Dekorationen: Warnlampen, Kisten, Sandsäcke und kaputte Barrikaden rund um jede Arena.
  for(const side of [-1,1]){
@@ -410,7 +440,7 @@ function updateHUD(){
  $('soldierToggle').textContent=soldiersEnabled?'🪖 SOLDATEN: AN':'🪖 SOLDATEN: AUS';
  $('soldierToggle').style.opacity=soldiersEnabled?'1':'.72';
  $('hungerBar').style.width=Math.max(0,player.hunger)+'%';$('waterBar').style.width=Math.max(0,player.water)+'%';
- $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3), hilf dem Soldaten oder suche Boss-Arenen nach seltenen Waffen.`;
+ $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3), hilf dem Soldaten oder suche Boss-Arenen in den fünf Biomen nach seltenem Loot.`;
 }
 function makePerson(isZombie=false){
  const g=new THREE.Group();
@@ -453,11 +483,15 @@ for(const site of bossSites){
  cube(boss.group,0,1.35,.25,.95,.72,.18,mat(site.color));
  cube(boss.group,-.56,1.12,0,.24,.7,.3,mat(site.color));cube(boss.group,.56,1.12,0,.24,.7,.3,mat(site.color));
  boss.group.userData.bossParts=[badge,crown];
+ // Always-visible in-world boss marker, distinct from ordinary zombies.
+ const bossMarker=cube(boss.group,0,3.45,0,1.35,.12,.12,mat(site.color));boss.group.userData.bossMarker=bossMarker;
+ boss.group.visible=true;boss.dead=false;boss.rewardGiven=false;
 }
 
 // Lootkisten und Versorgungspakete
 const inventory = { medicine:0, food:0, water:0, lantern:0, nightVision:0, grenades:0, glider:0, ammo:18, arrows:0, specialAmmo:36, armorPieces:[], weapons:{Blaster:1} };
 let gliderEquipped=false, gliderVisual=null;
+let gliderBoostTime=0,gliderBoostCooldown=0;
 const armorSets=[{name:'Ranger',rarity:'common',color:'#66785d',reduce:.04},{name:'Waldläufer',rarity:'uncommon',color:'#3f9b62',reduce:.08},{name:'Taktisch',rarity:'rare',color:'#428ad6',reduce:.13},{name:'Schatten',rarity:'epic',color:'#9b57d6',reduce:.18},{name:'Titan',rarity:'legendary',color:'#d6a43d',reduce:.24},{name:'Aegis',rarity:'mythic',color:'#e85fce',reduce:.30},{name:'Kosmischer Wächter',rarity:'ultra',color:'#49f2f0',reduce:.36}];
 const armorTypes=[{key:'helmet',label:'Helm',icon:'🪖'},{key:'chest',label:'Brustplatte',icon:'🦺'},{key:'pants',label:'Hose',icon:'👖'},{key:'boots',label:'Schuhe',icon:'🥾'}];
 const equippedArmor={helmet:null,chest:null,pants:null,boots:null};
@@ -851,7 +885,7 @@ createGroundItem('specialAmmo',24,{x:70,z:70},'Spezial-Laserzellen');
 
 function dropZombieLoot(pos){
  const defeatedBoss=zombies.find(z=>z.boss&&!z.rewardGiven&&distanceXZ(z.group.position,pos)<.05);
- if(defeatedBoss){defeatedBoss.rewardGiven=true;const w=defeatedBoss.bossWeapon;createGroundItem('weapon:'+w,1,{x:pos.x+2,z:pos.z+1},w);message('BOSS BESIEGT! Einzigartige Waffe liegt bei der Arena: '+w+'!',4);lootToast('Seltener Boss-Loot: '+w);updateInventory();saveProgress();return;}
+ if(defeatedBoss){defeatedBoss.rewardGiven=true;const w=defeatedBoss.bossWeapon;createGroundItem('weapon:'+w,1,{x:pos.x+2,z:pos.z+1},w);createGroundItem('specialAmmo',30,{x:pos.x-1,z:pos.z+2},'Boss-Spezialzellen');if(Math.random()<.75){const rare=randomArmorPiece(Math.random()<.35?'epic':'legendary');const armorDrop=createGroundItem('armorDrop',1,{x:pos.x-2,z:pos.z-1},rare.label);armorDrop.armorPiece=rare;}message('BOSS BESIEGT! Einzigartiger Loot liegt in der Arena: '+w+' und Spezialbelohnungen!',4);lootToast('Boss-Loot: '+w+' + Spezialitems');updateInventory();saveProgress();return;}
  const lanternDrop=Math.random()<.08;const grenadeDrop=!lanternDrop&&Math.random()<.05;const r=Math.random();let item,n=1,label='';
  // Rüstung droppt insgesamt nur in höchstens 15% der Zombie-Kills und liegt zuerst sichtbar auf dem Boden.
  if(Math.random()<.15){const a=randomArmorPiece();if(Math.random()<.01)a.rarity='ultra';const drop=createGroundItem('armorDrop',1,pos,a.label);drop.armorPiece=a;lootToast(rarityDE[a.rarity]+' Rüstung liegt am Boden: '+a.label);saveProgress();return;}
@@ -1017,7 +1051,7 @@ function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)ret
  if(soldierRecruited&&!soldier.recruited&&!soldier.dead){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:soldier})}
  if(Array.isArray(d.soldierGrades))d.soldierGrades.forEach((name,i)=>{const es=extraSoldiers[i];const grade=soldierGrades.find(g=>g.name===name);if(es&&grade)es.grade=grade});if(Array.isArray(d.recruitedExtras))for(const saved of d.recruitedExtras){if(typeof saved==='number'){const es=extraSoldiers[saved];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:es,grade:es.grade?.name})}continue}if(!saved||!Number.isFinite(saved.x)||!Number.isFinite(saved.z))continue;let es=extraSoldiers.find(q=>Math.hypot(q.home.x-saved.x,q.home.z-saved.z)<.5);if(!es){const group=makePerson(false);group.position.set(saved.x,0,saved.z);scene.add(group);const grade=soldierGrades.find(g=>g.name===saved.grade)||soldierGrades[0];es={group,recruited:false,dead:false,home:new THREE.Vector3(saved.x,0,saved.z),grade,mission:'ammo',tradeSeed:Math.random()};extraSoldiers.push(es)}const grade=soldierGrades.find(g=>g.name===saved.grade);if(grade)es.grade=grade;if(!es.recruited){es.recruited=true;allies.push({group:es.group,hp:es.grade?.hp||100,maxHp:es.grade?.hp||100,speed:3.6,damage:es.grade?.damage||25,followRate:es.grade?.rate||2.5,attack:0,dead:false,offset:Number.isFinite(saved.offset)?saved.offset:allies.length,source:es,grade:es.grade?.name})}}
  if(Array.isArray(d.allyStates))for(const st of d.allyStates){const a=allies.find(q=>q.offset===st.offset);if(a){a.hp=st.hp??100;if(st.weapon){a.weapon=st.weapon;a.damage=Math.max(12,Math.round((weaponStats[st.weapon]?.damage||45)*.42));a.weaponRate=weaponStats[st.weapon]?.cooldown||.5}if(st.dead){a.dead=true;scene.remove(a.group)}}}for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();
- if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[]){if(Date.now()-(q.createdAt||Date.now())<120000){const ground=createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label,q.createdAt||Date.now());if(q.armorPiece)ground.armorPiece=q.armorPiece}}camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();updateArmorAvatar();rebuildHandProp();rebuildLantern();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
+ if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;if(obj.boss){const site=bossSites.find(q=>q.name===obj.bossName);obj.dead=false;obj.rewardGiven=false;obj.hp=obj.maxHp;obj.group.visible=true;if(site)obj.group.position.set(site.x,0,site.z);return;}obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[]){if(Date.now()-(q.createdAt||Date.now())<120000){const ground=createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label,q.createdAt||Date.now());if(q.armorPiece)ground.armorPiece=q.armorPiece}}camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();updateArmorAvatar();rebuildHandProp();rebuildLantern();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
 window.addEventListener('pagehide',saveProgress);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveProgress()});setInterval(()=>{if(started&&!gameOver)saveProgress()},5000);
 
 window.addEventListener('deadzone-start',()=>{
@@ -1036,6 +1070,7 @@ document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')int
 document.addEventListener('keyup',e=>keys[e.code]=false);
 renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(pointer:coarse)').matches&&!pointerLocked&&renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();else if(started)shoot()});
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&started&&pointerLocked)shotHeld=true});
+renderer.domElement.addEventListener('pointerdown',e=>{if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.15;gliderBoostCooldown=1.35;player.vy=Math.max(player.vy,-.25);message('🪂 BOOST! Du gleitest schneller!',.9)});
 window.addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointerdown',e=>{e.preventDefault();shotHeld=true;shoot()});
 $('aimBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(!/Sniper|Präzisions|Scharfschützen/i.test(equippedWeapon)){message('Rüste zuerst Scharfschützengewehr oder Sniper aus.',1.5);return}setSniperZoom(!sniperZoom)});
@@ -1175,8 +1210,9 @@ function animate(){
    if(player.pos.y<=1.7){player.pos.y=1.7;climbingLadder=null;player.onGround=true;message('Leiter verlassen.',1.2)}
   } else {
    const activelyGliding=gliderEquipped&&!player.onGround&&player.pos.y>4.2&&player.vy<0;
-   player.vy-=(activelyGliding?2.0:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,-2.6);player.pos.y+=player.vy*dt;
-   if(gliderEquipped&&!player.onGround&&player.pos.y>4.2){player.pos.x-=Math.sin(player.yaw)*2.0*dt;player.pos.z-=Math.cos(player.yaw)*2.0*dt;}
+   gliderBoostCooldown=Math.max(0,gliderBoostCooldown-dt);gliderBoostTime=Math.max(0,gliderBoostTime-dt);
+   player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;
+   if(gliderEquipped&&!player.onGround&&player.pos.y>4.2){const glideSpeed=gliderBoostTime>0?15.5:7.2;player.pos.x-=Math.sin(player.yaw)*glideSpeed*dt;player.pos.z-=Math.cos(player.yaw)*glideSpeed*dt;}
    let roofY=null;
    for(const h of houseZones){if(Math.abs(player.pos.x-h.x)<=h.w/2+.3&&Math.abs(player.pos.z-h.z)<=h.d/2+.3&&player.pos.y<=h.roofY+1.7&&player.pos.y>h.roofY){roofY=h.roofY+1.7;break}}
    if(roofY!==null&&player.vy<0){player.pos.y=roofY;player.vy=0;player.onGround=true;}
