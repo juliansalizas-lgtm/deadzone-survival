@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Deadzone Survival v5.6.0</title>
+<title>Deadzone Survival v5.6.1 – Realistic Graphics</title>
 <style>
 :root{color-scheme:dark}
 *{box-sizing:border-box}
@@ -128,25 +128,26 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ba9a0);
-scene.fog = new THREE.Fog(0x9ba9a0, 120, 650);
+scene.fog = new THREE.Fog(0x9ba9a0, 95, 470);
 const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 900);
 camera.rotation.order = 'YXZ';
 // Die Kamera muss Teil der Szene sein, damit auch der daran befestigte Blaster gerendert wird.
 scene.add(camera);
 const renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.35)); // iPad: stabile Bildrate bei höherwertiger Beleuchtung
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
+renderer.physicallyCorrectLights = true;
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.HemisphereLight(0xdde8e4,0x394139,2.0));
+const skyFill=new THREE.HemisphereLight(0xdde8e4,0x394139,1.55);scene.add(skyFill);
 const sun = new THREE.DirectionalLight(0xffedcf,2.3);
 sun.position.set(-25,42,20); sun.castShadow=true;
-sun.shadow.mapSize.set(1024,1024); sun.shadow.camera.left=-55; sun.shadow.camera.right=55; sun.shadow.camera.top=55; sun.shadow.camera.bottom=-55;
+sun.shadow.mapSize.set(1024,1024); sun.shadow.bias=-0.00018; sun.shadow.normalBias=0.025; sun.shadow.camera.left=-55; sun.shadow.camera.right=55; sun.shadow.camera.top=55; sun.shadow.camera.bottom=-55;
 scene.add(sun);
 // Sichtbare Himmelskörper: Sonne, Mond und leichte Wolken aus einfachen 3D-Formen.
 const sunDisc=new THREE.Mesh(new THREE.SphereGeometry(4.2,18,14),new THREE.MeshBasicMaterial({color:0xffdf8a}));
@@ -162,7 +163,7 @@ for(let ci=0;ci<13;ci++){
 }
 
 const mat=(color,roughness=.9,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
-const grass=mat(0x4e6048), dirt=mat(0x514d40), concrete=mat(0x666a65), dark=mat(0x242a28), wood=mat(0x554638), leaf=mat(0x344b37), leaf2=mat(0x465b3c), bark=mat(0x514236), metal=mat(0x555f5c,.65,.35), crateMat=mat(0x7b6848), skin=mat(0x9baf83), uniform=mat(0x3d5147), pants=mat(0x343f3b), zombieSkin=mat(0x71836b), zombieCloth=mat(0x514b45), red=mat(0x732e28);
+const grass=mat(0x4a5b40,1), dirt=mat(0x514a3c,1), concrete=mat(0x666a65,.96), dark=mat(0x242a28,.92), wood=mat(0x554638,.96), leaf=mat(0x344b37,1), leaf2=mat(0x465b3c,1), bark=mat(0x514236,1), metal=mat(0x555f5c,.78,.22), crateMat=mat(0x7b6848,.96), skin=mat(0x9baf83,.92), uniform=mat(0x3d5147,.95), pants=mat(0x343f3b,.96), zombieSkin=mat(0x71836b,.9), zombieCloth=mat(0x514b45,.96), red=mat(0x732e28,.92);
 const boxGeo=new THREE.BoxGeometry(1,1,1);
 function cube(parent, x,y,z, sx,sy,sz, material, cast=true) {
  const m=new THREE.Mesh(boxGeo,material); m.position.set(x,y,z); m.scale.set(sx,sy,sz); m.castShadow=cast; m.receiveShadow=true; parent.add(m); return m;
@@ -171,6 +172,41 @@ function groundPatch(x,z,w,d,material,y=.015){return cube(scene,x,y,z,w,.08,d,ma
 groundPatch(0, -4, 820, 820, grass,-.12);
 groundPatch(0, 2, 13, 92, dirt,-.055);
 groundPatch(-4, 0, 25, 22, concrete,-.01);
+// Leichte Umwelt-Details: InstancedMesh hält die zusätzlichen Details iPad-freundlich.
+const detailRng=(n)=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
+// Variationen im Boden: kleine Grasbüschel und flache Steine, ohne hunderte Draw Calls.
+const grassBladeGeo=new THREE.ConeGeometry(.055,.42,3);
+grassBladeGeo.translate(0,.21,0);
+const grassBladeMat=new THREE.MeshStandardMaterial({color:0x627653,roughness:1});
+const grassInstances=new THREE.InstancedMesh(grassBladeGeo,grassBladeMat,520);grassInstances.castShadow=false;grassInstances.receiveShadow=true;
+const grassDummy=new THREE.Object3D();let grassCount=0;
+for(let i=0;i<520;i++){
+ const x=(detailRng(i+4)-.5)*210,z=(detailRng(i+700)-.5)*210;
+ // Keep the road and main building entrances clear.
+ if(Math.abs(x)<8&&z>-50&&z<50)continue;
+ if(Math.abs(x+4)<15&&Math.abs(z)<14)continue;
+ grassDummy.position.set(x,.02,z);grassDummy.rotation.set((detailRng(i+1300)-.5)*.16,detailRng(i+1800)*Math.PI,0);const scale=.45+detailRng(i+2200)*1.05;grassDummy.scale.set(scale,scale,scale);grassDummy.updateMatrix();grassInstances.setMatrixAt(grassCount++,grassDummy.matrix);
+}
+grassInstances.count=grassCount;scene.add(grassInstances);
+const pebbleGeo=new THREE.DodecahedronGeometry(.34,0);
+const pebbleMat=new THREE.MeshStandardMaterial({color:0x77796e,roughness:1});
+const pebbleInstances=new THREE.InstancedMesh(pebbleGeo,pebbleMat,105);pebbleInstances.castShadow=false;pebbleInstances.receiveShadow=true;let pebbleCount=0;
+for(let i=0;i<105;i++){
+ const x=(detailRng(i+3200)-.5)*180,z=(detailRng(i+4100)-.5)*180;
+ if(Math.abs(x)<9&&z>-50&&z<50)continue;
+ grassDummy.position.set(x,.03,z);grassDummy.rotation.set(detailRng(i+5000),detailRng(i+6000)*Math.PI,detailRng(i+7000));const sc=.35+detailRng(i+8000)*1.25;grassDummy.scale.set(sc,.35+sc*.35,sc);grassDummy.updateMatrix();pebbleInstances.setMatrixAt(pebbleCount++,grassDummy.matrix);
+}
+pebbleInstances.count=pebbleCount;scene.add(pebbleInstances);
+// Faint road wear and broken asphalt seams add depth without expensive textures.
+const roadWearMat=new THREE.MeshStandardMaterial({color:0x393d39,roughness:1,transparent:true,opacity:.62});
+for(let i=0;i<22;i++){
+ const z=-42+i*4.05;const crack=cube(scene,(detailRng(i+9100)-.5)*3.7,.006,z,.025+detailRng(i+9200)*.06,.012,1.1+detailRng(i+9300)*2.5,roadWearMat,false);crack.rotation.y=(detailRng(i+9400)-.5)*.65;
+}
+// A few weathered concrete slabs and rubble near the roadside, not on the driveable strip.
+for(let i=0;i<28;i++){
+ const side=i%2?1:-1,x=side*(7.7+detailRng(i+9500)*3.8),z=-43+detailRng(i+9600)*88;
+ const slab=cube(scene,x,.08,z,.45+detailRng(i+9700)*.9,.12,.4+detailRng(i+9800)*.8,mat(i%3?0x686c65:0x555a54),true);slab.rotation.y=detailRng(i+9900)*Math.PI;
+}
 // Road edge and scattered slabs
 for(let z=-42;z<45;z+=8){cube(scene,0,.002,z,0.22,.02,3.2,mat(0xb2ad92),false)}
 // low hills / perimeter rocks
