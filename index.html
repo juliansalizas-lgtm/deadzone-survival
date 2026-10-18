@@ -504,7 +504,8 @@ function enterOrExitCar(){
  $('vehicleHud').style.display='block';message('Eingestiegen! WASD / Steuerung zum Fahren, E zum Aussteigen.',2.5);
 }
 $('exitCar').addEventListener('click',enterOrExitCar);
-\n// Player and camera
+
+// Player and camera
 const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true,hunger:100,water:100,infected:false,infectionTime:0,money:0,vy:0,onGround:true};
 let selectedItem="medicine";
 const autoJump=false;
@@ -1055,7 +1056,10 @@ function interact(){
   playTone(620,.12,'triangle',.06);
   message(`Kiste geplündert (${suppliesFound}/3).`,2.4);
   if(suppliesFound>=3)message('Alle Vorräte gefunden! Kehre zum Soldaten zurück.',4);
- }else if(near.type==='extraSoldier'){const es=near.obj;if(es.dead){message('Dieser Soldat ist gefallen.');return}const grade=es.grade||soldierGrades[0];if(player.money<grade.price){message(`${grade.name}: Ich koste ${grade.price} 💰. Du hast nur ${player.money} 💰.`);return}const ok=window.confirm(`${grade.name} anheuern?\nPreis: ${grade.price} 💰\nLeben: ${grade.hp} · Kampfschaden: ${grade.damage}\nDu hast: ${player.money} 💰`);if(!ok){message('Handel abgebrochen.');return}if(player.money<grade.price){message('Du hast nicht genug Geld.');return}player.money-=grade.price;es.recruited=true;const ally={group:es.group,hp:grade.hp,maxHp:grade.hp,speed:3.6,damage:grade.damage,followRate:grade.rate,attack:0,dead:false,offset:allies.length,source:es,grade:grade.name};allies.push(ally);message(`${grade.name} angeheuert! −${grade.price} 💰`,3);saveProgress(); }else{
+ }else if(near.type==='extraSoldier'){const es=near.obj;if(es.dead){message('Dieser Soldat ist gefallen.');return}const grade=es.grade||soldierGrades[0];if(player.money<grade.price){message(`${grade.name}: Ich koste ${grade.price} 💰. Du hast nur ${player.money} 💰.`);return}const ok=window.confirm(`${grade.name} anheuern?
+Preis: ${grade.price} 💰
+Leben: ${grade.hp} · Kampfschaden: ${grade.damage}
+Du hast: ${player.money} 💰`);if(!ok){message('Handel abgebrochen.');return}if(player.money<grade.price){message('Du hast nicht genug Geld.');return}player.money-=grade.price;es.recruited=true;const ally={group:es.group,hp:grade.hp,maxHp:grade.hp,speed:3.6,damage:grade.damage,followRate:grade.rate,attack:0,dead:false,offset:allies.length,source:es,grade:grade.name};allies.push(ally);message(`${grade.name} angeheuert! −${grade.price} 💰`,3);saveProgress(); }else{
   if(soldier.dead){message('Der Soldat ist gefallen und kann dir nicht mehr helfen.');return}
   if(suppliesFound<3){message(`Soldat: Ich brauche noch ${3-suppliesFound} Versorgungskisten!`);return}
   soldier.recruited=true;
