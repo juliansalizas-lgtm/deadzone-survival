@@ -73,6 +73,16 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 #inventoryModal{z-index:10001!important;pointer-events:auto!important}
 #inventoryCard,#inventoryCard button,#inventoryItems button,button{pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #startScreen{z-index:20000!important}
+
+#vehicleHud{display:none;position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:min(100vw,760px);height:35vh;pointer-events:none;z-index:20}
+#vehicleHud .dash{position:absolute;bottom:0;left:0;right:0;height:72%;background:linear-gradient(#252b2d,#080a0b);border-top:5px solid #4b5151;clip-path:polygon(0 22%,12% 0,88% 0,100% 22%,100% 100%,0 100%);box-shadow:0 -8px 25px #000}
+#vehicleHud .wheel{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);width:150px;height:150px;border:15px solid #111;border-radius:50%;box-shadow:inset 0 0 0 5px #45494a,0 0 0 3px #777}
+#vehicleHud .wheel:before{content:'';position:absolute;left:50%;top:12%;height:70%;width:14px;background:#303536;transform:translateX(-50%)}
+#vehicleHud .wheel:after{content:'';position:absolute;left:15%;right:15%;top:48%;height:14px;background:#303536}
+#vehicleHud .gauges{position:absolute;bottom:27%;left:50%;transform:translateX(-50%);display:flex;gap:12px}
+#vehicleHud .gauge{width:54px;height:32px;border:3px solid #858b8b;border-radius:50%;background:radial-gradient(#26383a,#090c0d);color:#b7e5d8;text-align:center;font-size:11px;padding-top:7px}
+#vehicleHud .speed{position:absolute;bottom:15%;right:13%;color:#fff;font-weight:700;text-shadow:0 0 6px #68d8ff}
+#vehicleHud .exit{position:absolute;right:12px;top:8px;pointer-events:auto;background:#222;color:#fff;border:1px solid #aaa;border-radius:8px;padding:10px}
 </style>
 </head>
 <body>
@@ -89,7 +99,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <p class="small">Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
-<div id="hud">
+<div id="vehicleHud"><div class="dash"></div><div class="gauges"><div class="gauge">RPM</div><div class="gauge">FUEL</div></div><div class="wheel"></div><div class="speed" id="carSpeed">0 km/h</div><button class="exit" id="exitCar">Aussteigen (E)</button></div><div id="hud">
   <div id="status" class="panel"><b>ÜBERLEBEN</b><div id="healthLabel">Leben: 100</div><div id="healthOuter"><div id="health"></div></div><div>Hunger</div><div class="barOuter"><div id="hungerBar" class="barFill"></div></div><div>Wasser</div><div class="barOuter"><div id="waterBar" class="barFill"></div></div><div id="ammoLabel">Munition: 12 / 18</div><div id="allyLabel">Verbündete: 0</div><div id="survivalLabel">💰 Geld: 0</div></div>
   
   <div id="lootToast"></div>
@@ -463,7 +473,38 @@ for(const site of bossSites){
  // (Deliberately omit addObstacle() here so the arena is always enterable.)
 }
 
-// Player and camera
+
+// Drivable cars: low-poly detailed body, windows, wheels, headlights and a first-person dashboard overlay.
+const cars=[];
+let activeCar=null;
+function makeCar(x,z,color=0x343b3d,rot=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);
+ const bodyMat=mat(color,.34,.48), glassMat=new THREE.MeshStandardMaterial({color:0x243b42,metalness:.25,roughness:.18,transparent:true,opacity:.82}), tireMat=mat(0x17191a,.94,.02), trimMat=mat(0x8a918f,.45,.55);
+ cube(g,0,.68,0,2.05,.55,4.1,bodyMat,true);
+ cube(g,0,1.04,-.28,1.72,.55,2.15,bodyMat,true);
+ cube(g,0,1.13,-.28,1.58,.38,1.92,glassMat,false);
+ cube(g,0,.96,-1.45,1.75,.22,.8,bodyMat,true);
+ cube(g,0,.95,1.55,1.82,.2,.55,bodyMat,true);
+ for(const xx of [-1,1])for(const zz of [-1.3,1.25]){
+  const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.2,16),tireMat);wheel.rotation.z=Math.PI/2;wheel.position.set(xx,.4,zz);g.add(wheel);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.16,.16,.21,12),trimMat);hub.rotation.z=Math.PI/2;hub.position.set(xx*1.01,.4,zz);g.add(hub);
+ }
+ for(const xx of [-.68,.68]){cube(g,xx,.76,-2.02,.35,.18,.08,mat(0xe8e1b5,.25),false);cube(g,xx,.75,2.04,.32,.16,.07,mat(0x9e3025),false)}
+ const steering=new THREE.Mesh(new THREE.TorusGeometry(.22,.035,8,20),mat(0x171919,.55));steering.position.set(.38,1.0,-.25);steering.rotation.x=.25;g.add(steering);
+ const dash=cube(g,0,.89,-.05,1.5,.16,.36,mat(0x171c1d,.72),false);
+ const car={group:g,speed:0,health:100,yaw:rot,bodyMat,steering};cars.push(car);return car;
+}
+const carA=makeCar(4,10,0x353b3d,.1);
+const carB=makeCar(-12,-7,0x66716b,-.5);
+function nearestCar(){let best=null,dist=3.8;for(const c of cars){const d=distanceXZ(player.pos,c.group.position);if(d<dist){dist=d;best=c}}return best}
+function enterOrExitCar(){
+ if(activeCar){activeCar=null;player.pos.y=1.7;$('vehicleHud').style.display='none';message('Du bist ausgestiegen.',1.2);return}
+ const c=nearestCar();if(!c){message('Gehe näher an ein Auto, um einzusteigen.',1.5);return}
+ activeCar=c;player.pos.set(c.group.position.x,1.35,c.group.position.z);player.yaw=c.group.rotation.y;
+ $('vehicleHud').style.display='block';message('Eingestiegen! WASD / Steuerung zum Fahren, E zum Aussteigen.',2.5);
+}
+$('exitCar').addEventListener('click',enterOrExitCar);
+\n// Player and camera
 const player={pos:new THREE.Vector3(0,1.7,12),yaw:0,pitch:0,health:100,speed:5.2,alive:true,hunger:100,water:100,infected:false,infectionTime:0,money:0,vy:0,onGround:true};
 let selectedItem="medicine";
 const autoJump=false;
@@ -1430,7 +1471,19 @@ function animate(){
   for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z<=st.zStart+.5 && player.pos.z>=st.zEnd-.5 && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const stairY=st.baseY+t*(st.topY-st.baseY);if(stairY>=player.pos.y-.65&&stairY<=player.pos.y+1.1){player.pos.y=stairY;player.vy=0;player.onGround=true;}}}
   // Stockwerk-Böden fangen den Spieler zuverlässig auf; jede Etage bleibt begehbar.
   for(const f of buildingFloors){if(Math.abs(player.pos.x-f.x)<f.w/2-.45&&Math.abs(player.pos.z-f.z)<f.d/2-.45){const eyeY=f.y+1.7;if(player.vy<=0&&player.pos.y<=eyeY+.22&&player.pos.y>=eyeY-.95){player.pos.y=eyeY;player.vy=0;player.onGround=true;}}}
-  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
+  if(activeCar){
+   const steer=(keys.KeyA||mobileMove.x<-.15?-1:0)+(keys.KeyD||mobileMove.x>.15?1:0);
+   const throttle=(keys.KeyW||mobileMove.y<-.15?1:0)-(keys.KeyS||mobileMove.y>.15?1:0);
+   activeCar.speed+=throttle*10*dt;activeCar.speed*=Math.pow(throttle===0?.985:.997,dt*60);activeCar.speed=Math.max(-5,Math.min(17,activeCar.speed));
+   activeCar.group.rotation.y+=steer*dt*(activeCar.speed>=0?1:-1)*Math.min(1,Math.abs(activeCar.speed)/4)*1.15;
+   const nx=activeCar.group.position.x-Math.sin(activeCar.group.rotation.y)*activeCar.speed*dt;
+   const nz=activeCar.group.position.z-Math.cos(activeCar.group.rotation.y)*activeCar.speed*dt;
+   if(!blockedAt(nx,nz,1.2)){activeCar.group.position.x=nx;activeCar.group.position.z=nz;}else{activeCar.speed*=-.22;activeCar.health-=3;}
+   player.pos.set(activeCar.group.position.x,1.35,activeCar.group.position.z);player.yaw=activeCar.group.rotation.y;
+   $('carSpeed').textContent=Math.round(Math.abs(activeCar.speed)*5)+' km/h';
+ }
+ camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
+ if(activeCar){handRig.visible=false;camera.position.y=1.45;}else handRig.visible=true;
   if(dynamicGun){dynamicGun.position.z=-.35+Math.sin(performance.now()*.012)*.008;dynamicGun.rotation.x=Math.sin(performance.now()*.009)*.012;}
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
@@ -1463,7 +1516,7 @@ function animate(){
    }
    if(z.waveMega&&!z.dead){
     z.megaLaserCooldown=(z.megaLaserCooldown||2)-dt;
-    if(z.megaLaserCooldown<=0&&distanceXZ(z.group.position,player.pos)<34){z.megaLaserCooldown=3.8;const start=new THREE.Vector3(z.group.position.x,z.group.position.y+2.6,z.group.position.z),end=new THREE.Vector3(player.pos.x,player.pos.y-.2,player.pos.z);const geo=new THREE.BufferGeometry().setFromPoints([start,end]);const beam=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x45e7ff,transparent:true,opacity:.95}));scene.add(beam);shotVisuals.push({obj:beam,geo,material:beam.material,life:.24});if(distanceXZ(z.group.position,player.pos)<24)damagePlayer(11);}
+    if(z.megaLaserCooldown<=0&&distanceXZ(z.group.position,player.pos)<34){z.megaLaserCooldown=3.8;const start=new THREE.Vector3(z.group.position.x,z.group.position.y+2.6,z.group.position.z),end=new THREE.Vector3(player.pos.x,player.pos.y-.2,player.pos.z);const geo=new THREE.BufferGeometry().setFromPoints([start,end]);const beam=new THREE.Line(geo,new THREE.LineBasicMaterial({color:0x45e7ff,transparent:true,opacity:.95}));scene.add(beam);shotVisuals.push({obj:beam,geo,material:beam.material,life:.24});if(distanceXZ(z.group.position,player.pos)<24){if(activeCar)activeCar.health-=11;else damagePlayer(11);}}
    }
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
@@ -1481,7 +1534,7 @@ function animate(){
     }
    }else if(z.climbingLadder){p.y=Math.max(0,p.y-Math.max(1.4,z.speed)*dt);if(p.y<=0){p.y=0;z.climbingLadder=null}}
    if(nearest>1.35&&!z.climbingLadder){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;const nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;if(!blockedAt(nx,p.z,.56))p.x=nx;if(!blockedAt(p.x,nz,.56))p.z=nz;z.group.rotation.y=Math.atan2(dx,dz);}
-   else if(nearest<=1.35){z.attack-=dt;if(z.attack<=0){if(target===player.pos){damagePlayer(7);if(!player.infected&&Math.random()<.10){player.infected=true;player.infectionTime=120;updateHUD();message('☣️ INFIZIERT! Orange Flecken am Bildschirmrand! Nimm innerhalb von 2 Minuten Medizin!',5);lootToast('☣️ INFEKTION! Medizin verwenden!')}}else if(targetAlly){targetAlly.hp-=18;if(targetAlly.hp<=0){targetAlly.dead=true;scene.remove(targetAlly.group);if(targetAlly.source){targetAlly.source.dead=true;targetAlly.source.recruited=false;}const idx=allies.indexOf(targetAlly);if(idx>=0)allies.splice(idx,1);message('🪖 Ein Soldat ist gefallen!',3);updateHUD();saveProgress()}}z.attack=1.05}}
+   else if(nearest<=1.35){z.attack-=dt;if(z.attack<=0){if(target===player.pos){if(activeCar){activeCar.health-=7;if(activeCar.health<=0){activeCar.health=0;activeCar.group.traverse(o=>{if(o.material&&o.material.color)o.material.color.setHex(0x24201d)});message('Auto zerstört! Du bist nicht mehr geschützt.',2);}else message('Zombie greift das Auto an! Fahrzeug: '+activeCar.health+'%',1);}else damagePlayer(7);if(!player.infected&&Math.random()<.10){player.infected=true;player.infectionTime=120;updateHUD();message('☣️ INFIZIERT! Orange Flecken am Bildschirmrand! Nimm innerhalb von 2 Minuten Medizin!',5);lootToast('☣️ INFEKTION! Medizin verwenden!')}}else if(targetAlly){targetAlly.hp-=18;if(targetAlly.hp<=0){targetAlly.dead=true;scene.remove(targetAlly.group);if(targetAlly.source){targetAlly.source.dead=true;targetAlly.source.recruited=false;}const idx=allies.indexOf(targetAlly);if(idx>=0)allies.splice(idx,1);message('🪖 Ein Soldat ist gefallen!',3);updateHUD();saveProgress()}}z.attack=1.05}}
   }
   // Neutrale Soldaten (noch nicht rekrutiert) verteidigen sich und schießen auf nahe Zombies.
   const neutralSoldiers=[];
