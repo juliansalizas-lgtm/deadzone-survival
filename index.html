@@ -526,7 +526,14 @@ for(let i=0;i<34;i++){
  let x,z,tries=0;
  do{
   x=-340+Math.random()*680; z=-340+Math.random()*680; tries++;
- }while(tries<45 && ((Math.abs(x)<17 && z>-65 && z<65) || (x>125 && z<-115) || (Math.abs(x)<18 && z>190 && z<300)));
+  // Keine Hügel in Häusern, Gärten, der Vorortstraße oder den Militärlagern.
+  const inSuburb = x>78 && x<282 && z>-238 && z<-132;
+  const nearHouseOrGarden = suburbPositions.some(h=>Math.abs(x-h.x)<19 && Math.abs(z-h.z)<23);
+  const nearCamp = [[-250,-220],[275,-245],[270,260]].some(c=>Math.abs(x-c[0])<34 && Math.abs(z-c[1])<34);
+  const nearAirport = (x>225 && x<385 && z>-370 && z<-205);
+  const nearFactories = (x>-355 && x<-235 && z>220 && z<330);
+  var blockedHillArea = ((Math.abs(x)<17 && z>-65 && z<65) || (x>125 && z<-115) || (Math.abs(x)<18 && z>190 && z<300) || inSuburb || nearHouseOrGarden || nearCamp || nearAirport || nearFactories);
+ }while(tries<120 && blockedHillArea);
  const rx=13+Math.random()*18, rz=13+Math.random()*20, ry=.8+Math.random()*1.35;
  const mound=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),mat(i%4===0?0x718354:(i%3===0?0x6d8050:0x66794a),1));
  mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
@@ -655,7 +662,8 @@ function makeCamp(cx,cz,index){
  for(let i=-2;i<=2;i++){if(i!==0){cube(group,i*8,.8,-22,7,.9,.8,mat(0x555b50,.9));cube(group,i*8,.8,22,7,.9,.8,mat(0x555b50,.9));}cube(group,-22,.8,i*8,.8,.9,7,mat(0x555b50,.9));cube(group,22,.8,i*8,.8,.9,7,mat(0x555b50,.9));}
  for(const [tx,tz] of [[-12,-12],[12,-12],[-12,12],[12,12]]){const tent=cube(group,tx,1.2,tz,6,2.4,5,mat(0x4b5846,.98));cube(group,tx,2.45,tz,6.3,.25,5.3,mat(0x343f32,.95));}
  for(let i=0;i<7;i++){const bx=(i%4)*4-6,bz=(Math.floor(i/4))*4-2;const crate=cube(group,bx,.55,bz,1.5,1.1,1.4,mat(i%2?0x66513a:0x81704b,.9));crate.userData.militaryLoot=true;addObstacle(cx+bx,cz+bz,.9,.85);}
- const tank=makeTank(cx+1,cz+2,index*.65);tank.campIndex=index;
+ // Panzer außerhalb der Umzäunung auf freier Fläche spawnen, nicht zwischen Kisten/Zelten.
+ const tank=makeTank(cx+29,cz+3,index*.65);tank.campIndex=index;
  militaryCamps.push({group,x:cx,z:cz,tank,index});
  // A very dense horde guarding each camp.
  for(let i=0;i<18;i++){const a=Math.random()*Math.PI*2,r=10+Math.random()*25;makeZombie(cx+Math.cos(a)*r,cz+Math.sin(a)*r,Math.random()<.18)}
@@ -799,7 +807,7 @@ for(let i=0;i<28;i++){
 // Keine Boss-Zombies werden erzeugt.
 // Einige Häuser sind nicht sicher: Zombies im Inneren und verlassene Leichen.
 for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
-makeCamp(-250,-220,0);makeCamp(245,-205,1);makeCamp(5,255,2);
+makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
 
 // Erweiterter Kartenrand: Bahnhof, zweigleisige Strecke und ein nicht fahrbarer Zug.
 const trainWagons=[];let playerInsideTrain=null;
@@ -820,6 +828,8 @@ function buildRailwayAndStation(){
  for(const wx of [-5.2,-2.6,2.6,5.2])cube(sg,wx,2.05,6.08,1.55,1.05,.12,windowMat,false);
  cube(sg,0,4.65,0,7,.12,2.3,mat(0x26352d,.8));
  const sign=cube(sg,0,3.2,6.25,5.4,.8,.18,mat(0x244b3b,.8));
+ // The station building is a solid structure: block the entire footprint so players cannot walk through its walls.
+ addObstacle(trackX-19,5,7.65,6.25);
  // A single train with locomotive and three walk-in wagons; it cannot be driven.
  const trainZ=48;
  const loco=new THREE.Group();loco.position.set(trackX,0,trainZ-28);scene.add(loco);
@@ -851,6 +861,66 @@ function buildRailwayAndStation(){
  for(const z of [-48,-25,78,103,128]){cube(scene,trackX+15,.55,z,2.1,1.1,1.4,mat(0x625644,.9));addObstacle(trackX+15,z,1.1,.8)}
 }
 buildRailwayAndStation();
+
+// New industrial zone and airport. Hangars have solid side/rear walls and an open front.
+function buildIndustrialAirport(){
+ const concrete=mat(0x777a78,.98), wall=mat(0x737a7d,.92), roof=mat(0x454c50,.85), trim=mat(0x252d31,.8), glass=mat(0x24383b,.25,.1), yellow=mat(0xd2b34a,.9), planeWhite=mat(0xc8ccca,.62,.18), jetGrey=mat(0x555e66,.48,.28), rubber=mat(0x17191a,.95);
+ // Two large industrial factory halls in a separate open area.
+ function factoryHall(x,z,w,d){
+  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+  cube(g,0,.22,0,w,.44,d,concrete);
+  cube(g,0,5.8,-d/2,w, .45,.55,roof);
+  cube(g,-w/2+0.22,3,-.05,.44,6,d,wall);cube(g,w/2-.22,3,-.05,.44,6,d,wall);
+  cube(g,0,3,d/2-.22,w,6,.44,wall);
+  for(let xx=-w/2+3;xx<w/2-1;xx+=6){cube(g,xx,3,-d/2+.45,.35,6,.5,trim);cube(g,xx,3,d/2-.65,.35,6,.5,trim);}
+  // Large front opening remains open for walking in.
+  addObstacle(x-w/2,z,.28,d/2);addObstacle(x+w/2,z,.28,d/2);addObstacle(x,z+d/2,w/2,.28);
+  for(let xx=-w/2+2;xx<w/2-1;xx+=4)cube(g,xx,.55,d/2+.05,.12,1.1,.12,yellow);
+ }
+ factoryHall(-320,250,36,42);
+ factoryHall(-270,300,34,38);
+ // Airport apron and long runway, within the extended map bounds.
+ cube(scene,305,.025,-290,92,.06,140,concrete,false);
+ cube(scene,305,.045,-290,20,.08,132,mat(0x292d30,.98),false);
+ for(let z=-352;z<=-228;z+=12)cube(scene,305,.095,z,1.1,.025,5.5,planeWhite,false);
+ for(const x of [295,315]){cube(scene,x,.09,-290,.12,.02,132,yellow,false);}
+ // Two aircraft hangars, front side facing the runway (positive Z); left and right sides plus rear are solid.
+ function hangar(x,z,w,d,withJet){
+  const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+  cube(g,0,.2,0,w,.4,d,concrete);
+  cube(g,0,7,-d/2,w,.55,.65,roof);
+  cube(g,-w/2+.25,3.5,0,.5,7,d,wall);cube(g,w/2-.25,3.5,0,.5,7,d,wall);
+  cube(g,0,3.5,-d/2+.25,w,7,.5,wall);
+  // Visible roof trusses; front remains completely open.
+  for(let zz=-d/2+3;zz<d/2-2;zz+=8){cube(g,0,6.6,zz,w-.8,.22,.28,trim);}
+  addObstacle(x-w/2,z,.3,d/2);addObstacle(x+w/2,z,.3,d/2);addObstacle(x,z-d/2,w/2,.3);
+  if(withJet){
+   const a=new THREE.Group();a.position.set(0,0.4,-1);g.add(a);
+   // Low-poly jet: fuselage, pointed nose, swept wings, tail and twin stabilizers.
+   cube(a,0,1.25,-2.2,1.7,1.15,13,jetGrey);
+   const nose=new THREE.Mesh(new THREE.ConeGeometry(.83,3.2,8),jetGrey);nose.rotation.x=-Math.PI/2;nose.position.set(0,1.25,-10.2);a.add(nose);
+   cube(a,0,1.85,1.7,1.05,.55,4.4,glass);
+   const wing1=cube(a,-4.1,1.05,.3,7.8,.28,3.6,jetGrey);wing1.rotation.y=-.17;
+   const wing2=cube(a,4.1,1.05,.3,7.8,.28,3.6,jetGrey);wing2.rotation.y=.17;
+   cube(a,0,1.65,4.9,4.2,.22,1.7,jetGrey);cube(a,-1.45,2.05,5.2,.25,1.8,1.7,jetGrey);cube(a,1.45,2.05,5.2,.25,1.8,1.7,jetGrey);
+   for(const xw of [-1.1,1.1]){const wh=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.22,10),rubber);wh.rotation.z=Math.PI/2;wh.position.set(xw,.45,1.6);a.add(wh)}
+  }
+ }
+ hangar(280,-290,34,38,true);
+ hangar(330,-290,34,38,false);
+ // A separate passenger/cargo aircraft parked on the runway; purely decorative and not flyable.
+ const plane=new THREE.Group();plane.position.set(305,.25,-250);plane.rotation.y=Math.PI;scene.add(plane);
+ cube(plane,0,2.2,0,2.2,1.8,24,planeWhite);
+ const nose=new THREE.Mesh(new THREE.ConeGeometry(1.05,5,10),planeWhite);nose.rotation.x=-Math.PI/2;nose.position.set(0,2.2,-14);plane.add(nose);
+ cube(plane,0,2.7,3.3,2,.55,5.8,glass);
+ cube(plane,0,1.9,0,31,.42,6.4,planeWhite);
+ cube(plane,0,2.5,9.4,11,.3,3.2,planeWhite);cube(plane,0,3.8,10.2,.45,3.1,2.4,planeWhite);
+ for(const x of [-2.2,2.2]){const engine=cube(plane,x,1.25,1.2,1.6,1.2,4.5,jetGrey);const wh=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.25,10),rubber);wh.rotation.z=Math.PI/2;wh.position.set(x*.65,.55,2.5);plane.add(wh);}
+ // Block airport service buildings/aircraft footprints as solid obstacles without making the aircraft walkable.
+ addObstacle(305,-250,16,13); // runway aircraft collision footprint
+}
+buildIndustrialAirport();
+
 
 // Stylisierte, nicht-grafische Leichen: zufällig fehlt ein Arm oder die untere Körperhälfte.
 // Blutspuren sind flache dunkle Flecken auf dem Boden, ohne explizite Innereien.
