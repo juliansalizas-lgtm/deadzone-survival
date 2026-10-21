@@ -857,7 +857,7 @@ function rebuildHandProp(){
  }else if(id.startsWith('weapon:')){
    handRig.visible=true;handProp.visible=false;
    const w=id.slice(7), st=weaponStats[w]||weaponStats.Blaster;
-   if(st.kind==='melee'){
+   if(st.kind==='melee'||w==='Wurfmesser'){
      // Purpose-built 3D melee silhouettes: handle plus blade/head, never the generic gun shape.
      const wood=mat(w==='Elektroschlagstock'?0x252d35:0x765033,.35,.55), metal=mat(0xb7c3c8,.65,.28), dark=mat(0x252a2a,.35,.6), glow=mat(0x43bfff,.2,.25);
      const handleLen=(w==='Speer'||w==='Vorschlaghammer'||w==='Kettenkeule')?.58:.36;
@@ -1001,7 +1001,7 @@ function updateInventory(){
   $('inventoryItems').appendChild(b);
  }
  refreshHotbar();
- const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
+ const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const throwingKnifeWeapon=wstats.kind==='throwingKnife'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
  $('ammoLabel').textContent=equippedWeapon+' · '+(specialWeapon?'Spezialzellen: '+ammoLoaded+' / '+inventory.specialAmmo:(arrowWeapon?'Pfeile: ':'Munition: ')+ammoLoaded+' / '+(arrowWeapon?inventory.arrows:inventory.ammo));
  $('survivalLabel').textContent='💰 Geld: '+player.money+(player.infected?' · ☣️ INFIZIERT':'');
 }
@@ -1331,13 +1331,13 @@ function detonateExplosive(pos,wstats,color){
 function shoot(){
  if(!started||gameOver||fireCooldown>0)return;
  const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
- const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
- if(!meleeWeapon&&!infiniteAmmoWeapon&&ammoLoaded<=0){
+ const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const throwingKnifeWeapon=wstats.kind==='throwingKnife'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
+ if(!meleeWeapon&&!infiniteAmmoWeapon&&!throwingKnifeWeapon&&ammoLoaded<=0){
    const reserve=arrowWeapon?inventory.arrows:(specialWeapon?inventory.specialAmmo:inventory.ammo);
    if(reserve>0){const load=Math.min(wstats.mag,reserve);if(arrowWeapon)inventory.arrows-=load;else if(specialWeapon)inventory.specialAmmo-=load;else inventory.ammo-=load;ammoLoaded=load;updateInventory();message('Nachgeladen: '+load+(specialWeapon?' Spezialzellen.':' Schuss.'),1.2);playTone(280,.12,'square',.035);}
    else {message(arrowWeapon?'Keine Pfeile! Suche Zombies oder Kisten ab.':(specialWeapon?'Keine Spezial-Laserzellen! Suche violette Munitionskisten.':'Keine Munition! Durchsuche weitere Kisten.'),1.5);playTone(130,.08,'sawtooth',.025);return;}
  }
- if(!meleeWeapon&&!infiniteAmmoWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
+ if(!meleeWeapon&&!infiniteAmmoWeapon&&!throwingKnifeWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
  flashTime=.08;muzzle.visible=true;flashLight.intensity=4;player.weaponKick=Math.min(.09,(player.weaponKick||0)+(wstats.kind==='colossus'?.075:.025));
  playWeaponSound(meleeWeapon?'melee':wstats.kind==='throwingKnife'?'throwingKnife':wstats.kind);player.noise=7;
 
@@ -1632,7 +1632,7 @@ function animate(){
    // If we're currently on a stair or upper floor, keep the feet supported instead of
    // applying gravity every frame and snapping the camera into a stair tread.
    let supportedY=null;
-   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.35,zMax=Math.max(st.zStart,st.zEnd)+.35;if(Math.abs(player.pos.x-st.x)<st.w*.78&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<.62){supportedY=y;break}}}
+   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-1.25,zMax=Math.max(st.zStart,st.zEnd)+1.25;if(Math.abs(player.pos.x-st.x)<st.w*.78&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<.62){supportedY=y;break}}}
    if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
    if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
    else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
@@ -1664,7 +1664,7 @@ function animate(){
     const speed=player.speed*(sneaking?.42:(sprint?1.55:1));
     const nextX=player.pos.x+(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
     const nextZ=player.pos.z+(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
-    const onStairFootprint=stairZones.some(st=>Math.abs(player.pos.x-st.x)<st.w*.9&&player.pos.z>=Math.min(st.zStart,st.zEnd)-.7&&player.pos.z<=Math.max(st.zStart,st.zEnd)+.7&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2);
+    const onStairFootprint=stairZones.some(st=>Math.abs(player.pos.x-st.x)<st.w*.9&&player.pos.z>=Math.min(st.zStart,st.zEnd)-1.25&&player.pos.z<=Math.max(st.zStart,st.zEnd)+1.25&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2);
     const upperHouse=player.pos.y>2.5&&!onStairFootprint?houseZones.find(h=>Math.abs(player.pos.x-h.x)<h.w/2&&Math.abs(player.pos.z-h.z)<h.d/2):null;
     if(upperHouse){
       if(nextX>upperHouse.x-upperHouse.w/2+.62&&nextX<upperHouse.x+upperHouse.w/2-.62)player.pos.x=nextX;
@@ -1681,7 +1681,7 @@ function animate(){
   // direkt der Rampe. Kein Höhenabstands-Limit, das ihn an einer Stufe festklemmt.
   let stairSupportY=null, stairSupportDistance=Infinity;
   for(const st of stairZones){
-    const zMin=Math.min(st.zStart,st.zEnd)-.65,zMax=Math.max(st.zStart,st.zEnd)+.65;
+    const zMin=Math.min(st.zStart,st.zEnd)-1.25,zMax=Math.max(st.zStart,st.zEnd)+1.25;
     if(Math.abs(player.pos.x-st.x)<st.w*.78 && player.pos.z>=zMin && player.pos.z<=zMax && Math.abs(player.pos.x-st.houseX)<st.halfW+.2 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){
       const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));
       const candidate=st.baseY+t*(st.topY-st.baseY);
