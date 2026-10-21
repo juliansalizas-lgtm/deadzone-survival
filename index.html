@@ -592,7 +592,7 @@ const interiorGlass=new THREE.Mesh(new THREE.PlaneGeometry(1.05,.52),new THREE.M
 cube(carInterior,0,-.31,-.57,1.08,.18,.48,mat(0x242b2b,.72,.25),false);
 cube(carInterior,0,-.245,-.48,.7,.055,.18,mat(0x141a19,.5,.25),false);
 for(let i=0;i<3;i++){const gauge=new THREE.Mesh(new THREE.CircleGeometry(.045,16),new THREE.MeshBasicMaterial({color:i===1?0x6bd7a2:0xd7c48a}));gauge.position.set((i-1)*.18,-.205,-.37);carInterior.add(gauge);}
-const steeringWheel=new THREE.Mesh(new THREE.TorusGeometry(.19,.025,8,24),mat(0x151918,.55,.35));steeringWheel.position.set(.02,-.16,-.35);steeringWheel.rotation.x=.25;carInterior.add(steeringWheel);
+const steeringWheel=new THREE.Mesh(new THREE.TorusGeometry(.19,.025,8,24),mat(0x151918,.55,.35));steeringWheel.position.set(.02,-.34,-.35);steeringWheel.rotation.x=.25;carInterior.add(steeringWheel);
 cube(carInterior,-.47,-.02,-.5,.06,.54,.08,mat(0x202625),false);cube(carInterior,.47,-.02,-.5,.06,.54,.08,mat(0x202625),false);
 function buildCar(x,z,rot=0){
  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;scene.add(g);
@@ -1676,8 +1676,20 @@ function animate(){
     if(Math.abs(throttle)>.05){activeCar.driveFuelTimer+=dt;if(activeCar.driveFuelTimer>=2.2){const consumed=Math.floor(activeCar.driveFuelTimer/2.2);activeCar.fuel=Math.max(0,activeCar.fuel-consumed);activeCar.driveFuelTimer-=consumed*2.2;if(activeCar.fuel<=0)activeCar.emptyFuelNotified=false;saveProgress();}}
     const oldX=player.pos.x,oldZ=player.pos.z;const tryX=Math.max(-378,Math.min(378,oldX-Math.sin(player.yaw)*throttle*carSpeed*dt));const tryZ=Math.max(-378,Math.min(378,oldZ-Math.cos(player.yaw)*throttle*carSpeed*dt));
     const collision= Math.abs(throttle)>.05 && (blockedAt(tryX,tryZ,1.35)||cars.some(other=>other!==activeCar&&distanceXZ({x:tryX,z:tryZ},other.group.position)<3.2));
-    if(collision){player.pos.x=oldX;player.pos.z=oldZ;const impact=Math.max(5,Math.round(Math.abs(throttle)*carSpeed*dt*10));activeCar.hp=Math.max(0,activeCar.hp-impact);message('💥 Zusammenstoß! Auto: '+Math.ceil(activeCar.hp)+'/500',1.2);if(activeCar.hp<50){const wreck=activeCar;wreck.hp=0;wreck.destroyed=true;wreck.group.traverse(o=>{if(o.isMesh&&o.material&&o.material.color)o.material.color.setHex(0x292d2b)});player.health=Math.max(0,player.health-68);for(let q=0;q<18;q++){const spark=cube(scene,oldX+(Math.random()-.5)*2,.5+Math.random()*2,oldZ+(Math.random()-.5)*2,.12,.12,.12,mat(q%2?0xff5a16:0xffd04a),false);hitParticles.push({mesh:spark,life:.5+Math.random()*.6,vx:(Math.random()-.5)*4,vy:.8+Math.random()*3,vz:(Math.random()-.5)*4})}message('🔥 Das Auto ist explodiert! Du verlierst 68 Leben.',3);exitCar();saveProgress();}else saveProgress();}
-    else{player.pos.x=tryX;player.pos.z=tryZ;}
+    if(collision){
+      player.pos.x=oldX;player.pos.z=oldZ;
+      // A gentle touch should only stop the car. Damage is applied once per impact,
+      // and only when the car was moving fast enough to count as a real crash.
+      const impactSpeed=Math.abs(throttle)*carSpeed;
+      if(impactSpeed>=5.5&&!activeCar.collisionLatched){
+        activeCar.collisionLatched=true;
+        const impact=Math.max(1,Math.round((impactSpeed-4.5)*1.6));
+        activeCar.hp=Math.max(0,activeCar.hp-impact);
+        message('💥 Zusammenstoß! Auto: '+Math.ceil(activeCar.hp)+'/500',1.2);
+        if(activeCar.hp<50){const wreck=activeCar;wreck.hp=0;wreck.destroyed=true;wreck.group.traverse(o=>{if(o.isMesh&&o.material&&o.material.color)o.material.color.setHex(0x292d2b)});player.health=Math.max(0,player.health-68);for(let q=0;q<18;q++){const spark=cube(scene,oldX+(Math.random()-.5)*2,.5+Math.random()*2,oldZ+(Math.random()-.5)*2,.12,.12,.12,mat(q%2?0xff5a16:0xffd04a),false);hitParticles.push({mesh:spark,life:.5+Math.random()*.6,vx:(Math.random()-.5)*4,vy:.8+Math.random()*3,vz:(Math.random()-.5)*4})}message('🔥 Das Auto ist explodiert! Du verlierst 68 Leben.',3);exitCar();saveProgress();}else saveProgress();
+      }
+    }
+    else{player.pos.x=tryX;player.pos.z=tryZ;activeCar.collisionLatched=false;}
     activeCar.group.position.set(player.pos.x,0,player.pos.z);activeCar.group.rotation.y=player.yaw;activeCar.x=player.pos.x;activeCar.z=player.pos.z;player.pos.y=1.7;player.vy=0;steeringWheel.rotation.z=((keys.KeyA?1:0)-(keys.KeyD?1:0))*.55;
   }else{
     const speed=player.speed*(sneaking?.42:(sprint?1.55:1));
