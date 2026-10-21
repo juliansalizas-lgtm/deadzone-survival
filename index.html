@@ -667,9 +667,20 @@ function fireTankRocket(){
  if(!activeTank){message('Du musst in einem Panzer sitzen.');return}
  if(activeTank.rockets<=0){message('Keine Raketen mehr! Suche Militärkisten oder Zombies ab.');return}
  activeTank.rockets--;updateHUD();playWeaponSound('rocket');
- const dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);const start=new THREE.Vector3(activeTank.group.position.x,2.2,activeTank.group.position.z).addScaledVector(dir,3.2);const end=start.clone().addScaledVector(dir,58);
+ // Das Ziel ist exakt die Blickrichtung des Kamerakreuzes. Verlängere den Kamerastrahl
+ // und ziele auf den Boden, falls der Strahl nach unten zeigt; sonst auf einen Fernpunkt.
+ const dir=new THREE.Vector3();camera.getWorldDirection(dir);dir.normalize();
+ const start=new THREE.Vector3(activeTank.group.position.x,2.35,activeTank.group.position.z).addScaledVector(dir,3.2);
+ const aimRay=new THREE.Raycaster(camera.position.clone(),dir,0,180);const hits=aimRay.intersectObjects(scene.children,true);
+ let end;
+ const hit=hits.find(h=>h.object.visible&&!h.object.userData.noRocketAim&&h.object!==activeTank.group&&h.object.parent!==activeTank.group);
+ if(hit) end=hit.point.clone();
+ else if(dir.y < -0.015){const t=(0.05-camera.position.y)/dir.y;end=t>0?camera.position.clone().addScaledVector(dir,Math.min(180,t)):camera.position.clone().addScaledVector(dir,120)}
+ else end=camera.position.clone().addScaledVector(dir,120);
+ // Keep the impact in front of the tank, while preserving the crosshair's actual aim point.
+ if(end.distanceTo(start)<3)end=start.clone().addScaledVector(dir,8);
  const orb=new THREE.Mesh(new THREE.SphereGeometry(.24,10,8),new THREE.MeshBasicMaterial({color:0xff9a35}));orb.position.copy(start);scene.add(orb);const trailGeo=new THREE.BufferGeometry().setFromPoints([start,end]);const trail=new THREE.Line(trailGeo,new THREE.LineBasicMaterial({color:0xff7a22}));scene.add(trail);
- const t0=performance.now();const anim=()=>{if(!orb.parent)return;const t=Math.min(1,(performance.now()-t0)/520);orb.position.copy(start).lerp(end,t);if(t>=1){scene.remove(orb,trail);orb.geometry.dispose();orb.material.dispose();trail.geometry.dispose();trail.material.dispose();detonateExplosive(end,{damage:260,kind:'rocket'},0xff7624)}else requestAnimationFrame(anim)};requestAnimationFrame(anim);message('🚀 Rakete abgefeuert! Raketen übrig: '+activeTank.rockets,1.4);saveProgress();
+ const t0=performance.now(),travelMs=Math.max(180,Math.min(1100,start.distanceTo(end)*9));const anim=()=>{if(!orb.parent)return;const t=Math.min(1,(performance.now()-t0)/travelMs);orb.position.copy(start).lerp(end,t);if(t>=1){scene.remove(orb,trail);orb.geometry.dispose();orb.material.dispose();trail.geometry.dispose();trail.material.dispose();detonateExplosive(end,{damage:260,kind:'rocket'},0xff7624)}else requestAnimationFrame(anim)};requestAnimationFrame(anim);message('🚀 Rakete auf das Fadenkreuz abgefeuert! Raketen übrig: '+activeTank.rockets,1.4);saveProgress();
 }
 $('tankRocketBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fireTankRocket()});
 function enterTank(t){activeTank=t;player.inTank=true;player.inCar=false;activeCar=null;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.yaw=t.group.rotation.y;player.vy=0;camera.position.copy(player.pos);$('tankRocketBtn').style.display='block';$('fuelWrap').style.display='none';message('Panzer übernommen! WASD fahren · R / RAKETE FEUERN · E aussteigen',3);updateHUD()}
