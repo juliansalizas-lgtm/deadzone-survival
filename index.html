@@ -1001,7 +1001,7 @@ function updateInventory(){
   $('inventoryItems').appendChild(b);
  }
  refreshHotbar();
- const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const throwingKnifeWeapon=wstats.kind==='throwingKnife'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
+ const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
  $('ammoLabel').textContent=equippedWeapon+' · '+(specialWeapon?'Spezialzellen: '+ammoLoaded+' / '+inventory.specialAmmo:(arrowWeapon?'Pfeile: ':'Munition: ')+ammoLoaded+' / '+(arrowWeapon?inventory.arrows:inventory.ammo));
  $('survivalLabel').textContent='💰 Geld: '+player.money+(player.infected?' · ☣️ INFIZIERT':'');
 }
