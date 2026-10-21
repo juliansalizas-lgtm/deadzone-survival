@@ -813,8 +813,8 @@ makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
 const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;let jetFuel=100,jetHealth=200,jetFuelTimer=0,jetRunDistance=0,jetAirborne=false,jetWasMoving=false;
 const jetStatus=document.createElement('div');jetStatus.id='jetStatus';jetStatus.style.cssText='display:none;position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:10060;background:rgba(8,17,22,.9);border:1px solid #77c6e5;border-radius:10px;padding:8px 12px;color:#fff;font:700 13px system-ui;white-space:nowrap;text-align:center;pointer-events:none';document.body.appendChild(jetStatus);
 function updateJetStatus(){jetStatus.textContent='✈️ JET  ❤️ '+jetHealth+'/200   ⛽ '+jetFuel+'/100   '+(jetAirborne?'IN DER LUFT':jetRunDistance>=18?'STARTBEREIT':'STARTBAHN: '+Math.floor(jetRunDistance)+'/18 m');}
-const jetFlightControls=document.createElement('div');jetFlightControls.id='jetFlightControls';jetFlightControls.style.cssText='display:none;position:fixed;right:18px;bottom:190px;z-index:10060;gap:8px;flex-direction:column;pointer-events:auto';jetFlightControls.innerHTML='<button id="jetUpBtn" style="padding:13px 18px;border-radius:12px;background:#3c754e;color:white;font-weight:800">▲ STEIGEN</button><button id="jetDownBtn" style="padding:13px 18px;border-radius:12px;background:#76513b;color:white;font-weight:800">▼ SINKEN</button>';document.body.appendChild(jetFlightControls);
-$('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);
+const jetFlightControls=document.createElement('div');jetFlightControls.id='jetFlightControls';jetFlightControls.style.cssText='display:none;position:fixed;right:18px;bottom:190px;z-index:10060;gap:8px;flex-direction:column;pointer-events:auto';jetFlightControls.innerHTML='<button id="jetUpBtn" style="padding:13px 18px;border-radius:12px;background:#3c754e;color:white;font-weight:800">▲ STEIGEN</button><button id="jetDownBtn" style="padding:13px 18px;border-radius:12px;background:#76513b;color:white;font-weight:800">▼ SINKEN</button><button id="jetExitBtn" style="position:fixed;top:128px;right:18px;z-index:10061;padding:14px 18px;border:2px solid #ffd0d0;border-radius:12px;background:#b52323;color:white;font-weight:900;font-size:15px;box-shadow:0 3px 12px #0009;pointer-events:auto">✖ JET VERLASSEN</button>';document.body.appendChild(jetFlightControls);
+$('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetExitBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();exitJet();});
 function buildRailwayAndStation(){
  const railMat=mat(0x4b4f4b,.9), sleeperMat=mat(0x493a2d,.98), ballastMat=mat(0x66675f,1), stationWall=mat(0xb4b1a2,.92), stationTrim=mat(0x343b37,.8), trainBody=mat(0x344c43,.55,.25), trainRoof=mat(0x29322e,.7,.2), windowMat=mat(0x1b3033,.25,.1);
  const trackX=355, zStart=-100,zEnd=150;
@@ -1362,9 +1362,22 @@ function nearbyCarForRefuel(){
  let best=null,dist=4.2;for(const c of cars){const d=distanceXZ(player.pos,c.group.position);if(d<dist){best=c;dist=d}}return best;
 }
 $('refuelBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const car=nearbyCarForRefuel();if(!car){message('Stelle dich neben ein Auto.');return}if(inventory.gasCanister<=0){message('Du brauchst einen Benzinkanister.');return}if(car.fuel>=100){message('Der Tank ist bereits voll.');return}inventory.gasCanister--;car.fuel=Math.min(100,car.fuel+25);message('Benzin aufgefüllt: '+Math.ceil(car.fuel)+' / 100. Kanister geleert.',2.2);updateInventory();saveProgress();});
+function exitJet(){
+ if(!activeJet)return;
+ activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
+ if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}
+ // Set the player beside the aircraft instead of inside its collision volume.
+ const sideX=Math.cos(player.yaw)*3.4,sideZ=-Math.sin(player.yaw)*3.4;
+ let ex=player.pos.x+sideX,ez=player.pos.z+sideZ;
+ if(blockedAt(ex,ez,.45)){ex=player.pos.x-sideX;ez=player.pos.z-sideZ;}
+ if(blockedAt(ex,ez,.45)){ex=player.pos.x;ez=player.pos.z;}
+ player.pos.x=ex;player.pos.z=ez;player.vy=0;player.onGround=player.pos.y<=2.5;
+ if(player.pos.y>2.5){player.vy=-1;message('Du bist aus dem Jet gesprungen! Du fällst jetzt herunter.',2.2)}else{player.pos.y=1.7;player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');}
+ camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();
+}
 function interact(){
  if(!started)return;
- if(activeJet){activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}player.pos.y=Math.max(1.7,player.pos.y);player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');updateHUD();return}
+ if(activeJet){exitJet();return}
  if(player.inTank){exitTank();return}
  if(player.inCar){exitCar();return}
  if(flyableJet&&!activeJet){if(jetHealth<=0){message('Dieser Jet ist zerstört und kann nicht mehr benutzt werden.');return}const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Jet bereit! Erst mit W auf der Startbahn beschleunigen (18 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
@@ -1891,8 +1904,13 @@ function animate(){
     // Taxi on the runway first; takeoff is locked until the jet has rolled 18 metres.
     const wasX=player.pos.x,wasZ=player.pos.z;
     const jetSpeed=throttle>=0?36:15;
-    player.pos.x=Math.max(-390,Math.min(390,player.pos.x-Math.sin(player.yaw)*throttle*jetSpeed*dt));
-    player.pos.z=Math.max(-390,Math.min(390,player.pos.z-Math.cos(player.yaw)*throttle*jetSpeed*dt));
+    const nextX=Math.max(-390,Math.min(390,wasX-Math.sin(player.yaw)*throttle*jetSpeed*dt));
+    const nextZ=Math.max(-390,Math.min(390,wasZ-Math.cos(player.yaw)*throttle*jetSpeed*dt));
+    // Aircraft collision: the jet is wide, so test both axes and slide along obstacles.
+    let jetMoved=false;
+    if(!blockedAt(nextX,wasZ,2.15)){player.pos.x=nextX;jetMoved=true;}
+    if(!blockedAt(player.pos.x,nextZ,2.15)){player.pos.z=nextZ;jetMoved=true;}
+    if(Math.abs(throttle)>.15&&!jetMoved){jetHealth=Math.max(0,jetHealth-8*dt);if(jetHealth<=0){message('💥 Jet durch Zusammenstoß zerstört!',2);exitJet();}}
     const travelled=Math.hypot(player.pos.x-wasX,player.pos.z-wasZ);
     if(!jetAirborne&&throttle>.1)jetRunDistance+=travelled;
     if(!jetAirborne&&jetRunDistance>=18&&lift>.1&&throttle>.05&&jetFuel>0&&jetHealth>0){jetAirborne=true;message('✈️ Abgehoben! Jetzt kannst du steigen und sinken.',2.4)}
