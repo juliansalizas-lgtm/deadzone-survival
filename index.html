@@ -32,6 +32,8 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #lookArea{position:absolute;right:0;top:0;width:58%;height:75%;pointer-events:auto;touch-action:none}
 #mobileActions{position:absolute;right:20px;bottom:26px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
 #mobileActions button{width:116px;min-height:44px;background:#17251fe8;font-size:12px}#sneakBtn.active{background:#7b6330;border-color:#ffe36a;box-shadow:0 0 0 2px #ffe36a55}
+#spawnTeleportBtn{position:fixed;right:12px;top:42%;transform:translateY(-50%);z-index:10050;display:none;padding:12px 10px;background:rgba(35,82,58,.96);border:2px solid #a5e5b7;border-radius:12px;box-shadow:0 4px 16px #0008;font-size:12px;max-width:112px;white-space:normal}
+@media(max-width:700px){#spawnTeleportBtn{right:8px;top:38%;padding:10px 8px;font-size:11px;max-width:100px}}
 #startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,rgba(7,13,12,.94),rgba(24,32,27,.82)),radial-gradient(ellipse at center,#465347,#0a0d0b);z-index:5;padding:20px}
 #startCard{max-width:550px;width:100%;padding:28px;border:1px solid #ffffff2e;background:#111b17e8;border-radius:20px;box-shadow:0 20px 80px #0008}
 #startCard h1{margin:0 0 8px;font-size:clamp(28px,5vw,44px);letter-spacing:.04em}
@@ -118,6 +120,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
+  <button id="spawnTeleportBtn" type="button" aria-label="Zum Spawn teleportieren">↗ ZUM SPAWN</button>
   <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
 <script type="module">
@@ -1455,10 +1458,11 @@ window.addEventListener('pagehide',saveProgress);document.addEventListener('visi
 
 window.addEventListener('deadzone-start',()=>{
  if(gameOver){resetGame();return}
- started=true;$('startBtn').style.display='block';$('deathOptions').style.display='none';$('startScreen').style.display='none';lastTime=performance.now();
+ started=true;$('startBtn').style.display='block';$('deathOptions').style.display='none';$('startScreen').style.display='none';$('spawnTeleportBtn').style.display='block';lastTime=performance.now();
  if(matchMedia('(pointer:fine)').matches && renderer.domElement.requestPointerLock){try{renderer.domElement.requestPointerLock()}catch(e){}}
  message('Finde die 3 Versorgungskisten. Der Soldat wartet im Lager.',4);
 });
+$('spawnTeleportBtn').addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();if(!started||gameOver){message('Starte zuerst das Spiel.',2);return;}try{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();if(activeCar)exitCar();player.inCar=false;carInterior.visible=false;player.pos.set(0,1.7,12);player.yaw=0;player.pitch=0;player.vy=0;player.onGround=true;player.noise=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');mobileMove={x:0,y:0};sprinting=false;shotHeld=false;draggingLook=false;for(const k of Object.keys(keys))keys[k]=false;updateHUD();saveProgress();message('Du wurdest zum Spawn teleportiert!',2.5);}catch(err){console.error('Spawn-Teleport fehlgeschlagen:',err);message('Teleport hat nicht geklappt. Bitte erneut versuchen.',3);}});
 $('startBtn').addEventListener('click',()=>{if(gameOver){resetGame();return}window.dispatchEvent(new Event('deadzone-start'))});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement});
 document.addEventListener('mousemove',e=>{
