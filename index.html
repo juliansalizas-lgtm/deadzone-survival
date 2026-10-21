@@ -260,7 +260,7 @@ function building(x,z,w,d,h,color=0x797c74){
  const doorMesh=cube(doorPivot,doorW/2,doorH/2,0,doorW,doorH,.16,mat(0x59412e));
  for(let k=1;k<4;k++)cube(doorPivot,doorW/2,doorH*k/4,.085,doorW*.92,.045,.025,mat(0x806044));
  const doorObstacle=addObstacle(x,z+d/2,doorW/2,.42);doorObstacle.active=true;
- const door={pivot:doorPivot,open:false,obstacle:doorObstacle,x:x,z:z+d/2,doorW};houseDoors.push(door);
+ const door={pivot:doorPivot,open:false,obstacle:doorObstacle,x:x,z:z+d/2,doorW,breachProgress:0,breached:false};houseDoors.push(door);
  addObstacle(x,z-d/2,w/2,th/2+.12);
  addObstacle(x-w/2,z,th/2+.12,d/2); addObstacle(x+w/2,z,th/2+.12,d/2);
  addObstacle(x-doorW/2-sideW/2,z+d/2,sideW/2,th/2+.12);
@@ -430,7 +430,7 @@ for(let row=0;row<2;row++)for(let i=0;i<5;i++){
  cube(pivot,gateW/2,.62,0,gateW,1.05,.13,mat(0xb7a486,1));
  for(let k=0;k<4;k++)cube(pivot,gateW*(k+1)/5,.62,0,.10,1.0,.18,mat(0x77664f,1));
  const obstacle=addObstacle(x,frontZ,gateW/2,.35);
- gardenGates.push({pivot,open:false,obstacle,x,z:frontZ,gateW});
+ gardenGates.push({pivot,open:false,obstacle,x,z:frontZ,gateW,breachProgress:0,breached:false});
  // Obstbäume im hinteren Gartenteil mit fester Stammkollision.
  const fruitX=x+(i%2?7.5:-7.5),fruitZ=backZ+(row===0?-2.2:2.2);
  const trunk=cube(scene,fruitX,1.25,fruitZ,.48,2.5,.48,mat(0x60452f,1));addObstacle(fruitX,fruitZ,.48,.48);
@@ -1566,10 +1566,29 @@ function updateDayNight(dt){
  for(const o of scene.children){if(o.isHemisphereLight)o.intensity=sniperZoom?3.6:.34+daylight*1.66;}
  renderer.toneMappingExposure=.76+daylight*.31;
 }
+function updateZombieDoorBreaches(dt){
+ // Zombies schlagen an geschlossenen Haustüren und Gartentoren. Ein Zombie braucht 35 Sekunden;
+ // jeder weitere Zombie am selben Zugang beschleunigt den Vorgang um weitere 5 Prozent.
+ const entrances=[...houseDoors.map(d=>({...d,_door:d,_gate:null})),...gardenGates.map(g=>({...g,_door:null,_gate:g}))];
+ for(const entry of entrances){
+  const obj=entry._door||entry._gate;
+  if(!obj||obj.open||obj.breached)continue;
+  let attackers=0;
+  for(const z of zombies){if(z.dead)continue; if(distanceXZ(z.group.position,{x:obj.x,z:obj.z})<2.25)attackers++;}
+  if(attackers===0)continue;
+  obj.breachProgress=(obj.breachProgress||0)+dt*(1+0.05*(attackers-1));
+  if(obj.breachProgress>=35){
+   obj.open=true;obj.breached=true;obj.obstacle.active=false;
+   obj.pivot.rotation.y=entry._door?-Math.PI/2:Math.PI/2;
+   message(entry._door?'💥 Zombies haben eine Haustür aufgebrochen!':'💥 Zombies haben ein Gartentor aufgebrochen!',3.2);
+   saveProgress();
+  }
+ }
+}
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04);
- if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);}
+ if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);}
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.knifeReturn){v.age=(v.age||0)+dt;const t=Math.min(1,v.age/.8);v.obj.position.lerpVectors(v.start,v.end,t);v.obj.rotation.z+=dt*10;v.obj.rotation.x+=dt*4;}if(v.life<=0){scene.remove(v.obj);if(v.groupShot){v.obj.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}})}else{if(v.geo&&v.geo.dispose)v.geo.dispose();if(v.material&&v.material.dispose)v.material.dispose()}shotVisuals.splice(i,1)}else if(v.groupShot){v.obj.traverse(o=>{if(o.material&&o.material.opacity!==undefined){o.material.transparent=true;o.material.opacity=Math.max(0,v.life*5)}})}else if(v.material&&v.material.opacity!==undefined)v.material.opacity=Math.max(0,v.life*5)}
  for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){if(q.kind==='rocket'&&q.impactStats){detonateExplosive(q.end,q.impactStats,q.impactColor||0xffd36a)}scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
  for(let i=thrownGrenades.length-1;i>=0;i--){const g=thrownGrenades[i];g.age+=dt;const t=Math.min(1,g.age/g.life);g.bomb.position.set(g.start.x+(g.target.x-g.start.x)*t,g.start.y+(g.target.y-g.start.y)*t+Math.sin(t*Math.PI)*2.1,g.start.z+(g.target.z-g.start.z)*t);g.bomb.rotation.x+=dt*8;g.bomb.rotation.z+=dt*5;if(g.age>=g.life){const p=g.target.clone();scene.remove(g.bomb);g.bomb.geometry.dispose();g.bomb.material.dispose();detonateThrownGrenade(p);thrownGrenades.splice(i,1)}}
