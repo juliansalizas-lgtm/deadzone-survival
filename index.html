@@ -216,7 +216,7 @@ for(let i=0;i<68;i++){
  rock.rotation.y=Math.random()*2;
 }
 // Hindernisse muessen vor dem Aufbau der Gebaeude initialisiert sein.
-const solidObstacles=[]; const wallSurfaces=[]; const houseZones=[]; const houseDoors=[]; const houseLadders=[]; const stairZones=[]; const buildingFloors=[]; const windowPanes=[]; let climbingLadder=null;
+const solidObstacles=[]; const wallSurfaces=[]; const houseZones=[]; const houseDoors=[]; const houseLadders=[]; const stairZones=[]; const buildingFloors=[]; const windowPanes=[]; const gardenGates=[]; const sleepBeds=[]; let climbingLadder=null;
 function addObstacle(x,z,hx,hz){const o={x,z,hx,hz,active:true};solidObstacles.push(o);return o}
 function blockedAt(x,z,r=.42){return solidObstacles.some(o=>o.active!==false&&x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
 
@@ -259,7 +259,7 @@ function building(x,z,w,d,h,color=0x797c74){
  const bedX=-w*.24, bedZ=-d*.20;
  cube(g,bedX,.35,bedZ,Math.min(2.4,w*.32),.45,Math.min(3,d*.28),mat(0x51473f));
  cube(g,bedX,.62,bedZ-.15,Math.min(2.2,w*.29),.18,Math.min(2.5,d*.23),mat(0x9b9b89));
- addObstacle(x+bedX,z+bedZ,.75,.9);
+ addObstacle(x+bedX,z+bedZ,.75,.9); sleepBeds.push({x:x+bedX,z:z+bedZ,y:1.7,houseX:x,houseZ:z,level:0});
  const tx=w*.22,tz=d*.18;
  cube(g,tx,.72,tz,Math.min(1.4,w*.2),.14,Math.min(1.2,d*.18),wood);
  for(const dx of [-.48,.48])for(const dz of [-.38,.38])cube(g,tx+dx,.36,tz+dz,.1,.7,.1,wood);
@@ -294,6 +294,29 @@ function building(x,z,w,d,h,color=0x797c74){
         cube(g,xx,yy-winH/2,barZ,winW+.08,.07,.07,frame,false);cube(g,xx,yy+winH/2,barZ,winW+.08,.07,.07,frame,false);
       }
     }
+ }
+ // Zweites Stockwerk für Einfamilienhäuser: begehbarer Boden mit Treppenöffnung.
+ if(h<15){
+   const floorY=2.8, stairW=2.55, stairX=-w*.25;
+   const leftEdge=-w/2+.25,rightEdge=w/2-.25,gapLeft=stairX-stairW/2,gapRight=stairX+stairW/2;
+   cube(g,(leftEdge+gapLeft)/2,floorY,0,gapLeft-leftEdge,.18,d-.55,mat(0x756f62),false);
+   cube(g,(gapRight+rightEdge)/2,floorY,0,rightEdge-gapRight,.18,d-.55,mat(0x756f62),false);
+   cube(g,stairX,floorY,-d/2+.38,stairW,.18,.62,mat(0x756f62),false);
+   cube(g,stairX,floorY,d/2-.38,stairW,.18,.62,mat(0x756f62),false);
+   buildingFloors.push({x,z,w,d,y:floorY,level:1});
+   const steps=16,zStart=d/2-1.5,zEnd=-d/2+1.5;
+   for(let i=0;i<steps;i++){
+     const t=(i+1)/steps, yy=.14+t*(floorY-.14), zz=zStart+t*(zEnd-zStart);
+     cube(g,stairX,yy,zz,stairW,.15,.52,mat(i%2?0x827a6d:0x6e685d),false);
+   }
+   stairZones.push({x:x+stairX,zStart:z+zStart,zEnd:z+zEnd,w:stairW,height:floorY,baseY:1.7,topY:floorY+1.7,houseX:x,houseZ:z,halfW:w/2,halfD:d/2,level:0});
+   // Möbel im Obergeschoss: zweites Bett, Kommode und Nachttisch.
+   const upBedX=w*.22,upBedZ=-d*.20;
+   cube(g,upBedX,floorY+.34,upBedZ,Math.min(2.15,w*.30),.42,Math.min(2.7,d*.28),mat(0x51473f));
+   cube(g,upBedX,floorY+.59,upBedZ-.12,Math.min(1.95,w*.27),.14,Math.min(2.3,d*.23),mat(0xb3b0a0));
+   addObstacle(x+upBedX,z+upBedZ,.72,.82);sleepBeds.push({x:x+upBedX,z:z+upBedZ,y:floorY+1.7,houseX:x,houseZ:z,level:1});
+   cube(g,-w*.22,floorY+.62,d*.22,1.05,1.2,.55,mat(0x62513f));
+   cube(g,w*.20,floorY+.25,d*.28,.85,.5,.7,wood);
  }
  // Begehbare Stockwerke: volle Bodenflächen mit wechselnder Treppenöffnung.
  if(h>=15){
@@ -340,13 +363,15 @@ const suburbPositions=[];
 for(let row=0;row<2;row++)for(let i=0;i<5;i++)suburbPositions.push({x:100+i*40,z:row===0?-164:-206,color:suburbColors[row*5+i]});
 for(const pos of suburbPositions){
  const w=12.5,d=12,h=5.35;
- const obstacleStart=solidObstacles.length, doorStart=houseDoors.length, ladderStart=houseLadders.length, sceneStart=scene.children.length;
+ const obstacleStart=solidObstacles.length, doorStart=houseDoors.length, ladderStart=houseLadders.length, bedStart=sleepBeds.length, stairStart=stairZones.length, sceneStart=scene.children.length;
  const g=building(pos.x,pos.z,w,d,h,pos.color);
  // Obere Reihe: Haustür nach -Z drehen; untere Reihe zeigt bereits nach +Z.
  if(pos.z===-164){
    g.rotation.y=Math.PI;
    for(const o of solidObstacles.slice(obstacleStart)){o.x=2*pos.x-o.x;o.z=2*pos.z-o.z;}
    for(const dObj of houseDoors.slice(doorStart)){dObj.x=2*pos.x-dObj.x;dObj.z=2*pos.z-dObj.z;}
+   for(const bed of sleepBeds.slice(bedStart)){bed.x=2*pos.x-bed.x;bed.z=2*pos.z-bed.z;}
+   for(const st of stairZones.slice(stairStart)){st.x=2*pos.x-st.x;const oldStart=st.zStart;st.zStart=2*pos.z-st.zEnd;st.zEnd=2*pos.z-oldStart;}
    for(const l of houseLadders.slice(ladderStart)){l.x=2*pos.x-l.x;l.z=2*pos.z-l.z;l.houseX=pos.x;l.houseZ=pos.z;}
    // Die Außenleiter liegt nach der Drehung weiterhin an der Seitenwand.
    for(const obj of scene.children.slice(sceneStart)){if(obj.isMesh&&obj.position.y>0&&obj.position.y<h+1&&Math.abs(obj.position.x-(pos.x-w/2-.42))<.05)obj.position.x=pos.x+w/2+.42;}
@@ -370,6 +395,43 @@ for(const pos of suburbPositions){
  const gableGeo=new THREE.ShapeGeometry(gableShape);const gableMat=mat(pos.color);gableMat.side=THREE.DoubleSide;
  for(const zSide of [-1,1]){const endWall=new THREE.Mesh(gableGeo,gableMat);endWall.position.set(0,h-.02,zSide*(d/2-.08));g.add(endWall);endWall.castShadow=true;}
 }
+// Eingezäunte Privatgärten mit öffnbaren Gartentoren, Obstbäumen, Schaukeln, Schuppen und Beeten.
+function gardenFenceSegment(x1,z1,x2,z2){
+ const mx=(x1+x2)/2,mz=(z1+z2)/2,dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz);
+ const rail=cube(scene,mx,.62,mz,len,.16,.16,mat(0xd0c5a8,1));rail.rotation.y=-Math.atan2(dz,dx);
+ const top=cube(scene,mx,1.08,mz,len,.12,.12,mat(0x9c8c70,1));top.rotation.y=-Math.atan2(dz,dx);
+ const posts=Math.max(1,Math.floor(len/1.8));for(let k=0;k<=posts;k++){const t=k/posts,px=x1+dx*t,pz=z1+dz*t;cube(scene,px,.62,pz,.16,1.24,.16,mat(0x6c604d,1));}
+ addObstacle(mx,mz,Math.abs(dx)/2+.12,Math.abs(dz)/2+.12);
+}
+for(let row=0;row<2;row++)for(let i=0;i<5;i++){
+ const x=100+i*40,z=row===0?-164:-206,frontZ=z+(row===0?-1:1)*15.2,backZ=z+(row===0?1:-1)*17.5,leftX=x-14.2,rightX=x+14.2,gateW=2.8;
+ gardenFenceSegment(leftX,frontZ,leftX,backZ);gardenFenceSegment(rightX,frontZ,rightX,backZ);gardenFenceSegment(leftX,backZ,rightX,backZ);
+ gardenFenceSegment(leftX,frontZ,x-gateW/2,frontZ);gardenFenceSegment(x+gateW/2,frontZ,rightX,frontZ);
+ // Gate pivots at the left post, swings inward into the yard when opened.
+ const pivot=new THREE.Group();pivot.position.set(x-gateW/2,0,frontZ);scene.add(pivot);
+ cube(pivot,gateW/2,.62,0,gateW,1.05,.13,mat(0xb7a486,1));
+ for(let k=0;k<4;k++)cube(pivot,gateW*(k+1)/5,.62,0,.10,1.0,.18,mat(0x77664f,1));
+ const obstacle=addObstacle(x,frontZ,gateW/2,.35);
+ gardenGates.push({pivot,open:false,obstacle,x,z:frontZ,gateW});
+ // Obstbäume im hinteren Gartenteil mit fester Stammkollision.
+ const fruitX=x+(i%2?7.5:-7.5),fruitZ=backZ+(row===0?-2.2:2.2);
+ const trunk=cube(scene,fruitX,1.25,fruitZ,.48,2.5,.48,mat(0x60452f,1));addObstacle(fruitX,fruitZ,.48,.48);
+ const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.9,1),mat(0x3d6a38,1));crown.position.set(fruitX,3.0,fruitZ);crown.scale.set(1,1.05,1);crown.castShadow=true;scene.add(crown);
+ for(let f=0;f<5;f++){const fruit=new THREE.Mesh(new THREE.SphereGeometry(.16,8,6),mat([0xc94d35,0xd9b74d,0x9cbd55][f%3],.85));fruit.position.set(fruitX+Math.cos(f*1.26)*1.25,2.9+(f%2)*.65,fruitZ+Math.sin(f*1.26)*1.25);scene.add(fruit);}
+ // Small wooden shed at the back corner.
+ const shedX=x+(i%2?-8.7:8.7),shedZ=backZ+(row===0?-0.2:0.2);
+ cube(scene,shedX,1.15,shedZ,3.2,2.3,2.8,mat(0x8b7457,1));cube(scene,shedX,2.38,shedZ,3.45,.18,3.0,mat(0x5b5145,1));
+ cube(scene,shedX,1.05,shedZ+1.42,.95,1.75,.08,mat(0x59432f,1));addObstacle(shedX,shedZ,1.7,1.5);
+ // Raised vegetable beds.
+ for(let b=0;b<2;b++){const bx=x+(b===0?-4:4),bz=backZ+(row===0?-1:1)*4;cube(scene,bx,.22,bz,3.1,.42,1.65,mat(0x79563b,1));cube(scene,bx,.45,bz,2.85,.12,1.4,mat(0x4c5830,1));for(let p=0;p<5;p++){const plant=new THREE.Mesh(new THREE.ConeGeometry(.16,.55,5),mat(p%2?0x537b3e:0x668d49,1));plant.position.set(bx-1.05+p*.52,.78,bz+(p%2?-.3:.3));scene.add(plant);}}
+ // A simple swing set on the side lawn.
+ const swingX=x+(i%2?-7.7:7.7),swingZ=z+(row===0?7.5:-7.5);
+ for(const sx of [-1.25,1.25])cube(scene,swingX+sx,1.55,swingZ,.12,3.1,.12,metal);
+ cube(scene,swingX,3.08,swingZ,2.8,.14,.14,wood);
+ for(const sx of [-.55,.55])cube(scene,swingX+sx,1.72,swingZ,.055,2.65,.055,metal);
+ cube(scene,swingX, .42,swingZ,.95,.12,.38,wood);addObstacle(swingX,swingZ,.65,.55);
+}
+
 // Gepflegte Hecken und Büsche in den Vorgärten; die Straße und Türen bleiben frei.
 for(let row=0;row<2;row++)for(let i=0;i<5;i++){
  const x=100+i*40,z=row===0?-164:-206;
@@ -618,6 +680,11 @@ for(let i=0;i<28;i++){
  makeZombie(x,z);
 }
 // Keine Boss-Zombies werden erzeugt.
+// Einige Häuser sind nicht sicher: Zombies im Inneren und verlassene Leichen.
+for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
+for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]]){
+ const corpse=makePerson(true);corpse.position.set(x-2.0,.48,z+(z===-164?1.4:-1.4));corpse.rotation.set(0,rot,Math.PI/2);corpse.scale.set(.88,.88,.88);scene.add(corpse);
+}
 
 // Lootkisten und Versorgungspakete
 const inventory = { medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, armorPieces:[], weapons:{Blaster:1} };
@@ -943,6 +1010,8 @@ function nearInteractable(){
  for(const s of supplies){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'supply',obj:s,d};bd=d}}
  for(const s of hiddenChests){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'hiddenChest',obj:s,d};bd=d}}
  for(const door of houseDoors){const d=distanceXZ(player.pos,{x:door.x,z:door.z});if(d<2.5&&d<bd){best={type:'door',obj:door,d};bd=d}}
+ for(const gate of gardenGates){const d=distanceXZ(player.pos,{x:gate.x,z:gate.z});if(d<3.2&&d<bd){best={type:'gardenGate',obj:gate,d};bd=d}}
+ for(const bed of sleepBeds){const d=distanceXZ(player.pos,bed);if(Math.abs(player.pos.y-bed.y)<1.9&&d<2.7&&d<bd){best={type:'sleepBed',obj:bed,d};bd=d}}
  for(const s of droppedItems){if(s.found)continue;const d=distanceXZ(player.pos,s.group.position);if(d<bd){best={type:'droppedItem',obj:s,d};bd=d}}
  if(!soldier.recruited&&!soldier.dead){const d=distanceXZ(player.pos,soldier.group.position);if(d<bd){best={type:'soldier',obj:soldier,d};bd=d}}
  for(const es of extraSoldiers){if(es.recruited)continue;const d=distanceXZ(player.pos,es.group.position);if(d<bd){best={type:'extraSoldier',obj:es,d};bd=d}}
@@ -1046,6 +1115,8 @@ function interact(){
  }
  if(gliderVisual)gliderVisual.visible=gliderEquipped&&!player.onGround&&player.pos.y>4.2;
   const near=nearInteractable();
+ if(near&&near.type==='gardenGate'){const g=near.obj;g.open=!g.open;g.pivot.rotation.y=g.open?Math.PI/2:0;g.obstacle.active=!g.open;message(g.open?'Gartentor geöffnet.':'Gartentor geschlossen.',1.6);saveProgress();return}
+ if(near&&near.type==='sleepBed'){worldTime=1/6+.015;updateDayNight(0);player.hunger=Math.max(0,player.hunger-2);player.water=Math.max(0,player.water-2);message('Du schläfst die Nacht durch … Guten Morgen!',2.8);saveProgress();return}
  if(near&&near.type==='door'){const d=near.obj;player.noise=5;d.open=!d.open;d.pivot.rotation.y=d.open?-Math.PI/2:0;d.obstacle.active=!d.open;message(d.open?'Tür geöffnet.':'Tür geschlossen. Zombies können nicht hinein!',1.5);saveProgress();return}
  if(!near){if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}if(selectedItem==='food'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Essen benutzt.');updateInventory();return}if(selectedItem==='water'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
  if(near.type==='droppedItem'){const d=near.obj;d.found=true;scene.remove(d.group);if(d.item==='armorDrop'&&d.armorPiece){inventory.armorPieces.push(d.armorPiece)}else if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count}else if(d.item==='ammo')inventory.ammo+=d.count;else if(d.item==='specialAmmo')inventory.specialAmmo+=d.count;else if(d.item==='arrows')inventory.arrows+=d.count;else inventory[d.item]=(inventory[d.item]||0)+d.count;message('Du hast '+(d.item==='lantern'?'eine Laterne':d.item==='nightVision'?'ein Nachtsichtgerät':d.item==='grenades'?'Granaten':(d.label||d.item))+' aufgesammelt!',2.0);rebuildHandProp();updateInventory();saveProgress();return}
@@ -1312,8 +1383,8 @@ $('soldierToggle').addEventListener('click',()=>{soldiersEnabled=!soldiersEnable
 $('reviveBtn').addEventListener('click',revivePlayer);
 $('newRunBtn').addEventListener('click',resetGame);
 const SAVE_KEY='deadzone-survival-save-v18';
-function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedArmor,itemRarities,weaponRarities,lanternEquipped,nightVisionActive,gliderEquipped,equippedWeapon,ammoLoaded,selectedItem,hotbarSlots,activeHotbarIndex,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,weapon:a.weapon||null,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.filter(es=>es.recruited).map(es=>({x:es.home.x,z:es.home.z,grade:es.grade?.name||'Rekrut',offset:allies.find(a=>a.source===es)?.offset??allies.length})),soldierGrades:extraSoldiers.map(es=>es.grade?es.grade.name:null),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt,armorPiece:d.armorPiece||null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
-function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.equippedArmor)for(const t of armorTypes)equippedArmor[t.key]=d.equippedArmor[t.key]||null;if(d.itemRarities)Object.assign(itemRarities,d.itemRarities);if(d.weaponRarities)Object.assign(weaponRarities,d.weaponRarities);if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.lantern=d.inventory.lantern||0;inventory.nightVision=d.inventory.nightVision||0;inventory.grenades=d.inventory.grenades||0;inventory.glider=d.inventory.glider||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.arrows=d.inventory.arrows??0;inventory.armorPieces=Array.isArray(d.inventory.armorPieces)?d.inventory.armorPieces:[];inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;nightVisionActive=!!d.nightVisionActive;gliderEquipped=!!d.gliderEquipped;rebuildLantern();updateNightVisionEffect();gliderEquipped=!!d.gliderEquipped;if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;if(Array.isArray(d.hotbarSlots)&&d.hotbarSlots.length===10)hotbarSlots=d.hotbarSlots;if(Number.isInteger(d.activeHotbarIndex))activeHotbarIndex=Math.max(0,Math.min(9,d.activeHotbarIndex));suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
+function saveProgress(){if(resettingGame)return;try{const data={worldTime,doors:houseDoors.map(d=>d.open),gates:gardenGates.map(g=>g.open),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedArmor,itemRarities,weaponRarities,lanternEquipped,nightVisionActive,gliderEquipped,equippedWeapon,ammoLoaded,selectedItem,hotbarSlots,activeHotbarIndex,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,weapon:a.weapon||null,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.filter(es=>es.recruited).map(es=>({x:es.home.x,z:es.home.z,grade:es.grade?.name||'Rekrut',offset:allies.find(a=>a.source===es)?.offset??allies.length})),soldierGrades:extraSoldiers.map(es=>es.grade?es.grade.name:null),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt,armorPiece:d.armorPiece||null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(Array.isArray(d.gates))d.gates.forEach((open,i)=>{const gate=gardenGates[i];if(gate){gate.open=!!open;gate.pivot.rotation.y=gate.open?Math.PI/2:0;gate.obstacle.active=!gate.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.equippedArmor)for(const t of armorTypes)equippedArmor[t.key]=d.equippedArmor[t.key]||null;if(d.itemRarities)Object.assign(itemRarities,d.itemRarities);if(d.weaponRarities)Object.assign(weaponRarities,d.weaponRarities);if(d.inventory){inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.lantern=d.inventory.lantern||0;inventory.nightVision=d.inventory.nightVision||0;inventory.grenades=d.inventory.grenades||0;inventory.glider=d.inventory.glider||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.arrows=d.inventory.arrows??0;inventory.armorPieces=Array.isArray(d.inventory.armorPieces)?d.inventory.armorPieces:[];inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;nightVisionActive=!!d.nightVisionActive;gliderEquipped=!!d.gliderEquipped;rebuildLantern();updateNightVisionEffect();gliderEquipped=!!d.gliderEquipped;if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;if(Array.isArray(d.hotbarSlots)&&d.hotbarSlots.length===10)hotbarSlots=d.hotbarSlots;if(Number.isInteger(d.activeHotbarIndex))activeHotbarIndex=Math.max(0,Math.min(9,d.activeHotbarIndex));suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
  if(soldierRecruited&&!soldier.recruited&&!soldier.dead){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:soldier})}
  if(Array.isArray(d.soldierGrades))d.soldierGrades.forEach((name,i)=>{const es=extraSoldiers[i];const grade=soldierGrades.find(g=>g.name===name);if(es&&grade)es.grade=grade});if(Array.isArray(d.recruitedExtras))for(const saved of d.recruitedExtras){if(typeof saved==='number'){const es=extraSoldiers[saved];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:es,grade:es.grade?.name})}continue}if(!saved||!Number.isFinite(saved.x)||!Number.isFinite(saved.z))continue;let es=extraSoldiers.find(q=>Math.hypot(q.home.x-saved.x,q.home.z-saved.z)<.5);if(!es){const group=makePerson(false);group.position.set(saved.x,0,saved.z);scene.add(group);const grade=soldierGrades.find(g=>g.name===saved.grade)||soldierGrades[0];es={group,recruited:false,dead:false,home:new THREE.Vector3(saved.x,0,saved.z),grade,mission:'ammo',tradeSeed:Math.random()};extraSoldiers.push(es)}const grade=soldierGrades.find(g=>g.name===saved.grade);if(grade)es.grade=grade;if(!es.recruited){es.recruited=true;allies.push({group:es.group,hp:es.grade?.hp||100,maxHp:es.grade?.hp||100,speed:3.6,damage:es.grade?.damage||25,followRate:es.grade?.rate||2.5,attack:0,dead:false,offset:Number.isFinite(saved.offset)?saved.offset:allies.length,source:es,grade:es.grade?.name})}}
  if(Array.isArray(d.allyStates))for(const st of d.allyStates){const a=allies.find(q=>q.offset===st.offset);if(a){a.hp=st.hp??100;if(st.weapon){a.weapon=st.weapon;a.damage=Math.max(12,Math.round((weaponStats[st.weapon]?.damage||45)*.42));a.weaponRate=weaponStats[st.weapon]?.cooldown||.5}if(st.dead){a.dead=true;scene.remove(a.group)}}}for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();
@@ -1519,8 +1590,14 @@ function animate(){
     const speed=player.speed*(sneaking?.42:(sprint?1.55:1));
     const nextX=player.pos.x+(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
     const nextZ=player.pos.z+(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
-    if(player.pos.y>2.5||!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
-    if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
+    const upperHouse=player.pos.y>2.5?houseZones.find(h=>Math.abs(player.pos.x-h.x)<h.w/2&&Math.abs(player.pos.z-h.z)<h.d/2):null;
+    if(upperHouse){
+      if(nextX>upperHouse.x-upperHouse.w/2+.62&&nextX<upperHouse.x+upperHouse.w/2-.62)player.pos.x=nextX;
+      if(nextZ>upperHouse.z-upperHouse.d/2+.62&&nextZ<upperHouse.z+upperHouse.d/2-.62)player.pos.z=nextZ;
+    }else{
+      if(player.pos.y>2.5||!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
+      if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
+    }
     player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
@@ -1625,7 +1702,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION');
+  $('actionBtn').textContent=(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION');
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
