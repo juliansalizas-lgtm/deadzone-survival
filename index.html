@@ -682,9 +682,33 @@ for(let i=0;i<28;i++){
 // Keine Boss-Zombies werden erzeugt.
 // Einige Häuser sind nicht sicher: Zombies im Inneren und verlassene Leichen.
 for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
-for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]]){
- const corpse=makePerson(true);corpse.position.set(x-2.0,.48,z+(z===-164?1.4:-1.4));corpse.rotation.set(0,rot,Math.PI/2);corpse.scale.set(.88,.88,.88);scene.add(corpse);
+// Stylisierte, nicht-grafische Leichen: zufällig fehlt ein Arm oder die untere Körperhälfte.
+// Blutspuren sind flache dunkle Flecken auf dem Boden, ohne explizite Innereien.
+const corpseCloth=mat(0x343c37,.98), corpseSkin=mat(0x77806b,.96), bloodStainMat=new THREE.MeshBasicMaterial({color:0x5d1717,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide});
+function makeHouseCorpse(x,z,rot){
+ const g=new THREE.Group();g.position.set(x,.04,z);g.rotation.y=rot;scene.add(g);
+ const variant=Math.random();
+ // Torso lies horizontally; head at the left end.
+ cube(g,-.02,.29,0,1.05,.34,.48,corpseCloth);
+ const head=new THREE.Mesh(new THREE.SphereGeometry(.23,10,8),corpseSkin);head.position.set(-.72,.34,0);head.scale.set(1,.8,.9);head.castShadow=true;g.add(head);
+ // One arm is missing in some bodies; otherwise both arms rest on the floor.
+ if(variant>.28)cube(g,-.12,.22,-.48,.68,.17,.19,corpseCloth);
+ if(variant<.72)cube(g,-.12,.22,.48,.68,.17,.19,corpseCloth);
+ if(variant<.48){
+   // Lower half absent: a flat, dark-red end mark suggests damage without graphic detail.
+   const end=new THREE.Mesh(new THREE.CircleGeometry(.22,12),bloodStainMat);end.position.set(.53,.30,0);end.rotation.y=Math.PI/2;g.add(end);
+ }else{
+   cube(g,.68,.20,-.15,.76,.22,.20,corpseCloth);
+   cube(g,.70,.20,.15,.78,.22,.20,corpseCloth);
+   if(variant>.82){const boot=cube(g,1.10,.16,-.15,.28,.17,.23,mat(0x292b28,.98));boot.rotation.y=.08;}
+ }
+ // Several irregular flat puddles plus small splashes around the body.
+ const main=new THREE.Mesh(new THREE.CircleGeometry(1,16),bloodStainMat);main.rotation.x=-Math.PI/2;main.position.set(.05,.018,.12);main.scale.set(1.05,.62,1);g.add(main);
+ for(let i=0;i<6;i++){
+   const spot=new THREE.Mesh(new THREE.CircleGeometry(.12+Math.random()*.19,8),bloodStainMat);spot.rotation.x=-Math.PI/2;spot.position.set((Math.random()-.5)*2.7,.021,(Math.random()-.5)*1.35);spot.scale.set(1.35,.72,1);g.add(spot);
+ }
 }
+for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]])makeHouseCorpse(x-2.0,z+(z===-164?1.4:-1.4),rot);
 
 // Lootkisten und Versorgungspakete
 const inventory = { medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, armorPieces:[], weapons:{Blaster:1} };
@@ -1563,7 +1587,13 @@ function animate(){
   } else {
    const activelyGliding=gliderEquipped&&!player.onGround&&player.pos.y>4.2&&player.vy<0;
    gliderBoostCooldown=Math.max(0,gliderBoostCooldown-dt);gliderBoostTime=Math.max(0,gliderBoostTime-dt);
-   player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;
+   // If we're currently on a stair or upper floor, keep the feet supported instead of
+   // applying gravity every frame and snapping the camera into a stair tread.
+   let supportedY=null;
+   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.35,zMax=Math.max(st.zStart,st.zEnd)+.35;if(Math.abs(player.pos.x-st.x)<st.w*.62&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.1&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<1.45){supportedY=y;break}}}
+   if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
+   if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
+   else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
    if(gliderEquipped&&!player.onGround&&player.pos.y>4.2){const glideSpeed=gliderBoostTime>0?15.5:7.2;player.pos.x-=Math.sin(player.yaw)*glideSpeed*dt;player.pos.z-=Math.cos(player.yaw)*glideSpeed*dt;}
    let roofY=null;
    for(const h of houseZones){if(Math.abs(player.pos.x-h.x)<=h.w/2+.3&&Math.abs(player.pos.z-h.z)<=h.d/2+.3&&player.pos.y<=h.roofY+1.7&&player.pos.y>h.roofY){roofY=h.roofY+1.7;break}}
@@ -1602,9 +1632,29 @@ function animate(){
   }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
   if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
-  for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z<=st.zStart+.5 && player.pos.z>=st.zEnd-.5 && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const stairY=st.baseY+t*(st.topY-st.baseY);if(stairY>=player.pos.y-.65&&stairY<=player.pos.y+1.1){player.pos.y=stairY;player.vy=0;player.onGround=true;}}}
-  // Stockwerk-Böden fangen den Spieler zuverlässig auf; jede Etage bleibt begehbar.
-  for(const f of buildingFloors){if(Math.abs(player.pos.x-f.x)<f.w/2-.45&&Math.abs(player.pos.z-f.z)<f.d/2-.45){const eyeY=f.y+1.7;if(player.vy<=0&&player.pos.y<=eyeY+.22&&player.pos.y>=eyeY-.95){player.pos.y=eyeY;player.vy=0;player.onGround=true;}}}
+  // Stabile Treppen-/Etagenauflösung: Höhen werden an der aktuellen Position verfolgt,
+  // damit Schwerkraft und Treppenstufen den Spieler nicht zwischen Frames festklemmen.
+  let stairSupportY=null;
+  for(const st of stairZones){
+    const zMin=Math.min(st.zStart,st.zEnd)-.45,zMax=Math.max(st.zStart,st.zEnd)+.45;
+    if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z>=zMin && player.pos.z<=zMax && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){
+      const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));
+      const candidate=st.baseY+t*(st.topY-st.baseY);
+      if(stairSupportY===null||Math.abs(candidate-player.pos.y)<Math.abs(stairSupportY-player.pos.y))stairSupportY=candidate;
+    }
+  }
+  if(stairSupportY!==null && Math.abs(stairSupportY-player.pos.y)<1.55){player.pos.y=stairSupportY;player.vy=0;player.onGround=true;}
+  else {
+    // Stockwerk-Böden tragen den Spieler nur dann, wenn er sich bereits auf dieser Etage befindet.
+    let floorSupportY=null;
+    for(const f of buildingFloors){
+      if(Math.abs(player.pos.x-f.x)<f.w/2-.4 && Math.abs(player.pos.z-f.z)<f.d/2-.4){
+        const eyeY=f.y+1.7;
+        if(player.pos.y>=eyeY-1.45 && player.pos.y<=eyeY+1.15 && (floorSupportY===null||Math.abs(eyeY-player.pos.y)<Math.abs(floorSupportY-player.pos.y)))floorSupportY=eyeY;
+      }
+    }
+    if(floorSupportY!==null && player.vy<=.25){player.pos.y=floorSupportY;player.vy=0;player.onGround=true;}
+  }
   camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
   if(dynamicGun){dynamicGun.position.z=-.35+Math.sin(performance.now()*.012)*.008;dynamicGun.rotation.x=Math.sin(performance.now()*.009)*.012;}
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
