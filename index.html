@@ -579,7 +579,7 @@ const weaponStats = {
  PlasmaPistole:{damage:38,cooldown:.24,mag:20,icon:'🟣',range:48,kind:'plasma'},
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
  Laserpistole:{damage:30,cooldown:.26,mag:18,icon:'🔴',range:42,kind:'pinklaser'},
- Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}, Seuchenwerfer:{damage:32,cooldown:.16,mag:999999,icon:'☣️',range:24,kind:'acid',price:0}, Kolossbrecher:{damage:9999,cooldown:5,mag:999999,icon:'💥',range:78,kind:'colossus',price:0}, Schattenlanze:{damage:95,cooldown:.55,mag:999999,icon:'🌌',range:62,kind:'shadow',price:0}, Wurfmesser:{damage:72,cooldown:.85,mag:1,icon:'🗡️',range:36,kind:'throwingKnife',rarity:'epic'},
+ Sniper:{damage:135,cooldown:1.1,mag:5,icon:'🎯',range:125,kind:'sniper'}, Flammenwerfer:{damage:9,cooldown:.09,mag:60,icon:'🔥',range:13,kind:'flamethrower'}, Seuchenwerfer:{damage:32,cooldown:.16,mag:1,icon:'☣️',range:24,kind:'acid',price:0}, Seuchenpistole:{damage:32,cooldown:.16,mag:1,icon:'☣️',range:24,kind:'acid',price:0}, Kolossbrecher:{damage:9999,cooldown:5,mag:1,icon:'💥',range:78,kind:'colossus',price:0}, Kolloswaffe:{damage:9999,cooldown:5,mag:1,icon:'💥',range:78,kind:'colossus',price:0}, Schattenlanze:{damage:95,cooldown:.55,mag:1,icon:'🌌',range:62,kind:'shadow',price:0}, Wurfmesser:{damage:72,cooldown:.85,mag:1,icon:'🗡️',range:36,kind:'throwingKnife',rarity:'epic'},
  Stock:{damage:18,cooldown:.42,mag:1,icon:'👊',range:2.3,kind:'melee'}, Baseballschläger:{damage:34,cooldown:.62,mag:1,icon:'🏏',range:3.1,kind:'melee'}, Brecheisen:{damage:42,cooldown:.72,mag:1,icon:'🛠️',range:2.8,kind:'melee'}, Rohrzange:{damage:30,cooldown:.55,mag:1,icon:'🔧',range:2.5,kind:'melee'}, Küchenmesser:{damage:27,cooldown:.28,mag:1,icon:'🔪',range:1.8,kind:'melee'}, Machete:{damage:48,cooldown:.48,mag:1,icon:'🗡️',range:2.7,kind:'melee'}, Axt:{damage:58,cooldown:.78,mag:1,icon:'🪓',range:2.7,kind:'melee'}, 'Feuerwehr-Axt':{damage:72,cooldown:.9,mag:1,icon:'🪓',range:2.9,kind:'melee'}, Katana:{damage:68,cooldown:.52,mag:1,icon:'⚔️',range:3.0,kind:'melee'}, Speer:{damage:45,cooldown:.6,mag:1,icon:'🔱',range:3.8,kind:'melee'}, Hammer:{damage:52,cooldown:.7,mag:1,icon:'🔨',range:2.5,kind:'melee'}, Vorschlaghammer:{damage:88,cooldown:1.05,mag:1,icon:'🔨',range:2.8,kind:'melee'}, Kettenkeule:{damage:62,cooldown:.82,mag:1,icon:'⛓️',range:3.2,kind:'melee'}, MacheteMk2:{damage:59,cooldown:.4,mag:1,icon:'🗡️',range:2.9,kind:'melee'}, TaktischesMesser:{damage:36,cooldown:.24,mag:1,icon:'🔪',range:2.0,kind:'melee'}, Elektroschlagstock:{damage:40,cooldown:.42,mag:1,icon:'⚡',range:2.4,kind:'melee'}
 };
 let equippedWeapon='Blaster', ammoLoaded = 12;
@@ -782,7 +782,7 @@ function updateInventory(){
   $('inventoryItems').appendChild(b);
  }
  refreshHotbar();
- const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
+ const bossWeapons=['Kolossbrecher','Schattenlanze','Seuchenwerfer','Kolloswaffe','Seuchenpistole']; const infiniteAmmoWeapon=false; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole',...bossWeapons].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon);
  $('ammoLabel').textContent=equippedWeapon+' · '+(specialWeapon?'Spezialzellen: '+ammoLoaded+' / '+inventory.specialAmmo:(arrowWeapon?'Pfeile: ':'Munition: ')+ammoLoaded+' / '+(arrowWeapon?inventory.arrows:inventory.ammo));
  $('survivalLabel').textContent='💰 Geld: '+player.money+(player.infected?' · ☣️ INFIZIERT':'');
 }
@@ -810,7 +810,7 @@ function refreshHotbar(){
 }
 function selectHotbarItem(index){
  const owned=collectHotbarItems(),it=owned.find(x=>x.id===hotbarSlots[index]);if(!it){activeHotbarIndex=index;refreshHotbar();return}activeHotbarIndex=index;selectedItem=it.id;
- if(it.id.startsWith('weapon:')){const w=it.id.slice(7);if(inventory.weapons[w]){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w]?.mag||12,weaponStats[w]?.mag||12);rebuildHandProp();message(w+' ausgewählt.',.9)}}
+ if(it.id.startsWith('weapon:')){const w=it.id.slice(7);if(inventory.weapons[w]){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=['Kolossbrecher','Kolloswaffe','Schattenlanze','Seuchenwerfer','Seuchenpistole'].includes(w)?0:Math.min(ammoLoaded||weaponStats[w]?.mag||12,weaponStats[w]?.mag||12);rebuildHandProp();message(w+' ausgewählt.',.9)}}
  else {rebuildHandProp();message(it.label+' ausgewählt. Tippe auf AKTION, um es zu benutzen.',1.2)}
  updateInventory();refreshHotbar();saveProgress();
 }
@@ -1114,7 +1114,7 @@ function detonateExplosive(pos,wstats,color){
 function shoot(){
  if(!started||gameOver||fireCooldown>0)return;
  const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
- const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
+ const bossWeapons=['Kolossbrecher','Schattenlanze','Seuchenwerfer','Kolloswaffe','Seuchenpistole']; const infiniteAmmoWeapon=false; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole',...bossWeapons].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
  if(!meleeWeapon&&!infiniteAmmoWeapon&&ammoLoaded<=0){
    const reserve=arrowWeapon?inventory.arrows:(specialWeapon?inventory.specialAmmo:inventory.ammo);
    if(reserve>0){const load=Math.min(wstats.mag,reserve);if(arrowWeapon)inventory.arrows-=load;else if(specialWeapon)inventory.specialAmmo-=load;else inventory.ammo-=load;ammoLoaded=load;updateInventory();message('Nachgeladen: '+load+(specialWeapon?' Spezialzellen.':' Schuss.'),1.2);playTone(280,.12,'square',.035);}
@@ -1122,7 +1122,7 @@ function shoot(){
  }
  if(!meleeWeapon&&!infiniteAmmoWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
  flashTime=.08;muzzle.visible=true;flashLight.intensity=4;player.weaponKick=Math.min(.09,(player.weaponKick||0)+(wstats.kind==='colossus'?.075:.025));
- playWeaponSound(meleeWeapon?'melee':wstats.kind==='throwingKnife'?'throwingKnife':wstats.kind);player.noise=7;
+ const quietShot=specialWeapon||['Kolossbrecher','Kolloswaffe','Schattenlanze','Seuchenwerfer','Seuchenpistole'].includes(equippedWeapon);playWeaponSound(meleeWeapon?'melee':wstats.kind==='throwingKnife'?'throwingKnife':wstats.kind);player.noise=quietShot?0:7;
 
  // small muzzle flash
  const origin=camera.position.clone();
@@ -1182,6 +1182,7 @@ function shoot(){
  if(hits.length){
   const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
   if(target){
+   if(quietShot)target.alertTimer=Math.max(target.alertTimer||0,10);
    if(wstats.kind!=='rocket'){const hitDamage=wstats.kind==='colossus'?(target.boss?350:target.maxHp||99999):wstats.damage;target.hp-=hitDamage;}target.group.rotation.z=.04;
    if(wstats.kind==='acid'){target.acidTimer=5.5;target.acidTick=0;for(let q=0;q<12;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.65,.45+Math.random()*1.7,target.group.position.z+(Math.random()-.5)*.55,.08,.13,.08,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.4+Math.random()*.35,vx:(Math.random()-.5)*.55,vy:.45+Math.random()*.6,vz:(Math.random()-.5)*.55})}message('☣️ Säure trifft! Der Zombie wird verätzt.',1.0)}
    if(wstats.kind==='flamethrower'){target.burningTimer=3.8;target.burnTick=0;for(let q=0;q<4;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.45,.55+Math.random()*1.35,target.group.position.z+(Math.random()-.5)*.4,.09,.16,.09,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.45+Math.random()*.3,vx:(Math.random()-.5)*.35,vy:.8+Math.random()*.5,vz:(Math.random()-.5)*.35})}message('🔥 Zombie brennt!',.65)}
@@ -1274,7 +1275,7 @@ document.querySelectorAll('button').forEach(btn=>btn.addEventListener('pointerdo
 
 $('runBtn').addEventListener('touchstart',e=>{e.preventDefault();sprinting=true},{passive:false});
 $('runBtn').addEventListener('touchend',()=>sprinting=false);
-function toggleSneak(){sneaking=!sneaking;$('sneakBtn').classList.toggle('active',sneaking);$('sneakBtn').setAttribute('aria-pressed',String(sneaking));$('sneakBtn').textContent=sneaking?'🕵️ SCHLEICHEN AN':'🕵️ SCHLEICHEN AUS';message(sneaking?'Schleichen aktiv: Zombies bemerken dich nicht, solange du leise bleibst.':'Schleichen deaktiviert.',2);}
+function toggleSneak(){sneaking=!sneaking;$('sneakBtn').classList.toggle('active',sneaking);$('sneakBtn').setAttribute('aria-pressed',String(sneaking));$('sneakBtn').textContent=sneaking?'🕵️ SCHLEICHEN AN':'🕵️ SCHLEICHEN AUS';message(sneaking?'Schleichen aktiv: Zombies sehen dich nicht; nur sehr nahe können sie dich riechen. Normale Schüsse verraten dich.':'Schleichen deaktiviert.',2);}
 $('sneakBtn').addEventListener('click',toggleSneak);
 document.addEventListener('keydown',e=>{if(e.code==='KeyC'&&!e.repeat)toggleSneak()});
 const base=$('stickBase'),stick=$('stick');
@@ -1468,7 +1469,27 @@ function animate(){
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
-   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=sneaking&&(player.noise||0)<=0&&d>3.2;let target=playerHidden?null:player.pos,nearest=playerHidden?Infinity:d;
+   const p=z.group.position,d=distanceXZ(player.pos,p);
+    z.alertTimer=Math.max(0,(z.alertTimer||0)-dt);
+    const smellRange=sneaking?2.8:4.8;
+    let canSeePlayer=false;
+    if(!sneaking&&d<34&&d>0.01){
+     const dx=(player.pos.x-p.x)/d,dz=(player.pos.z-p.z)/d;
+     const yaw=z.group.rotation.y||0;
+     const facing=dx*Math.sin(yaw)+dz*Math.cos(yaw);
+     if(facing>0.42){
+      const sightOrigin=new THREE.Vector3(p.x,p.y+1.45,p.z);
+      const toPlayer=new THREE.Vector3(player.pos.x,sightOrigin.y,player.pos.z).sub(sightOrigin);
+      const sightDistance=toPlayer.length();toPlayer.normalize();
+      const sightRay=new THREE.Raycaster(sightOrigin,toPlayer,0,sightDistance);
+      const blockers=sightRay.intersectObjects([...(wallSurfaces||[]),...(windowPanes||[]).filter(w=>w.visible)],false);
+      canSeePlayer=!blockers.length||blockers[0].distance>=sightDistance-.45;
+     }
+    }
+    const heardPlayer=(player.noise||0)>0;
+    const smellsPlayer=d<smellRange;
+    const targetsPlayer=canSeePlayer||smellsPlayer||heardPlayer||z.alertTimer>0;
+    let target=targetsPlayer?player.pos:null,nearest=targetsPlayer?d:Infinity;
    let targetAlly=null; if(soldiersEnabled)for(const a of allies){if(a.dead)continue;const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position;targetAlly=a}}
    if(!target)continue;
    // Zombies können einer erhöhten Beute über eine nahe Außenleiter folgen.
