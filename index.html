@@ -96,7 +96,6 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <div id="objective" class="panel">Aufgabe: Finde 3 Versorgungskisten für den Soldaten.</div>
   <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>Shift: Sprinten · Leitern: beim Dagegenlaufen automatisch klettern</div>
   <div id="crosshair">+</div>
-  <div id="waveHUD" class="panel" style="position:absolute;left:50%;top:58px;transform:translateX(-50%);min-width:220px;text-align:center;font-weight:800;z-index:40">Nächste Zombie-Welle in <span id="waveClock">03:00</span></div>
   <button id="refuelBtn" type="button">⛽ Benzin auffüllen (+25)</button>
   <div id="hotbar" aria-label="Hotbar mit zehn Slots"></div>
   <button id="soldierToggle" type="button" style="position:fixed;left:14px;bottom:78px;z-index:9000;background:#315d45">🪖 SOLDATEN: AN</button>
@@ -340,22 +339,26 @@ const suburbColors=[0xf0eee7,0xf5f1e7,0xe8e7e1,0xf3f0e9,0xf7f5ee,0xeae8e0,0xd9bf
 const suburbPositions=[];
 for(let row=0;row<2;row++)for(let i=0;i<5;i++)suburbPositions.push({x:100+i*40,z:row===0?-164:-206,color:suburbColors[row*5+i]});
 for(const pos of suburbPositions){
- const w=12.5,d=12,h=4.35;
+ const w=12.5,d=12,h=5.35;
  const g=building(pos.x,pos.z,w,d,h,pos.color);
  // Hide the flat cap and replace it with two sloping roof planes, ridge trim and chimney.
  for(const child of g.children){
    if(child.isMesh&&Math.abs(child.position.y-(h+.08))<.03&&child.scale.x>w&&child.scale.z>d)child.visible=false;
  }
  const roof=mat(0x8e2926,.82),ridge=mat(0x55201d,.9);
- const left=cube(g,-w*.235,h+.73,0,w*.57,.22,d+.65,roof);
+ const left=cube(g,-w*.235,h+1.75,0,w*.57,.22,d+.65,roof);
  left.rotation.z=.46;
- const right=cube(g,w*.235,h+.73,0,w*.57,.22,d+.65,roof);
+ const right=cube(g,w*.235,h+1.75,0,w*.57,.22,d+.65,roof);
  right.rotation.z=-.46;
- cube(g,0,h+1.45,0,.16,.16,d+.78,ridge);
+ cube(g,0,h+3.12,0,.18,.18,d+.78,ridge);
  cube(g,w*.28,h+1.05,-d*.24,.55,1.25,.55,mat(0x77766e));
  // Eaves and downpipes make the roofline more house-like.
- cube(g,-w*.25,h+.15,0,.13,.16,d+.45,ridge);cube(g,w*.25,h+.15,0,.13,.16,d+.45,ridge);
+ cube(g,-w*.25,h+.95,0,.13,.16,d+.45,ridge);cube(g,w*.25,h+.95,0,.13,.16,d+.45,ridge);
  for(const side of [-1,1])cube(g,side*(w/2-.18),h/2,d/2-.45,.08,h,.08,mat(0x777b78));
+ // Triangular gable-end walls fill the space beneath the raised roof so there are no see-through gaps.
+ const gableShape=new THREE.Shape();gableShape.moveTo(-w*.43,0);gableShape.lineTo(w*.43,0);gableShape.lineTo(0,2.95);gableShape.closePath();
+ const gableGeo=new THREE.ShapeGeometry(gableShape);const gableMat=mat(pos.color);gableMat.side=THREE.DoubleSide;
+ for(const zSide of [-1,1]){const endWall=new THREE.Mesh(gableGeo,gableMat);endWall.position.set(0,h-.02,zSide*(d/2-.08));g.add(endWall);endWall.castShadow=true;}
 }
 // Make the neighborhood street visibly connect back to the main road.
 cube(scene,68,.008,-185,50,.045,7.5,mat(0x454a47),false);
@@ -382,11 +385,19 @@ for(let i=0;i<8;i++){addObstacle(-7+i*1.05,-8,.5,.38);const s=cube(scene,-7+i*1.
 groundPatch(-235,105,155,190,mat(0x344b35,1),-.035);
 groundPatch(-5,245,190,105,mat(0x789052,1),-.03);
 groundPatch(225,115,165,190,mat(0x687b4c,1),-.025);
-// Gentle rolling hills: broad low mounds blend into the terrain.
+// Gentle rolling hills: each visible mound also has a matching walkable surface.
+const hillShapes=[];
 for(let i=0;i<13;i++){
  const x=160+(i%4)*35+(Math.random()-.5)*15,z=45+Math.floor(i/4)*43+(Math.random()-.5)*16;
- const mound=new THREE.Mesh(new THREE.SphereGeometry(1,16,10),mat(i%3===0?0x718354:0x66794a,1));
- mound.position.set(x,-.35,z);mound.scale.set(28+Math.random()*16,2.4+Math.random()*2.2,25+Math.random()*17);mound.receiveShadow=true;scene.add(mound);
+ const rx=28+Math.random()*16, ry=2.4+Math.random()*2.2, rz=25+Math.random()*17;
+ const mound=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),mat(i%3===0?0x718354:0x66794a,1));
+ mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
+ hillShapes.push({x,z,rx,ry,rz,base:-.35});
+}
+function hillSurfaceY(x,z){
+ let surface=0;
+ for(const h of hillShapes){const dx=(x-h.x)/h.rx,dz=(z-h.z)/h.rz,q=dx*dx+dz*dz;if(q<1){const y=h.base+h.ry*Math.sqrt(1-q);if(y>surface)surface=y;}}
+ return surface;
 }
 // Dense conifers in the forest region, each with a trunk and layered needle-green crowns.
 for(let i=0;i<115;i++){
@@ -934,43 +945,7 @@ $('addHotbarBtn').addEventListener('click',()=>{
 });
 window.addEventListener('keydown',e=>{if(!started||e.repeat)return;const n=Number(e.key);if(n>=1&&n<=9)selectHotbarItem(n-1);else if(e.key==='0')selectHotbarItem(9)});
 
-// Timed zombie waves: initial preparation 3–5 minutes; breaks between waves 3–7 minutes.
-const waveState={active:false,remaining:180+Math.random()*120,breakTime:0,number:0,difficulty:'',spawned:0,spawnLeft:0,clearMessage:0};
-const waveDifficulties=[
- {name:'EINFACH',count:5,normal:1,brute:0,poison:0,mega:0},
- {name:'MITTEL',count:8,normal:.65,brute:.2,poison:.15,mega:0},
- {name:'HART',count:11,normal:.45,brute:.25,poison:.3,mega:0},
- {name:'SCHWER',count:14,normal:.3,brute:.3,poison:.3,mega:.1},
- {name:'SEHR SCHWER',count:17,normal:.2,brute:.3,poison:.3,mega:.2},
- {name:'TÖDLICH',count:20,normal:.15,brute:.25,poison:.25,mega:.35}
-];
-function fmtClock(sec){sec=Math.max(0,Math.ceil(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
-function spawnWaveZombie(diff){
- const a=Math.random()*Math.PI*2,r=27+Math.random()*16,x=Math.max(-370,Math.min(370,player.pos.x+Math.cos(a)*r)),zpos=Math.max(-370,Math.min(370,player.pos.z+Math.sin(a)*r));
- const roll=Math.random();let kind='normal';if(roll<diff.mega)kind='mega';else if(roll<diff.mega+diff.poison)kind='poison';else if(roll<diff.mega+diff.poison+diff.brute)kind='brute';
- const enemy=makeZombie(x,zpos);enemy.waveMember=true;enemy.waveKind=kind;enemy.waveNumber=waveState.number;
- if(kind==='brute'){enemy.hp=260;enemy.maxHp=260;enemy.speed*=.72;enemy.group.scale.multiplyScalar(1.5);enemy.look.cloth=0x554b40;enemy.group.userData.body.material.color.setHex(0x65564b);enemy.group.userData.head.material.color.setHex(0x8b7968);}
- if(kind==='poison'){enemy.hp=135;enemy.maxHp=135;enemy.speed*=.94;enemy.acidTimer=0;enemy.group.scale.multiplyScalar(1.12);enemy.group.userData.body.material.color.setHex(0x4a8d39);enemy.group.userData.head.material.color.setHex(0x8fe34c);enemy.wavePoison=true;}
- if(kind==='mega'){enemy.hp=650;enemy.maxHp=650;enemy.speed*=1.22;enemy.group.scale.multiplyScalar(2.05);enemy.waveMega=true;enemy.megaLaserCooldown=2.5;enemy.group.userData.body.material.color.setHex(0x313a49);enemy.group.userData.head.material.color.setHex(0x697e9e);const eyes=mat(0x45e7ff);cube(enemy.group,-.23,3.55,.43,.13,.1,.06,eyes);cube(enemy.group,.23,3.55,.43,.13,.1,.06,eyes);}
- waveState.spawned++;waveState.spawnLeft--;return enemy;
-}
-function beginZombieWave(){
- waveState.active=true;waveState.number++;waveState.spawned=0;waveState.spawnLeft=0;
- const diff=waveDifficulties[Math.min(waveDifficulties.length-1,Math.floor(Math.random()*waveDifficulties.length))];waveState.difficulty=diff.name;waveState.spawnLeft=diff.count;waveState.spawnTimer=.1;waveState.diff=diff;waveState.clearMessage=0;
- $('waveHUD').style.borderColor=diff.name==='TÖDLICH'?'#ff3434':diff.name==='EINFACH'?'#72d77b':'#e4bd58';message(`ZOMBIE-WELLE ${waveState.number}: ${diff.name}!`,4);
-}
-function updateWaveSystem(dt){
- const hud=$('waveHUD');if(!hud)return;
- if(waveState.clearMessage>0){waveState.clearMessage-=dt;if(waveState.clearMessage<=0){waveState.breakTime=180+Math.random()*240;waveState.active=false;}}
- if(!waveState.active){
-  if(waveState.number>0&&waveState.breakTime>0){waveState.breakTime-=dt;if(waveState.breakTime<=0){waveState.breakTime=0;beginZombieWave();return;}hud.innerHTML=`Wave ${waveState.number} besiegt · nächste Welle in <span id="waveClock">${fmtClock(waveState.breakTime)}</span>`;return;}
-  waveState.remaining-=dt;if(waveState.remaining<=0){beginZombieWave();}else{hud.innerHTML=`Nächste Zombie-Welle in <span id="waveClock">${fmtClock(waveState.remaining)}</span>`;}return;
- }
- if(waveState.spawnLeft>0){waveState.spawnTimer-=dt;if(waveState.spawnTimer<=0&&zombies.filter(z=>!z.dead).length<60){spawnWaveZombie(waveState.diff);waveState.spawnTimer=.65+Math.random()*.55;}}
- const remaining=zombies.filter(z=>!z.dead&&z.waveMember&&z.waveNumber===waveState.number).length;
- hud.innerHTML=`WELLE ${waveState.number} · ${waveState.difficulty}<br>Gegner übrig: ${remaining+waveState.spawnLeft}`;
- if(waveState.spawnLeft===0&&remaining===0){waveState.active=false;waveState.clearMessage=4;hud.innerHTML=`<span style="color:#8cff9b">✓ WAVE BESIEGT!</span>`;message('WAVE BESIEGT! Bereite dich auf die nächste Welle vor.',4);waveState.remaining=0;waveState.breakTime=0;}
-}
+// Zeitgesteuerte Zombie-Wellen wurden entfernt. Normale Zombies bleiben aktiv.
 
 function makeSupply(x,z,index){
   const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
@@ -1503,7 +1478,6 @@ function animate(){
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];if(v.expand){const grow=1+dt*10;v.obj.scale.multiplyScalar(grow);if(v.blastSize){const max=Math.max(v.obj.scale.x,v.obj.scale.y,v.obj.scale.z);if(max>v.blastSize)v.obj.scale.setScalar(v.blastSize)}v.obj.material.opacity=Math.max(0,v.life*1.8)}}
  for(let i=hitParticles.length-1;i>=0;i--){const p=hitParticles[i];p.life-=dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;p.vy-= (p.smoke?-.0:5)*dt;if(p.smoke){p.mesh.material.opacity=Math.max(0,p.life*.28);p.mesh.scale.multiplyScalar(1+dt*.55)}if(p.life<=0){scene.remove(p.mesh);p.mesh.geometry.dispose();p.mesh.material.dispose();hitParticles.splice(i,1)}}
  if(started&&!gameOver){
-  updateWaveSystem(dt);
   // Loot drops are collected automatically when the player walks over them.
   for(const d of droppedItems){
    if(d.found)continue;
@@ -1586,6 +1560,8 @@ function animate(){
     if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
     player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   }
+  // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
+  if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
   for(const st of stairZones){if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z<=st.zStart+.5 && player.pos.z>=st.zEnd-.5 && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const stairY=st.baseY+t*(st.topY-st.baseY);if(stairY>=player.pos.y-.65&&stairY<=player.pos.y+1.1){player.pos.y=stairY;player.vy=0;player.onGround=true;}}}
   // Stockwerk-Böden fangen den Spieler zuverlässig auf; jede Etage bleibt begehbar.
   for(const f of buildingFloors){if(Math.abs(player.pos.x-f.x)<f.w/2-.45&&Math.abs(player.pos.z-f.z)<f.d/2-.45){const eyeY=f.y+1.7;if(player.vy<=0&&player.pos.y<=eyeY+.22&&player.pos.y>=eyeY-.95){player.pos.y=eyeY;player.vy=0;player.onGround=true;}}}
