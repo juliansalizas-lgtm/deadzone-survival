@@ -412,6 +412,20 @@ for(let i=0;i<240;i++){
  if(i%7===0){const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.7,1),mat(0x507342,1));bush.position.set(.55,.35,.25);bush.scale.y=.7;g.add(bush);}
 }
 
+// Hilfsfunktionen für die gezielten Wald- und Biome-Objekte weiter unten.
+// Nur die alte flächendeckende Zufallsverteilung bleibt entfernt.
+function onRoad(x,z){
+ return Math.abs(x)<5.2 || Math.abs(x+48)<4.2 || Math.abs(x-48)<4.2 || Math.abs(z-38)<5.2 || Math.abs(z+52)<4.8;
+}
+function tree(x,z,s=1){
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
+ addObstacle(x,z,.42*s,.42*s);
+ cube(g,0,1.4,0,.48,2.8,.48,bark,false);
+ const c1=cube(g,0,3.0,0,2.6,2.2,2.6,leaf,false);
+ const c2=cube(g,.1,4.1,.05,1.9,1.8,1.9,leaf2,false);
+ const c3=cube(g,-.05,4.9,0,1.15,1.35,1.15,leaf,false);
+ c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;
+}
 // Alte, über die gesamte Karte verteilte Vegetation entfernt; die neuen Biome besitzen eigene Vegetation.
 // rubble / boxes
 for(let i=0;i<22;i++){
