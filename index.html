@@ -490,6 +490,18 @@ for(let i=0;i<13;i++){
  mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
  hillShapes.push({x,z,rx,ry,rz,base:-.35});
 }
+// Zusätzliche sanfte Bodenwellen über die übrige Karte verteilen, damit die Welt nicht wie eine Platte wirkt.
+// Bereiche mit Häusern, Hauptweg und Startlager bleiben weitgehend frei.
+for(let i=0;i<34;i++){
+ let x,z,tries=0;
+ do{
+  x=-340+Math.random()*680; z=-340+Math.random()*680; tries++;
+ }while(tries<45 && ((Math.abs(x)<17 && z>-65 && z<65) || (x>125 && z<-115) || (Math.abs(x)<18 && z>190 && z<300)));
+ const rx=13+Math.random()*18, rz=13+Math.random()*20, ry=.8+Math.random()*1.35;
+ const mound=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),mat(i%4===0?0x718354:(i%3===0?0x6d8050:0x66794a),1));
+ mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
+ hillShapes.push({x,z,rx,ry,rz,base:-.35});
+}
 function hillSurfaceY(x,z){
  let surface=0;
  for(const h of hillShapes){const dx=(x-h.x)/h.rx,dz=(z-h.z)/h.rz,q=dx*dx+dz*dz;if(q<1){const y=h.base+h.ry*Math.sqrt(1-q);if(y>surface)surface=y;}}
@@ -683,6 +695,16 @@ function makeZombie(x,z){
  const scale=.88+Math.random()*.25;g.scale.set(scale,scale,scale);
  if(Math.random()<.35){const band=cube(g,0,1.98,0,.48,.09,.44,mat(0x282a28));band.position.y=1.98;}
  if(Math.random()<.3)cube(g,0,1.28,.19,.32,.2,.04,mat(0x8a6b43));
+ // Sichtbare, stilisierte Blutspuren und Verletzungen auf Haut und Kleidung (ohne Gore).
+ const woundMat=new THREE.MeshStandardMaterial({color:0x6e2020,roughness:1,transparent:true,opacity:.94,side:THREE.DoubleSide});
+ const bruiseMat=new THREE.MeshStandardMaterial({color:0x3c2524,roughness:1,transparent:true,opacity:.9,side:THREE.DoubleSide});
+ const addWound=(parent,x,y,z,sx,sy,sz,material,rz=0)=>{const wound=new THREE.Mesh(new THREE.SphereGeometry(1,7,5),material);wound.position.set(x,y,z);wound.scale.set(sx,sy,sz);wound.rotation.z=rz;wound.castShadow=false;parent.add(wound);};
+ // Torn/bloodied patches on the chest and shoulder, plus a few smaller scratches on limbs.
+ if(Math.random()<.88){addWound(g,(Math.random()-.5)*.32,1.16,.178,.09+Math.random()*.07,.13+Math.random()*.08,.018,woundMat,(Math.random()-.5)*.9);}
+ if(Math.random()<.62){addWound(g,(Math.random()<.5?-.25:.25),1.37,.18,.075,.12,.022,bruiseMat,(Math.random()-.5)*.8);}
+ if(Math.random()<.5){addWound(g,(Math.random()-.5)*.24,1.78,.211,.045,.075,.014,woundMat,(Math.random()-.5)*.8);}
+ for(const limb of u.arms){if(Math.random()<.55)addWound(limb,0,(Math.random()-.5)*.28,.125,.055,.095,.025,woundMat,(Math.random()-.5)*.8);}
+ for(const limb of u.legs){if(Math.random()<.5)addWound(limb,0,(Math.random()-.5)*.24,.135,.055,.09,.022,bruiseMat,(Math.random()-.5)*.8);}
  g.rotation.y=Math.random()*Math.PI*2;scene.add(g);
  const obj={group:g,hp:80+Math.floor(Math.random()*61),speed:1.05+Math.random()*.75,attack:0,dead:false,look:look};
  zombies.push(obj);return obj;
@@ -1678,9 +1700,10 @@ function animate(){
    if(z.dead)continue;
    z.animClock=(z.animClock||Math.random()*6)+dt;
    const moving=!!z.target || distanceXZ(z.group.position,player.pos)<24;
-   const wobble=Math.sin(z.animClock*(moving?8.5:2.3));
-   z.group.rotation.z=(z.group.rotation.z||0)*.92+(moving?wobble*.035:Math.sin(z.animClock)*.012);
-   if(!z.boss){const baseY=z.baseY??0;z.group.position.y=baseY+(moving?Math.abs(wobble)*.035:Math.sin(z.animClock*1.7)*.012);}
+   // Ruhigere, schwerfällige Bewegung: deutlich weniger seitliches Wackeln und Hüpfen.
+   const wobble=Math.sin(z.animClock*(moving?4.2:1.4));
+   z.group.rotation.z=(z.group.rotation.z||0)*.94+(moving?wobble*.008:Math.sin(z.animClock)*.0025);
+   if(!z.boss){const terrainY=hillSurfaceY(z.group.position.x,z.group.position.z);const bob=moving?Math.abs(wobble)*.006:Math.sin(z.animClock*1.1)*.002;z.group.position.y=Math.max(0,terrainY)+bob;}
    z.groanTimer=(z.groanTimer||3+Math.random()*6)-dt;
    if(z.groanTimer<=0&&distanceXZ(z.group.position,player.pos)<16){z.groanTimer=7+Math.random()*9;playTone(72+Math.random()*32,.28,'sawtooth',.012);}
   }
