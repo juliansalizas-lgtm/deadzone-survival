@@ -1364,9 +1364,11 @@ function nearbyCarForRefuel(){
 $('refuelBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const car=nearbyCarForRefuel();if(!car){message('Stelle dich neben ein Auto.');return}if(inventory.gasCanister<=0){message('Du brauchst einen Benzinkanister.');return}if(car.fuel>=100){message('Der Tank ist bereits voll.');return}inventory.gasCanister--;car.fuel=Math.min(100,car.fuel+25);message('Benzin aufgefüllt: '+Math.ceil(car.fuel)+' / 100. Kanister geleert.',2.2);updateInventory();saveProgress();});
 function exitJet(){
  if(!activeJet)return;
+ // Capture whether the aircraft was actually airborne before leaving the controls.
+ const wasAirborne=jetAirborne||player.pos.y>2.5;
  activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
- if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}
- const leftInAir=player.pos.y>2.5;jetFalling=!!(leftInAir&&flyableJet&&jetHealth>0);jetFallVelocity=0;
+ if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}
+ const leftInAir=wasAirborne||(flyableJet&&flyableJet.position.y>0.55);jetFalling=!!(leftInAir&&flyableJet&&jetHealth>0);jetFallVelocity=jetFalling?1.5:0;jetAirborne=jetFalling;
  // Set the player beside the aircraft instead of inside its collision volume.
  const sideX=Math.cos(player.yaw)*3.4,sideZ=-Math.sin(player.yaw)*3.4;
  let ex=player.pos.x+sideX,ez=player.pos.z+sideZ;
@@ -1895,7 +1897,7 @@ function animate(){
   if(jetFalling&&flyableJet&&!activeJet){
     jetFallVelocity=Math.min(45,jetFallVelocity+9.8*dt);
     flyableJet.position.y-=jetFallVelocity*dt;
-    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-55);jetAirborne=false;jetRunDistance=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
+    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-55);jetAirborne=false;jetRunDistance=0;flyableJet.rotation.x=0;flyableJet.rotation.z=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
   }
   if(flashTime>0){flashTime-=dt;if(flashTime<=0){muzzle.visible=false;flashLight.intensity=0}}
   if(shotHeld&&fireCooldown<=0)shoot();
@@ -1930,7 +1932,9 @@ function animate(){
       else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
       if(player.pos.y<=2.4){player.pos.y=2.4;jetAirborne=false;player.vy=0;jetHealth=Math.max(0,jetHealth-35);jetRunDistance=0;jetFuelTimer=0;message(jetHealth>0?'💥 Harte Landung! Jet beschädigt. Du musst erneut auf der Startbahn beschleunigen.':'💥 Jet zerstört!');if(jetHealth<=0){activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
     }else{player.pos.y=2.4;player.vy=0;}
-    flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
+    // The model's nose points along local -Z, matching camera forward and W movement.
+    flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.order='YXZ';flyableJet.rotation.y=player.yaw;flyableJet.rotation.x=0;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
+    if(gliderVisual)gliderVisual.visible=false;
     if(!jetAirborne&&jetRunDistance<18&&lift>.1)message('Noch Startbahn nötig: '+Math.floor(jetRunDistance)+'/50 m.',.7);
     updateJetStatus();player.onGround=false;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   }else if(player.inTank&&activeTank){
