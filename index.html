@@ -173,11 +173,11 @@ const rainLines=new THREE.LineSegments(rainGeo,rainMat);rainLines.frustumCulled=
 for(let i=0;i<900;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*70;rainPositions[j+1]=Math.random()*32;rainPositions[j+2]=(Math.random()-.5)*70;rainPositions[j+3]=rainPositions[j]-.08;rainPositions[j+4]=rainPositions[j+1]-.8;rainPositions[j+5]=rainPositions[j+2]-.08;}
 rainGeo.attributes.position.needsUpdate=true;
 const lightningFlash=new THREE.PointLight(0xd9eaff,0,260,1.2);lightningFlash.position.set(0,32,0);scene.add(lightningFlash);
-function isPlayerSheltered(){if(!player||!Array.isArray(houseZones))return false;return houseZones.some(h=>Math.abs(player.pos.x-h.x)<h.w/2-.12&&Math.abs(player.pos.z-h.z)<h.d/2-.12&&player.pos.y<h.roofY+1.2);}
+function isPlayerSheltered(){try{if(!player||!Array.isArray(houseZones))return false;return houseZones.some(h=>Math.abs(player.pos.x-h.x)<h.w/2-.12&&Math.abs(player.pos.z-h.z)<h.d/2-.12&&player.pos.y<h.roofY+1.2);}catch(e){return false;}}
 function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'?.72:.38;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'?.48:type==='cloudy'?.9:type==='rain'?.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
 function updateWeather(dt){
  weatherTimer-=dt;if(weatherTimer<=0){const choices=['sunny','cloudy','rain','storm'].filter(w=>w!==currentWeather);setWeather(choices[Math.floor(Math.random()*choices.length)]);weatherTimer=75+Math.random()*90;}
- const sheltered=isPlayerSheltered();rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!sheltered;if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?30:19);if(y<player.pos.y-2){y=player.pos.y+18+Math.random()*16;a.setX(i,(Math.random()-.5)*70);a.setZ(i,(Math.random()-.5)*70);}else{a.setX(i,a.getX(i));a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
+ rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?30:19);if(y<player.pos.y-2){y=player.pos.y+18+Math.random()*16;a.setX(i,(Math.random()-.5)*70);a.setZ(i,(Math.random()-.5)*70);}else{a.setX(i,a.getX(i));a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
  if(currentWeather==='storm'){lightningTimer-=dt;if(lightningTimer<=0){lightningFlash.position.set(player.pos.x+(Math.random()-.5)*90,25+Math.random()*22,player.pos.z+(Math.random()-.5)*90);lightningFlash.intensity=5+Math.random()*7;lightningTimer=3+Math.random()*8;}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);
 }
 setWeather(currentWeather);
@@ -1628,7 +1628,7 @@ function animate(){
    // If we're currently on a stair or upper floor, keep the feet supported instead of
    // applying gravity every frame and snapping the camera into a stair tread.
    let supportedY=null;
-   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.35,zMax=Math.max(st.zStart,st.zEnd)+.35;if(Math.abs(player.pos.x-st.x)<st.w*.62&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.1&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<1.45){supportedY=y;break}}}
+   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.35,zMax=Math.max(st.zStart,st.zEnd)+.35;if(Math.abs(player.pos.x-st.x)<st.w*.78&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<1.45){supportedY=y;break}}}
    if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
    if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
    else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
@@ -1660,7 +1660,8 @@ function animate(){
     const speed=player.speed*(sneaking?.42:(sprint?1.55:1));
     const nextX=player.pos.x+(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
     const nextZ=player.pos.z+(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
-    const upperHouse=player.pos.y>2.5?houseZones.find(h=>Math.abs(player.pos.x-h.x)<h.w/2&&Math.abs(player.pos.z-h.z)<h.d/2):null;
+    const onStairFootprint=stairZones.some(st=>Math.abs(player.pos.x-st.x)<st.w*.9&&player.pos.z>=Math.min(st.zStart,st.zEnd)-.7&&player.pos.z<=Math.max(st.zStart,st.zEnd)+.7&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2);
+    const upperHouse=player.pos.y>2.5&&!onStairFootprint?houseZones.find(h=>Math.abs(player.pos.x-h.x)<h.w/2&&Math.abs(player.pos.z-h.z)<h.d/2):null;
     if(upperHouse){
       if(nextX>upperHouse.x-upperHouse.w/2+.62&&nextX<upperHouse.x+upperHouse.w/2-.62)player.pos.x=nextX;
       if(nextZ>upperHouse.z-upperHouse.d/2+.62&&nextZ<upperHouse.z+upperHouse.d/2-.62)player.pos.z=nextZ;
@@ -1672,18 +1673,19 @@ function animate(){
   }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
   if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
-  // Stabile Treppen-/Etagenauflösung: Höhen werden an der aktuellen Position verfolgt,
-  // damit Schwerkraft und Treppenstufen den Spieler nicht zwischen Frames festklemmen.
-  let stairSupportY=null;
+  // Treppen-Notfallfix: sobald der Spieler im Treppenlauf ist, folgt seine Höhe
+  // direkt der Rampe. Kein Höhenabstands-Limit, das ihn an einer Stufe festklemmt.
+  let stairSupportY=null, stairSupportDistance=Infinity;
   for(const st of stairZones){
-    const zMin=Math.min(st.zStart,st.zEnd)-.45,zMax=Math.max(st.zStart,st.zEnd)+.45;
-    if(Math.abs(player.pos.x-st.x)<st.w*.62 && player.pos.z>=zMin && player.pos.z<=zMax && Math.abs(player.pos.x-st.houseX)<st.halfW+.1 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.1){
+    const zMin=Math.min(st.zStart,st.zEnd)-.65,zMax=Math.max(st.zStart,st.zEnd)+.65;
+    if(Math.abs(player.pos.x-st.x)<st.w*.78 && player.pos.z>=zMin && player.pos.z<=zMax && Math.abs(player.pos.x-st.houseX)<st.halfW+.2 && Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){
       const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));
       const candidate=st.baseY+t*(st.topY-st.baseY);
-      if(stairSupportY===null||Math.abs(candidate-player.pos.y)<Math.abs(stairSupportY-player.pos.y))stairSupportY=candidate;
+      const d=Math.abs(candidate-player.pos.y);
+      if(d<stairSupportDistance){stairSupportDistance=d;stairSupportY=candidate;}
     }
   }
-  if(stairSupportY!==null && Math.abs(stairSupportY-player.pos.y)<1.55){player.pos.y=stairSupportY;player.vy=0;player.onGround=true;}
+  if(stairSupportY!==null){player.pos.y=stairSupportY;player.vy=0;player.onGround=true;}
   else {
     // Stockwerk-Böden tragen den Spieler nur dann, wenn er sich bereits auf dieser Etage befindet.
     let floorSupportY=null;
