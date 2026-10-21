@@ -810,7 +810,9 @@ for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
 makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
 
 // Erweiterter Kartenrand: Bahnhof, zweigleisige Strecke und ein nicht fahrbarer Zug.
-const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;
+const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;let jetFuel=100,jetHealth=200,jetFuelTimer=0,jetRunDistance=0,jetAirborne=false,jetWasMoving=false;
+const jetStatus=document.createElement('div');jetStatus.id='jetStatus';jetStatus.style.cssText='display:none;position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:10060;background:rgba(8,17,22,.9);border:1px solid #77c6e5;border-radius:10px;padding:8px 12px;color:#fff;font:700 13px system-ui;white-space:nowrap;text-align:center;pointer-events:none';document.body.appendChild(jetStatus);
+function updateJetStatus(){jetStatus.textContent='✈️ JET  ❤️ '+jetHealth+'/200   ⛽ '+jetFuel+'/100   '+(jetAirborne?'IN DER LUFT':jetRunDistance>=18?'STARTBEREIT':'STARTBAHN: '+Math.floor(jetRunDistance)+'/18 m');}
 const jetFlightControls=document.createElement('div');jetFlightControls.id='jetFlightControls';jetFlightControls.style.cssText='display:none;position:fixed;right:18px;bottom:190px;z-index:10060;gap:8px;flex-direction:column;pointer-events:auto';jetFlightControls.innerHTML='<button id="jetUpBtn" style="padding:13px 18px;border-radius:12px;background:#3c754e;color:white;font-weight:800">▲ STEIGEN</button><button id="jetDownBtn" style="padding:13px 18px;border-radius:12px;background:#76513b;color:white;font-weight:800">▼ SINKEN</button>';document.body.appendChild(jetFlightControls);
 $('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);
 function buildRailwayAndStation(){
@@ -1362,10 +1364,10 @@ function nearbyCarForRefuel(){
 $('refuelBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const car=nearbyCarForRefuel();if(!car){message('Stelle dich neben ein Auto.');return}if(inventory.gasCanister<=0){message('Du brauchst einen Benzinkanister.');return}if(car.fuel>=100){message('Der Tank ist bereits voll.');return}inventory.gasCanister--;car.fuel=Math.min(100,car.fuel+25);message('Benzin aufgefüllt: '+Math.ceil(car.fuel)+' / 100. Kanister geleert.',2.2);updateInventory();saveProgress();});
 function interact(){
  if(!started)return;
- if(activeJet){activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}player.pos.y=Math.max(1.7,player.pos.y);player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');updateHUD();return}
+ if(activeJet){activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}player.pos.y=Math.max(1.7,player.pos.y);player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');updateHUD();return}
  if(player.inTank){exitTank();return}
  if(player.inCar){exitCar();return}
- if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){scene.attach(flyableJet);activeJet=true;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';message('✈️ Jet gestartet! W/S Gas und bremsen · A/D lenken · Leertaste steigen · Strg sinken · E aussteigen.',4.5);return}}
+ if(flyableJet&&!activeJet){if(jetHealth<=0){message('Dieser Jet ist zerstört und kann nicht mehr benutzt werden.');return}const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Jet bereit! Erst mit W auf der Startbahn beschleunigen (18 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
  if(playerInsideTrain){playerInsideTrain=null;player.pos.set(355,1.7,48);camera.position.copy(player.pos);message('Du steigst aus dem Zug.');return}
  const nearbyWagon=trainWagons.find(w=>Math.abs(player.pos.z-w.z)<6.3&&Math.abs(player.pos.x-w.x)<3.4);if(nearbyWagon){playerInsideTrain=nearbyWagon;player.pos.set(nearbyWagon.x,1.7,nearbyWagon.z);camera.position.copy(player.pos);message('Du bist im Waggon. Der Zug ist nicht fahrbar.');return}
  let nearestTank=null,tankDist=5.2;for(const t of tanks){const d=distanceXZ(player.pos,t.group.position);if(d<tankDist){nearestTank=t;tankDist=d}}if(nearestTank){enterTank(nearestTank);return}
@@ -1388,7 +1390,7 @@ function interact(){
    else {message('Du hast keine Laterne mehr im Inventar.');return;}
    updateInventory();saveProgress();return;
  }
- if(gliderVisual)gliderVisual.visible=gliderEquipped&&!player.onGround&&player.pos.y>4.2;
+ if(gliderVisual)gliderVisual.visible=!activeJet&&gliderEquipped&&!player.onGround&&player.pos.y>4.2;
   const near=nearInteractable();
  if(near&&near.type==='gardenGate'){const g=near.obj;g.open=!g.open;g.pivot.rotation.y=g.open?Math.PI/2:0;g.obstacle.active=!g.open;message(g.open?'Gartentor geöffnet.':'Gartentor geschlossen.',1.6);saveProgress();return}
  if(near&&near.type==='sleepBed'){const bed=near.obj;const fade=$('sleepFade');fade.textContent='GUTE NACHT …';fade.classList.add('active');setTimeout(()=>{worldTime=1/6+.015;updateDayNight(0);player.hunger=Math.max(0,player.hunger-2);player.water=Math.max(0,player.water-2);player.pos.set(bed.x,bed.y+0.25,bed.z);player.vy=0;player.onGround=true;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');fade.textContent='GUTEN MORGEN';saveProgress();setTimeout(()=>{fade.classList.remove('active');message('Guten Morgen! Du bist auf dem Bett aufgewacht.',2.8);},900)},2900);return}
@@ -1860,7 +1862,7 @@ function animate(){
    if(player.pos.y>=climbingLadder.height+1.7){player.pos.y=climbingLadder.height+1.7;climbingLadder=null;player.onGround=true;message('Oben! Du kannst jetzt vom Dach schießen.',2.2)}
    if(player.pos.y<=1.7){player.pos.y=1.7;climbingLadder=null;player.onGround=true;message('Leiter verlassen.',1.2)}
   } else {
-   const activelyGliding=gliderEquipped&&!player.onGround&&player.pos.y>4.2&&player.vy<0;
+   const activelyGliding=!activeJet&&gliderEquipped&&!player.onGround&&player.pos.y>4.2&&player.vy<0;
    gliderBoostCooldown=Math.max(0,gliderBoostCooldown-dt);gliderBoostTime=Math.max(0,gliderBoostTime-dt);
    // If we're currently on a stair or upper floor, keep the feet supported instead of
    // applying gravity every frame and snapping the camera into a stair tread.
@@ -1869,7 +1871,7 @@ function animate(){
    if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
    if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
    else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
-   if(gliderEquipped&&!player.onGround&&player.pos.y>4.2){const glideSpeed=gliderBoostTime>0?15.5:7.2;player.pos.x-=Math.sin(player.yaw)*glideSpeed*dt;player.pos.z-=Math.cos(player.yaw)*glideSpeed*dt;}
+   if(!activeJet&&gliderEquipped&&!player.onGround&&player.pos.y>4.2){const glideSpeed=gliderBoostTime>0?15.5:7.2;player.pos.x-=Math.sin(player.yaw)*glideSpeed*dt;player.pos.z-=Math.cos(player.yaw)*glideSpeed*dt;}
    let roofY=null;
    for(const h of houseZones){if(Math.abs(player.pos.x-h.x)<=h.w/2+.3&&Math.abs(player.pos.z-h.z)<=h.d/2+.3&&player.pos.y<=h.roofY+1.7&&player.pos.y>h.roofY){roofY=h.roofY+1.7;break}}
    if(roofY!==null&&player.vy<0){player.pos.y=roofY;player.vy=0;player.onGround=true;}
@@ -1886,9 +1888,26 @@ function animate(){
     const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
     if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*.8*dt;
     const lift=jetLiftInput+(keys.Space?1:0)-(keys.ControlLeft||keys.ControlRight?1:0);
-    player.pos.y=Math.max(3,Math.min(95,player.pos.y+lift*12*dt));
-    const jetSpeed=throttle>=0?36:15;player.pos.x=Math.max(-390,Math.min(390,player.pos.x-Math.sin(player.yaw)*throttle*jetSpeed*dt));player.pos.z=Math.max(-390,Math.min(390,player.pos.z-Math.cos(player.yaw)*throttle*jetSpeed*dt));
-    flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+    // Taxi on the runway first; takeoff is locked until the jet has rolled 18 metres.
+    const wasX=player.pos.x,wasZ=player.pos.z;
+    const jetSpeed=throttle>=0?36:15;
+    player.pos.x=Math.max(-390,Math.min(390,player.pos.x-Math.sin(player.yaw)*throttle*jetSpeed*dt));
+    player.pos.z=Math.max(-390,Math.min(390,player.pos.z-Math.cos(player.yaw)*throttle*jetSpeed*dt));
+    const travelled=Math.hypot(player.pos.x-wasX,player.pos.z-wasZ);
+    if(!jetAirborne&&throttle>.1)jetRunDistance+=travelled;
+    if(!jetAirborne&&jetRunDistance>=18&&lift>.1&&throttle>.05&&jetFuel>0&&jetHealth>0){jetAirborne=true;message('✈️ Abgehoben! Jetzt kannst du steigen und sinken.',2.4)}
+    if(!jetAirborne&&jetFuel<=0&&lift>.1)message('⛽ Kein Benzin mehr! Steig aus, wähle einen Benzinkanister im Inventar und tippe neben dem Jet auf AKTION.',1.2);
+    if(jetAirborne){
+      jetFuelTimer+=dt;
+      while(jetFuelTimer>=5&&jetFuel>0){jetFuel--;jetFuelTimer-=5;}
+      // Fuel loss in the air causes a real fall; no hover and no infinite flight.
+      if(jetFuel<=0){player.vy-=9.8*dt;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
+      else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
+      if(player.pos.y<=2.4){player.pos.y=2.4;jetAirborne=false;player.vy=0;jetHealth=Math.max(0,jetHealth-35);jetRunDistance=0;jetFuelTimer=0;message(jetHealth>0?'💥 Harte Landung! Jet beschädigt. Du musst erneut auf der Startbahn beschleunigen.':'💥 Jet zerstört!');if(jetHealth<=0){activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
+    }else{player.pos.y=2.4;player.vy=0;}
+    flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
+    if(!jetAirborne&&jetRunDistance<18&&lift>.1)message('Noch Startbahn nötig: '+Math.floor(jetRunDistance)+'/18 m.',.7);
+    updateJetStatus();player.onGround=false;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
   }else if(player.inTank&&activeTank){
     updateTankDriving(dt);
   }else if(player.inCar&&activeCar){
@@ -2046,8 +2065,8 @@ function animate(){
   if(!soldier.recruited&&!soldier.dead)soldier.group.rotation.y=Math.sin(performance.now()*.0005)*.12;
   // Ein-/Ausblenden der rekrutierten Soldaten; Aus blendet sie aus und pausiert ihre KI.
   for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;
-  if(gliderVisual)gliderVisual.visible=gliderEquipped&&!player.onGround&&player.pos.y>4.2;
-  if(gliderBoostBtn){const canBoost=gliderEquipped&&!player.onGround&&player.pos.y>4.2;gliderBoostBtn.style.display=canBoost?'block':'none';gliderBoostBtn.disabled=gliderBoostCooldown>0;if(canBoost)gliderBoostBtn.textContent=gliderBoostCooldown>0?'BOOST '+gliderBoostCooldown.toFixed(1)+'s':'🪂 BOOSTEN';}
+  if(gliderVisual)gliderVisual.visible=!activeJet&&gliderEquipped&&!player.onGround&&player.pos.y>4.2;
+  if(gliderBoostBtn){const canBoost=!activeJet&&gliderEquipped&&!player.onGround&&player.pos.y>4.2;gliderBoostBtn.style.display=canBoost?'block':'none';gliderBoostBtn.disabled=gliderBoostCooldown>0;if(canBoost)gliderBoostBtn.textContent=gliderBoostCooldown>0?'BOOST '+gliderBoostCooldown.toFixed(1)+'s':'🪂 BOOSTEN';}
 
   const near=nearInteractable();
   refreshGiveWeaponButton();
@@ -2055,7 +2074,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=(player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION'));
+  $('actionBtn').textContent=(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION'));
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
