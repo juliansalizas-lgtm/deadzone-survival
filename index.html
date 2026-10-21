@@ -125,7 +125,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
   <button id="spawnTeleportBtn" type="button" aria-label="Zum Spawn teleportieren">↗ ZUM SPAWN</button>
-  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
+  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="dismantleBtn" type="button" style="background:#68452f;border-color:#d4a27c">🛠️ ABBAUEN</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
 <script>
 // iPad/Safari: Startwunsch puffern, falls das 3D-Modul noch initialisiert.
@@ -291,9 +291,24 @@ function placeSelectedStructure(){
  const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate'};const kind=map[selectedItem];if(!kind)return false;
  if((inventory[selectedItem]||0)<=0){message('Du hast dieses Bauteil nicht mehr im Inventar.');return true;}
  const fx=-Math.sin(player.yaw),fz=-Math.cos(player.yaw),x=Math.round((player.pos.x+fx*3.2)*2)/2,z=Math.round((player.pos.z+fz*3.2)*2)/2;
- if(blockedAt(x,z,kind==='wall'?1.4:1.1)){message('Hier ist zu wenig Platz zum Bauen.');return true;}
+ // Use a compact center check for placement. The previous 1.4 m radius for walls
+ // rejected most valid spots because it overlapped nearby environmental collision boxes.
+ const checkRadius=kind==='wall'?0.28:0.42;
+ const overlapsPlaced=placedStructures.some(o=>{const dx=x-o.x,dz=z-o.z;const limit=(kind==='wall'?1.25:1.05)+(o.kind==='wall'?1.25:1.05);return dx*dx+dz*dz<limit*limit;});
+ if(blockedAt(x,z,checkRadius)||overlapsPlaced){message('Hier ist zu wenig Platz zum Bauen. Gehe etwas weiter weg und versuche es erneut.');return true;}
  buildStructureMesh(kind,x,z,player.yaw,false);inventory[selectedItem]--;message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor'})[kind]+' platziert!');updateInventory();saveProgress();return true;
 }
+let buildPreview=null,buildPreviewKind=null,buildPreviewRing=null;
+function clearBuildPreview(){if(buildPreview){scene.remove(buildPreview);buildPreview.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}});buildPreview=null;}if(buildPreviewRing){scene.remove(buildPreviewRing);buildPreviewRing.geometry.dispose();buildPreviewRing.material.dispose();buildPreviewRing=null;}buildPreviewKind=null;}
+function updateBuildPreview(){
+ const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate'},kind=map[selectedItem];
+ if(!started||gameOver||!kind||(inventory[selectedItem]||0)<=0||activeJet||player.inCar||player.inTank){if(buildPreview||buildPreviewRing)clearBuildPreview();return;}
+ if(buildPreviewKind!==kind){clearBuildPreview();const before=placedStructures.length;const obj=buildStructureMesh(kind,0,-1000,0,false);buildPreview=obj.group;placedStructures.splice(before,1);const oi=solidObstacles.indexOf(obj.obstacle);if(oi>=0)solidObstacles.splice(oi,1);buildPreviewKind=kind;buildPreview.traverse(o=>{if(o.isMesh&&o.material){const old=Array.isArray(o.material)?o.material:[o.material];o.material=old.map(m=>{const n=m.clone();n.transparent=true;n.opacity=.42;n.depthWrite=false;return n;});}});buildPreviewRing=new THREE.Mesh(new THREE.RingGeometry(.8,1.12,32),new THREE.MeshBasicMaterial({color:0x54f078,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));buildPreviewRing.rotation.x=-Math.PI/2;buildPreviewRing.position.y=.035;scene.add(buildPreviewRing);}
+ const fx=-Math.sin(player.yaw),fz=-Math.cos(player.yaw),x=Math.round((player.pos.x+fx*3.2)*2)/2,z=Math.round((player.pos.z+fz*3.2)*2)/2;
+ const overlapsPlaced=placedStructures.some(o=>{const dx=x-o.x,dz=z-o.z;const limit=(kind==='wall'?1.25:1.05)+(o.kind==='wall'?1.25:1.05);return dx*dx+dz*dz<limit*limit;});
+ const valid=!blockedAt(x,z,kind==='wall'?.28:.42)&&!overlapsPlaced;buildPreview.position.set(x,0,z);buildPreview.rotation.y=player.yaw;buildPreview.visible=true;buildPreviewRing.position.set(x,.035,z);buildPreviewRing.material.color.setHex(valid?0x54f078:0xff4d4d);buildPreviewRing.visible=true;buildPreview.traverse(o=>{if(o.isMesh&&o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.color)m.color.setHex(valid?0xffffff:0xff7777);}});
+}
+function dismantleNearestStructure(){const o=placedStructures.filter(q=>distanceXZ(player.pos,q.group.position)<4.2).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];if(!o){message('Keine platzierte Basis-Struktur in der Nähe.',1.5);return;}const ids={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'};inventory[ids[o.kind]]=(inventory[ids[o.kind]]||0)+1;scene.remove(o.group);const i=solidObstacles.indexOf(o.obstacle);if(i>=0)solidObstacles.splice(i,1);const j=placedStructures.indexOf(o);if(j>=0)placedStructures.splice(j,1);message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor'})[o.kind]+' abgebaut und zurück ins Inventar gelegt.',2);updateInventory();saveProgress();}
 function blockedAt(x,z,r=.42){return solidObstacles.some(o=>o.active!==false&&x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
 
 // Buildings
@@ -1745,7 +1760,7 @@ document.addEventListener('mousemove',e=>{
  if(!started||gameOver)return;
  if(pointerLocked){player.yaw-=e.movementX*.0022;player.pitch-=e.movementY*.0022;player.pitch=Math.max(-1.45,Math.min(1.45,player.pitch))}
 });
-document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')interact();if(e.code==='Space'){e.preventDefault();jump()}if(e.code==='KeyR'&&player.inTank){e.preventDefault();fireTankRocket()}if(e.code==='KeyQ'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;message('Medizin genommen: Infektion gestoppt.');updateInventory()}if(e.code==='KeyF'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Nahrung gegessen.');updateInventory()}if(e.code==='KeyR'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory()}});
+document.addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyE')interact();if(e.code==='KeyX')dismantleNearestStructure();if(e.code==='Space'){e.preventDefault();jump()}if(e.code==='KeyR'&&player.inTank){e.preventDefault();fireTankRocket()}if(e.code==='KeyQ'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;message('Medizin genommen: Infektion gestoppt.');updateInventory()}if(e.code==='KeyF'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Nahrung gegessen.');updateInventory()}if(e.code==='KeyR'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory()}});
 document.addEventListener('keyup',e=>keys[e.code]=false);
 renderer.domElement.addEventListener('click',()=>{if(started&&!matchMedia('(pointer:coarse)').matches&&!pointerLocked&&renderer.domElement.requestPointerLock)renderer.domElement.requestPointerLock();else if(started)shoot()});
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'&&started&&pointerLocked)shotHeld=true});
@@ -1762,6 +1777,7 @@ $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
+$('dismantleBtn').addEventListener('click',dismantleNearestStructure);
 const gliderBoostBtn=$('gliderBoostBtn');
 function boostGlider(){if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.65;gliderBoostCooldown=2.4;player.vy=Math.max(player.vy,-.18);message('🪂 BOOST! Mehr Geschwindigkeit!',1.1);}
 if(gliderBoostBtn){gliderBoostBtn.addEventListener('click',boostGlider);gliderBoostBtn.addEventListener('pointerup',e=>{e.preventDefault();boostGlider()});}
@@ -1864,7 +1880,7 @@ function updateZombieDoorBreaches(dt){
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04);
- if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);}
+ if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);updateBuildPreview();}else if(buildPreview||buildPreviewRing){if(buildPreview)buildPreview.visible=false;if(buildPreviewRing)buildPreviewRing.visible=false;}
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.knifeReturn){v.age=(v.age||0)+dt;const t=Math.min(1,v.age/.8);v.obj.position.lerpVectors(v.start,v.end,t);v.obj.rotation.z+=dt*10;v.obj.rotation.x+=dt*4;}if(v.life<=0){scene.remove(v.obj);if(v.groupShot){v.obj.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}})}else{if(v.geo&&v.geo.dispose)v.geo.dispose();if(v.material&&v.material.dispose)v.material.dispose()}shotVisuals.splice(i,1)}else if(v.groupShot){v.obj.traverse(o=>{if(o.material&&o.material.opacity!==undefined){o.material.transparent=true;o.material.opacity=Math.max(0,v.life*5)}})}else if(v.material&&v.material.opacity!==undefined)v.material.opacity=Math.max(0,v.life*5)}
  for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){if(q.kind==='rocket'&&q.impactStats){detonateExplosive(q.end,q.impactStats,q.impactColor||0xffd36a)}scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
  for(let i=thrownGrenades.length-1;i>=0;i--){const g=thrownGrenades[i];g.age+=dt;const t=Math.min(1,g.age/g.life);g.bomb.position.set(g.start.x+(g.target.x-g.start.x)*t,g.start.y+(g.target.y-g.start.y)*t+Math.sin(t*Math.PI)*2.1,g.start.z+(g.target.z-g.start.z)*t);g.bomb.rotation.x+=dt*8;g.bomb.rotation.z+=dt*5;if(g.age>=g.life){const p=g.target.clone();scene.remove(g.bomb);g.bomb.geometry.dispose();g.bomb.material.dispose();detonateThrownGrenade(p);thrownGrenades.splice(i,1)}}
