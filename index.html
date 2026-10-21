@@ -85,7 +85,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="sleepFade" aria-hidden="true">GUTE NACHT …</div>
 <div id="nightVision"></div>
 <div id="infectionVignette" aria-hidden="true"></div>
-<div id="runtimeError" style="display:none;position:fixed;z-index:20;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
+<div id="runtimeError" style="display:none;position:fixed;z-index:20010;left:12px;right:12px;bottom:12px;padding:12px;background:#681f1f;color:white;border:1px solid #ff8b8b;border-radius:10px;font:14px system-ui;white-space:pre-wrap"></div>
 <div id="startScreen">
   <div id="startCard">
     <div class="small">SPIELBARER PROTOTYP · VERSION 5.6.0</div>
@@ -130,7 +130,10 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <script>
 // iPad/Safari: Startwunsch puffern, falls das 3D-Modul noch initialisiert.
 (function(){
- const b=document.getElementById('startBtn'); if(!b)return; let last=0;
+ const b=document.getElementById('startBtn'); if(!b)return; let last=0; let loadingTimer=null;
+ const showErr=(msg)=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.style.zIndex='20010';el.textContent=msg;}const st=document.getElementById('startStatus');if(st)st.textContent='Laden fehlgeschlagen – siehe Meldung unten.';};
+ const moduleScript=document.querySelector('script[type="module"]'); if(moduleScript)moduleScript.addEventListener('error',()=>showErr('Das 3D-Spielmodul konnte nicht geladen werden. Bitte Internetverbindung prüfen und die Datei in Safari/Chrome direkt öffnen (nicht in der Vorschau).'));
+ setTimeout(()=>{if(!window.__deadzoneReady){showErr('Das Spiel ist nach 15 Sekunden noch nicht startbereit. Häufige Ursache: Three.js konnte nicht geladen werden oder die 3D-Initialisierung ist abgebrochen. Bitte Internet prüfen; diese Meldung hilft uns, den Fehler einzugrenzen.');}},15000);
  function requestStart(e){
    const now=Date.now(); if(e.type==='click'&&now-last<700)return; last=now;
    e.preventDefault(); e.stopPropagation(); window.__deadzoneStartPending=true;
@@ -139,13 +142,13 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
  }
  b.addEventListener('touchend',requestStart,{passive:false,capture:true});
  b.addEventListener('click',requestStart,true);
- window.addEventListener('error',function(e){const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Das Spiel konnte nicht vollständig starten: '+(e.message||'Ladefehler')+'\nBitte öffne die HTML-Datei in Safari/Chrome mit Internetverbindung.';}});
- window.addEventListener('unhandledrejection',function(e){const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Das Spiel konnte nicht geladen werden: '+(e.reason?.message||String(e.reason)||'Ladefehler')+'\nBitte prüfe die Internetverbindung.';}});
+ window.addEventListener('error',function(e){showErr('Das Spiel konnte nicht vollständig starten: '+(e.message||'Ladefehler')+'\nBitte öffne die HTML-Datei in Safari/Chrome mit Internetverbindung.');});
+ window.addEventListener('unhandledrejection',function(e){showErr('Das Spiel konnte nicht geladen werden: '+(e.reason?.message||String(e.reason)||'Ladefehler')+'\nBitte prüfe die Internetverbindung.');});
 })();
 </script>
 <script type="module">
-window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
-window.addEventListener('unhandledrejection', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Ladefehler: '+(e.reason?.message||String(e.reason)||'Unbekannter Fehler');}});
+window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.style.zIndex='20010';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
+window.addEventListener('unhandledrejection', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.style.zIndex='20010';el.textContent='Ladefehler: '+(e.reason?.message||String(e.reason)||'Unbekannter Fehler');}});
 // Safari/iPad: prevent double-tap and gesture zoom from interrupting gameplay.
 document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});document.addEventListener('gestureend',e=>e.preventDefault(),{passive:false});
 let lastTouchEnd=0;document.addEventListener('touchend',e=>{const now=Date.now();if(now-lastTouchEnd<330)e.preventDefault();lastTouchEnd=now;},{passive:false});
