@@ -74,7 +74,10 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 #inventoryOpenBtn{z-index:10000!important;pointer-events:auto!important;touch-action:manipulation!important}
 #inventoryModal{z-index:10001!important;pointer-events:auto!important}
 #inventoryCard,#inventoryCard button,#inventoryItems button,button{pointer-events:auto!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-#startScreen{z-index:20000!important}
+#startScreen{z-index:20000!important;pointer-events:auto!important;isolation:isolate!important}
+#startCard{position:relative;z-index:20001!important;pointer-events:auto!important}
+#startBtn{position:relative;z-index:20002!important;display:block;pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer;-webkit-user-select:none;user-select:none}
+#startScreen *{pointer-events:auto!important}
 #sleepFade{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;z-index:99999;transition:opacity 2.8s ease;display:flex;align-items:center;justify-content:center;color:#fff;font-size:clamp(20px,4vw,36px);font-weight:800;letter-spacing:2px;text-shadow:0 2px 10px #000}#sleepFade.active{opacity:1}
 </style>
 </head>
@@ -89,7 +92,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
     <p><b>NEU v5.5:</b> Vier Landschaftsbereiche, Vorgärten und feste Nadelbaumstämme.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
-    <button id="startBtn" type="button">SPIEL STARTEN</button><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
+    <button id="startBtn" type="button">SPIEL STARTEN</button><div id="startStatus" class="small" style="min-height:16px;margin-top:6px" aria-live="polite"></div><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
     <p class="small">Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
@@ -124,6 +127,22 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <button id="spawnTeleportBtn" type="button" aria-label="Zum Spawn teleportieren">↗ ZUM SPAWN</button>
   <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
+<script>
+// iPad/Safari: Startwunsch puffern, falls das 3D-Modul noch initialisiert.
+(function(){
+ const b=document.getElementById('startBtn'); if(!b)return; let last=0;
+ function requestStart(e){
+   const now=Date.now(); if(e.type==='click'&&now-last<700)return; last=now;
+   e.preventDefault(); e.stopPropagation(); window.__deadzoneStartPending=true;
+   if(window.__deadzoneReady) window.dispatchEvent(new Event('deadzone-start'));
+   else { const msg=document.getElementById('startStatus'); if(msg)msg.textContent='Spiel wird geladen …'; }
+ }
+ b.addEventListener('touchend',requestStart,{passive:false,capture:true});
+ b.addEventListener('click',requestStart,true);
+ window.addEventListener('error',function(e){const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Das Spiel konnte nicht vollständig starten: '+(e.message||'Ladefehler')+'\nBitte öffne die HTML-Datei in Safari/Chrome mit Internetverbindung.';}});
+ window.addEventListener('unhandledrejection',function(e){const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Das Spiel konnte nicht geladen werden: '+(e.reason?.message||String(e.reason)||'Ladefehler')+'\nBitte prüfe die Internetverbindung.';}});
+})();
+</script>
 <script type="module">
 window.addEventListener('error', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Spiel-Fehler: '+(e.message||'Unbekannter Fehler');}});
 window.addEventListener('unhandledrejection', e=>{const el=document.getElementById('runtimeError');if(el){el.style.display='block';el.textContent='Ladefehler: '+(e.reason?.message||String(e.reason)||'Unbekannter Fehler');}});
@@ -1510,6 +1529,7 @@ window.addEventListener('deadzone-start',()=>{
  if(matchMedia('(pointer:fine)').matches && renderer.domElement.requestPointerLock){try{renderer.domElement.requestPointerLock()}catch(e){}}
  message('Finde die 3 Versorgungskisten. Der Soldat wartet im Lager.',4);
 });
+window.__deadzoneReady=true; if(window.__deadzoneStartPending){window.__deadzoneStartPending=false;window.dispatchEvent(new Event('deadzone-start'));}
 $('spawnTeleportBtn').addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();if(!started||gameOver){message('Starte zuerst das Spiel.',2);return;}try{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();if(activeCar)exitCar();player.inCar=false;carInterior.visible=false;player.pos.set(0,1.7,12);player.yaw=0;player.pitch=0;player.vy=0;player.onGround=true;player.noise=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');mobileMove={x:0,y:0};sprinting=false;shotHeld=false;draggingLook=false;for(const k of Object.keys(keys))keys[k]=false;updateHUD();saveProgress();message('Du wurdest zum Spawn teleportiert!',2.5);}catch(err){console.error('Spawn-Teleport fehlgeschlagen:',err);message('Teleport hat nicht geklappt. Bitte erneut versuchen.',3);}});
 $('startBtn').addEventListener('click',()=>{if(gameOver){resetGame();return}window.dispatchEvent(new Event('deadzone-start'))});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement});
