@@ -91,7 +91,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <div class="small">SPIELBARER PROTOTYP · VERSION 5.6.0</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
-    <p><b>NEU v5.5:</b> Vier Landschaftsbereiche, Vorgärten, Militärlager und neu erweiterter Bahnhof mit begehbaren Waggons.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
+    <p><b>NEU v5.7:</b> Flughafen mit steuerbarem Jet, Fabrikhallen und Zug mit sichtbaren Rädern.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="startStatus" class="small" style="min-height:16px;margin-top:6px" aria-live="polite"></div><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
     <p class="small">Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
@@ -810,7 +810,9 @@ for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
 makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
 
 // Erweiterter Kartenrand: Bahnhof, zweigleisige Strecke und ein nicht fahrbarer Zug.
-const trainWagons=[];let playerInsideTrain=null;
+const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;
+const jetFlightControls=document.createElement('div');jetFlightControls.id='jetFlightControls';jetFlightControls.style.cssText='display:none;position:fixed;right:18px;bottom:190px;z-index:10060;gap:8px;flex-direction:column;pointer-events:auto';jetFlightControls.innerHTML='<button id="jetUpBtn" style="padding:13px 18px;border-radius:12px;background:#3c754e;color:white;font-weight:800">▲ STEIGEN</button><button id="jetDownBtn" style="padding:13px 18px;border-radius:12px;background:#76513b;color:white;font-weight:800">▼ SINKEN</button>';document.body.appendChild(jetFlightControls);
+$('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);
 function buildRailwayAndStation(){
  const railMat=mat(0x4b4f4b,.9), sleeperMat=mat(0x493a2d,.98), ballastMat=mat(0x66675f,1), stationWall=mat(0xb4b1a2,.92), stationTrim=mat(0x343b37,.8), trainBody=mat(0x344c43,.55,.25), trainRoof=mat(0x29322e,.7,.2), windowMat=mat(0x1b3033,.25,.1);
  const trackX=355, zStart=-100,zEnd=150;
@@ -849,6 +851,8 @@ function buildRailwayAndStation(){
    for(const zz of [-2.2,2.2])cube(g,side*1.58,1.35,zz,.18,1.35,.16,stationTrim);
   }
   cube(g,0,2.35,0,3.35,.22,10.9,trainRoof);
+  // Vier gut sichtbare Räder pro Waggon auf beiden Drehgestellen.
+  const wagonWheelMat=mat(0x171a19,.92);for(const wx of [-1.72,1.72])for(const wz2 of [-3.55,3.55]){const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.48,.48,.24,14),wagonWheelMat);wheel.rotation.z=Math.PI/2;wheel.position.set(wx,.48,wz2);wheel.castShadow=true;g.add(wheel);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.17,.17,.255,10),mat(0x6b706e,.75));hub.rotation.z=Math.PI/2;hub.position.set(wx*1.005,.48,wz2);g.add(hub)}
   // Interior benches, crates and luggage.
   for(const z of [-3,0,3]){cube(g,-.82,.68,z,1.05,.45,.62,mat(0x6b523a,.95));cube(g,.82,.68,z,1.05,.45,.62,mat(0x6b523a,.95));}
   addObstacle(trackX,wz-5.35,1.8,.3);addObstacle(trackX,wz+5.35,1.8,.3);
@@ -895,7 +899,7 @@ function buildIndustrialAirport(){
   for(let zz=-d/2+3;zz<d/2-2;zz+=8){cube(g,0,6.6,zz,w-.8,.22,.28,trim);}
   addObstacle(x-w/2,z,.3,d/2);addObstacle(x+w/2,z,.3,d/2);addObstacle(x,z-d/2,w/2,.3);
   if(withJet){
-   const a=new THREE.Group();a.position.set(0,0.4,-1);g.add(a);
+   const a=new THREE.Group();a.position.set(0,0.4,-1);g.add(a);flyableJet=a;
    // Low-poly jet: fuselage, pointed nose, swept wings, tail and twin stabilizers.
    cube(a,0,1.25,-2.2,1.7,1.15,13,jetGrey);
    const nose=new THREE.Mesh(new THREE.ConeGeometry(.83,3.2,8),jetGrey);nose.rotation.x=-Math.PI/2;nose.position.set(0,1.25,-10.2);a.add(nose);
@@ -1358,8 +1362,10 @@ function nearbyCarForRefuel(){
 $('refuelBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const car=nearbyCarForRefuel();if(!car){message('Stelle dich neben ein Auto.');return}if(inventory.gasCanister<=0){message('Du brauchst einen Benzinkanister.');return}if(car.fuel>=100){message('Der Tank ist bereits voll.');return}inventory.gasCanister--;car.fuel=Math.min(100,car.fuel+25);message('Benzin aufgefüllt: '+Math.ceil(car.fuel)+' / 100. Kanister geleert.',2.2);updateInventory();saveProgress();});
 function interact(){
  if(!started)return;
+ if(activeJet){activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.4,player.pos.y-1.7),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}player.pos.y=Math.max(1.7,player.pos.y);player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');updateHUD();return}
  if(player.inTank){exitTank();return}
  if(player.inCar){exitCar();return}
+ if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){scene.attach(flyableJet);activeJet=true;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';message('✈️ Jet gestartet! W/S Gas und bremsen · A/D lenken · Leertaste steigen · Strg sinken · E aussteigen.',4.5);return}}
  if(playerInsideTrain){playerInsideTrain=null;player.pos.set(355,1.7,48);camera.position.copy(player.pos);message('Du steigst aus dem Zug.');return}
  const nearbyWagon=trainWagons.find(w=>Math.abs(player.pos.z-w.z)<6.3&&Math.abs(player.pos.x-w.x)<3.4);if(nearbyWagon){playerInsideTrain=nearbyWagon;player.pos.set(nearbyWagon.x,1.7,nearbyWagon.z);camera.position.copy(player.pos);message('Du bist im Waggon. Der Zug ist nicht fahrbar.');return}
  let nearestTank=null,tankDist=5.2;for(const t of tanks){const d=distanceXZ(player.pos,t.group.position);if(d<tankDist){nearestTank=t;tankDist=d}}if(nearestTank){enterTank(nearestTank);return}
@@ -1535,7 +1541,7 @@ function detonateExplosive(pos,wstats,color){
  spawnBlast(pos,color,wstats.kind);if(wstats.kind==='rocket')createFireZone(pos);message(wstats.kind==='rocket'?'Rakete explodiert!':'Granate explodiert!',1.1);
 }
 function shoot(){
- if(!started||gameOver||fireCooldown>0||player.inTank)return;
+ if(!started||gameOver||fireCooldown>0||player.inTank||activeJet)return;
  const wstats=weaponStats[equippedWeapon]||weaponStats.Blaster;
  const infiniteAmmoWeapon=['Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(equippedWeapon); const throwingKnifeWeapon=wstats.kind==='throwingKnife'; const specialWeapon=['Plasmawerfer','PlasmaPistole','Laserkarabiner','Laserpistole','Schockpistole'].includes(equippedWeapon); const arrowWeapon=['Armbrust','Bogen'].includes(equippedWeapon); const meleeWeapon=wstats.kind==='melee';
  if(!meleeWeapon&&!infiniteAmmoWeapon&&!throwingKnifeWeapon&&ammoLoaded<=0){
@@ -1844,7 +1850,8 @@ function animate(){
     }
    }
   }
-  if(climbingLadder){
+  if(activeJet){player.vy=0;player.onGround=false;}
+  else if(climbingLadder){
    let climbInput=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
    // Tapping the ladder action should actually climb; neutral input defaults upward. Pull back / S to descend.
    if(Math.abs(climbInput)<0.12)climbInput=1;
@@ -1875,7 +1882,14 @@ function animate(){
   let side=climbingLadder?0:(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
   const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
   const sprint=(sprinting||keys.ShiftLeft||keys.ShiftRight)&&!sneaking;
-  if(player.inTank&&activeTank){
+  if(activeJet&&flyableJet){
+    const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
+    if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*.8*dt;
+    const lift=jetLiftInput+(keys.Space?1:0)-(keys.ControlLeft||keys.ControlRight?1:0);
+    player.pos.y=Math.max(3,Math.min(95,player.pos.y+lift*12*dt));
+    const jetSpeed=throttle>=0?36:15;player.pos.x=Math.max(-390,Math.min(390,player.pos.x-Math.sin(player.yaw)*throttle*jetSpeed*dt));player.pos.z=Math.max(-390,Math.min(390,player.pos.z-Math.cos(player.yaw)*throttle*jetSpeed*dt));
+    flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+  }else if(player.inTank&&activeTank){
     updateTankDriving(dt);
   }else if(player.inCar&&activeCar){
     if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*1.55*dt;
