@@ -1826,7 +1826,18 @@ function damagePlayer(amount){
  if(player.inCar&&activeCar)return;
  const reduction=armorTypes.reduce((sum,t)=>sum+(equippedArmor[t.key]?.reduce||0),0);amount*=Math.max(.35,1-reduction);
  if(gameOver)return;player.health-=amount;updateHUD();
- if(player.health<=0){player.health=0;gameOver=true;message('Du bist überwältigt. Tippe auf SPIEL NEU STARTEN.',999);showRestart()}
+ if(player.health<=0){player.health=0;
+  // Beim Tod im Jet die Steuerung lösen, ohne das Flugzeug an den Spieler zu binden.
+  // So bleibt der Jet an seiner tatsächlichen Weltposition und teleportiert beim Respawn nicht mit.
+  if(activeJet&&flyableJet){
+    activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
+    flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);
+    flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;
+    if(jetAirborne&&jetHealth>0){jetFalling=true;jetFallVelocity=Math.max(jetFallVelocity,1.5);jetAirborne=true;}
+    else{jetFalling=false;jetFallVelocity=0;jetAirborne=false;flyableJet.position.y=0.45;}
+    saveProgress();
+  }
+  gameOver=true;message('Du bist überwältigt. Tippe auf SPIEL NEU STARTEN.',999);showRestart()}
 }
 function showRestart(){
  $('startBtn').style.display='none';$('deathOptions').style.display='flex';$('startScreen').style.display='flex';
