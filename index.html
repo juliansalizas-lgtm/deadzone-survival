@@ -604,6 +604,10 @@ for(let i=0;i<115;i++){
 // Richer flower meadow with small stems, several blossom colors and scattered shrubs.
 for(let i=0;i<240;i++){
  const x=-90+Math.random()*180,z=200+Math.random()*90;
+ // Keep meadow plants out of both rivers and their muddy banks.
+ const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));
+ const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));
+ if(mainD<12.5||branchD<12.5){i--;continue;}
  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.random()*Math.PI;scene.add(g);
  const stemMat=mat(0x47723c,1), blossomMat=mat([0xf3d75b,0xf4f0e7,0xd98eb8,0x9ca9f0,0xe7a35b][Math.floor(Math.random()*5)],.85);
  cube(g,0,.18,0,.035,.36,.035,stemMat,false);
@@ -637,11 +641,11 @@ for(let i=0;i<22;i++){
 // v3.0: Straßenlaternen entfernt, um die Renderlast zu senken.
 // Forest clusters at the expanded edges, leaving corridors between them.
 for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-310]]){
- for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,.8+Math.random()*1.25)}
+ for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.8+Math.random()*1.25)}
 }
 // Wide, colorful wildflower meadows in several clearings.
 for(const center of [[-225,30],[225,-25],[-35,245],[155,275],[-270,-80]]){
- for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
+ for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(mainD<12.5||branchD<12.5)continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
 }
 // Zusätzliche natürliche Büsche und Sträucher in den neuen Landschaftsbereichen.
 for(let i=0;i<44;i++){
@@ -1315,6 +1319,31 @@ const lootNames = {
 };
 // Starte/entsperre WebAudio bereits bei der ersten Nutzerinteraktion, damit Schüsse nicht verspätet klingen.
 let scaryAmbienceStarted=false;
+let survivalMusicStarted=false;
+function startSurvivalMusic(){
+ if(survivalMusicStarted)return;
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+  const ctx=playTone.ctx||(playTone.ctx=new Ctx());
+  if(ctx.state==='suspended')ctx.resume();
+  const master=ctx.createGain();master.gain.value=.22;master.connect(ctx.destination);
+  const low=ctx.createBiquadFilter();low.type='lowpass';low.frequency.value=1450;low.connect(master);
+  const notes=[55,65.41,73.42,82.41,73.42,65.41,49,55,65.41,73.42,98,82.41,73.42,65.41,58.27,49];
+  let step=0;
+  const playNote=()=>{
+   if(!survivalMusicStarted)return;
+   try{
+    if(ctx.state==='suspended')ctx.resume();
+    const now=ctx.currentTime,n=notes[step%notes.length];
+    const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.setValueAtTime(n*2,now);o.frequency.exponentialRampToValueAtTime(n*1.985,now+.34);
+    g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.12,now+.035);g.gain.exponentialRampToValueAtTime(.0001,now+.42);o.connect(g);g.connect(low);o.start(now);o.stop(now+.44);
+    if(step%4===0){const b=ctx.createOscillator(),bg=ctx.createGain();b.type='sine';b.frequency.value=n*.5;bg.gain.setValueAtTime(.0001,now);bg.gain.exponentialRampToValueAtTime(.18,now+.025);bg.gain.exponentialRampToValueAtTime(.0001,now+.6);b.connect(bg);bg.connect(master);b.start(now);b.stop(now+.62);}
+    step++;
+   }catch(e){}
+  };
+  survivalMusicStarted=true;playNote();window.setInterval(playNote,430);
+ }catch(e){}
+}
 function startScaryAmbience(){
  if(scaryAmbienceStarted)return;
  try{
@@ -2342,7 +2371,13 @@ function animate(){
      else {p.x=z.climbingLadder.x;p.z=z.climbingLadder.z;p.y+=Math.max(1.4,z.speed)*dt;if(p.y>=z.climbingLadder.height+1.6){p.y=z.climbingLadder.height+1.6;z.climbingLadder=null;}}
     }
    }else if(z.climbingLadder){p.y=Math.max(0,p.y-Math.max(1.4,z.speed)*dt);if(p.y<=0){p.y=0;z.climbingLadder=null}}
-   if(nearest>1.35&&!z.climbingLadder){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;const nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;if(!blockedAt(nx,p.z,.56))p.x=nx;if(!blockedAt(p.x,nz,.56))p.z=nz;z.group.rotation.y=Math.atan2(dx,dz);}
+   if(nearest>1.35&&!z.climbingLadder){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;const nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;
+    const zombieInWater=Math.min(distanceToRiverPath(p.x,p.z,mainRiverPath),distanceToRiverPath(p.x,p.z,branchRiverPath))<riverHalfWidth-.2;
+    const nextXInWater=Math.min(distanceToRiverPath(nx,p.z,mainRiverPath),distanceToRiverPath(nx,p.z,branchRiverPath))<riverHalfWidth-.2;
+    const nextZInWater=Math.min(distanceToRiverPath(p.x,nz,mainRiverPath),distanceToRiverPath(p.x,nz,branchRiverPath))<riverHalfWidth-.2;
+    if(!blockedAt(nx,p.z,.56)&&(zombieInWater||!nextXInWater))p.x=nx;
+    if(!blockedAt(p.x,nz,.56)&&(zombieInWater||!nextZInWater))p.z=nz;
+    z.group.rotation.y=Math.atan2(dx,dz);}
    else if(nearest<=1.35){z.attack-=dt;if(z.attack<=0){if(player.inCar&&activeCar&&target===activeCar.group.position){
       activeCar.hp=Math.max(0,activeCar.hp-7);
       if(activeCar.hp<=0&&!activeCar.destroyed){activeCar.destroyed=true;setWreckAppearance(activeCar.group,'car');message('🚗 Auto zerstört! Du bist geschützt. Sammle Materialien und drücke E zum Reparieren.',4);exitCar();}
