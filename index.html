@@ -709,15 +709,15 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  farmCube(g,-7.38,3.8,0,.24,7.6,11,farmCream);farmCube(g,7.38,3.8,0,.24,7.6,11,farmCream);
  farmCube(g,0,3.8,5.38,14.8,7.6,.24,farmCream);
  farmCube(g,-4.25,3.8,-5.38,6.5,7.6,.24,farmCream);farmCube(g,4.25,3.8,-5.38,6.5,7.6,.24,farmCream);
- farmCube(g,0,6.8,-5.38,2.1,1.3,.24,farmCream);
- for(const y of [.18,3.85,7.45]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
- for(const x of [-6.9,-4.6,-2.3,0,2.3,4.6,6.9]){farmCube(g,x,3.85,-5.62,.18,7.2,.18,farmWood);farmCube(g,x,3.85,5.62,.18,7.2,.18,farmWood)}
+ farmCube(g,0,4.95,-5.38,2.1,5.3,.24,farmCream);
+ for(const y of [.18,7.45]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
+ for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,3.85,-5.62,.18,7.2,.18,farmWood);farmCube(g,x,3.85,5.62,.18,7.2,.18,farmWood)}
  for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,3.8,z,.18,7.2,.18,farmWood);farmCube(g,7.62,3.8,z,.18,7.2,.18,farmWood)}
  // upper-storey windows
  for(const x of [-4.5,0,4.5]){farmCube(g,x,5.6,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,5.6,5.82,.09,1.05,.07,farmWood)}
  // triangular gables and steep roof planes
  const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
- const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,6.2);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const front=new THREE.Mesh(geo,farmCream);front.position.set(0,7.6, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
+ const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,6.2);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,7.6, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
  for(const z of [-5.8,5.8]){farmCube(g,0,9.1,z,.2,4.2,.2,farmWood);}
  const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,9.15,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.75;roofR.rotation.z=-.56;g.add(roofR);
  // front door and porch
@@ -738,10 +738,12 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  farmCube(g,0,.1,0,14.6,.14,10.6,mat(0x806b50,.98));
  farmCube(g,-3,.55,1.2,2.2,.8,1.4,farmWood);farmCube(g,2,.48,-1.0,2.0,.65,1.2,farmWoodLight);
  farmCube(g,4,.42,2.8,1.4,.55,2.2,farmDark);farmCube(g,4,.75,2.65,1.3,.16,1.9,mat(0x9b9b89));
- // Staircase/ladder to the second floor.
- for(let i=0;i<9;i++)farmCube(g,-5+i*.48,.22+i*.24,1.7,.55,.18,1.15,farmWoodLight);
- // Upstairs floor with an open edge near the stairs.
- farmCube(g,0,3.98,0,14.5,.16,10.5,mat(0x806b50,.98));
+ // Wide staircase climbs from the ground floor toward the second floor along the Z axis.
+ const stairX=-5.15;
+ for(let i=0;i<14;i++){const t=(i+.5)/14;farmCube(g,stairX, .22+t*3.85, 3.9-t*7.5, 1.65,.24,.72,farmWoodLight)}
+ stairZones.push({x:farmCenter.x+stairX,zStart:farmCenter.z+13+3.9,zEnd:farmCenter.z+13-3.6,w:1.55,height:3.85,baseY:1.7,topY:5.55,houseX:farmCenter.x,houseZ:farmCenter.z+13,halfW:7.2,halfD:5.3,level:0});
+ // Upstairs floor; leave a stairwell opening so the player can actually reach the landing.
+ farmCube(g,1.0,3.98,0,12.5,.16,10.5,mat(0x806b50,.98)); farmCube(g,-5.3,3.98,-1.6,3.7,.16,7.2,mat(0x806b50,.98));
  // Do not place a solid collision wall across the interior: it blocked the entrance behind the front door.
  // The exterior wall collisions above already keep the player inside the building.
 }
@@ -755,8 +757,8 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  farmCube(g,-4.7,2.25,-4.88,4.4,4.5,.24,barnWall);farmCube(g,4.7,2.25,-4.88,4.4,4.5,.24,barnWall);
  farmCube(g,0,4.05,-4.88,4.9,.9,.24,barnWall);
  for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,2.25,-5.08,.18,4.4,.18,farmWoodLight);
- for(const y of [.22,2.25,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
- farmCube(g,0,1.65,-5.22,4.8,3.2,.18,farmDark);farmCube(g,-1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));farmCube(g,1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));
+ for(const y of [.22,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
+ // Clear the entire central doorway: the animated sliding panels below are the ONLY doors.
  // Raised, correctly oriented gable roof with a taller ridge above the barn walls.
  const rl=new THREE.Mesh(new THREE.BoxGeometry(8.8,.34,11.4),farmRoof);rl.position.set(-3.15,6.0,0);rl.rotation.z=.52;g.add(rl);const rr=rl.clone();rr.position.x=3.15;rr.rotation.z=-.52;g.add(rr);
  farmCube(g,0,5.95,0,1.5,.5,1.4,farmWoodLight);
@@ -806,16 +808,18 @@ let farmWindmillRotor=null;
  for(let i=0;i<14;i++){farmCube(scene,x-10+i*1.5,.42,z+6.5,.09,.84,.1,farmWoodLight)}farmCube(scene,x, .35,z+6.5,21,.12,.12,farmWood);
  farmCube(scene,x+12,.55,z+2,1.5,1.1,1.5,farmWood);farmCube(scene,x+12,1.12,z+2,1.4,.12,1.4,leafMat);
  // fruit tree
- const trunk=farmCube(scene,x+12,1.6,z-5,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(x+12+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,z-5+Math.sin(i*1.25)*.6);scene.add(crown)}
+ const treeX=x+15.5,treeZ=z-2.0;const trunk=farmCube(scene,treeX,1.6,treeZ,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(treeX+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,treeZ+Math.sin(i*1.25)*.6);scene.add(crown)}
 }
 // Old green farm tractor. It shares the existing vehicle controls, repair, collision and save system.
 {
- const x=farmCenter.x-17,z=farmCenter.z-15,g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(1.18);scene.add(g);
+ const x=farmCenter.x-25,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(1.35);scene.add(g);
  const green=mat(0x47733b,.55,.25),greenDark=mat(0x2f512b,.7,.2),tire=mat(0x171a17,1),rim=mat(0x858b76,.5,.4),seat=mat(0x342820,.9);
  farmCube(g,0,.95,-.1,1.75,.95,2.35,green);farmCube(g,0,1.72,-.15,1.15,.78,1.25,greenDark);farmCube(g,0,2.1,-.15,1.0,.09,1.05,green);
  farmCube(g,0,1.35,1.22,1.45,.22,.65,green);farmCube(g,0,1.85,.9,.9,.12,.12,greenDark);farmCube(g,0,1.6,.1,.6,.7,.6,seat);
  for(const side of [-1,1])for(const zz of [-.85,.9]){const rad=zz<0?.58:.38;const wheel=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,.28,14),tire);wheel.rotation.z=Math.PI/2;wheel.position.set(side*(zz<0?1.0:.86),rad,zz);g.add(wheel);const r=new THREE.Mesh(new THREE.CylinderGeometry(rad*.55,rad*.55,.3,10),rim);r.rotation.z=Math.PI/2;r.position.copy(wheel.position);g.add(r);for(let t=0;t<10;t++){const lug=farmCube(g,side*(zz<0?1.15:1.01),rad,zz,.08,.1,rad*.18,greenDark);lug.rotation.y=t*Math.PI/5}}
  farmCube(g,0,1.1,-1.34,1.2,.28,.12,greenDark);farmCube(g,-.55,.72,-1.45,.14,.7,.14,farmMetal);farmCube(g,.55,.72,-1.45,.14,.7,.14,farmMetal);
+ // Bright roof beacon and exhaust make the tractor easy to spot from a distance.
+ farmCube(g,0,2.22,-.55,.22,.18,.22,mat(0xffc52f,.45));farmCube(g,.52,2.18,-.45,.12,.62,.12,farmMetal);
  const tractor={group:g,x,z,rot:0,hp:500,maxHp:500,fuel:1+Math.floor(Math.random()*20),maxFuel:100,driveFuelTimer:0,repaired:true,bricks:100+Math.floor(Math.random()*401),metal:300+Math.floor(Math.random()*301),planks:50+Math.floor(Math.random()*51),destroyed:false,isTractor:true};cars.push(tractor);
 }
 // Drei Militärlager mit je einem fahrbaren Panzer, vielen Zombies und Loot.
@@ -1290,7 +1294,23 @@ const lootNames = {
  ammo: 'Ausrüstungsvorräte'
 };
 // Starte/entsperre WebAudio bereits bei der ersten Nutzerinteraktion, damit Schüsse nicht verspätet klingen.
-function unlockGameAudio(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();}catch(e){}}
+let scaryAmbienceStarted=false;
+function startScaryAmbience(){
+ if(scaryAmbienceStarted)return;
+ try{
+  const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;
+  const ctx=playTone.ctx||(playTone.ctx=new Ctx());
+  if(ctx.state==='suspended')ctx.resume();
+  const master=ctx.createGain();master.gain.value=0.0001;master.connect(ctx.destination);
+  const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=190;filter.Q.value=.7;filter.connect(master);
+  const tones=[{f:46.25,v:.24},{f:55,v:.14},{f:73.42,v:.09}];
+  for(const t of tones){const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=t.f;g.gain.value=t.v;o.connect(g);g.connect(filter);o.start();}
+  const lfo=ctx.createOscillator(),lfoGain=ctx.createGain();lfo.type='sine';lfo.frequency.value=.075;lfoGain.gain.value=.00022;lfo.connect(lfoGain);lfoGain.connect(master.gain);lfo.start();
+  master.gain.setTargetAtTime(.0019,ctx.currentTime,2.5);
+  scaryAmbienceStarted=true;
+ }catch(e){}
+}
+function unlockGameAudio(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();startScaryAmbience();}catch(e){}}
 window.addEventListener('pointerdown',unlockGameAudio,{once:true,passive:true});
 window.addEventListener('touchstart',unlockGameAudio,{once:true,passive:true});
 function playTone(freq=540,duration=.09,type='sine',volume=.045){
