@@ -2159,9 +2159,10 @@ function animate(){
     if(jetAirborne){
       jetFuelTimer+=dt;
       while(jetFuelTimer>=5&&jetFuel>0){jetFuel--;jetFuelTimer-=5;}
-      // Fuel loss in the air causes a real fall; no hover and no infinite flight.
-      if(jetFuel<=0){player.vy-=9.8*dt;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
-      else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
+      // Keep the vertical speed in this scope so landing checks cannot throw a ReferenceError.
+      let vertical=lift>0?12:lift<0?-8:-2.2;
+      if(jetFuel<=0){player.vy-=9.8*dt;vertical=player.vy;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
+      else {player.vy=vertical;player.pos.y+=vertical*dt;}
       if(player.pos.y<=2.4){const landingSpeed=Math.abs(vertical);player.pos.y=2.4;jetAirborne=false;player.vy=0;const landingDamage=landingSpeed<=3?0:landingSpeed<=8?1:Math.min(18,Math.round((landingSpeed-7)*1.5));jetHealth=Math.max(0,jetHealth-landingDamage);jetRunDistance=0;jetFuelTimer=0;message(landingDamage===0?'✈️ Saubere Landung! Kein Schaden am Jet.':landingDamage<=5?'✈️ Sanfte Landung! Jet kaum beschädigt.':'💥 Harte Landung! Jet beschädigt.');if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
     }else{player.pos.y=2.4;player.vy=0;}
     // The model's nose points along local -Z, matching camera forward and W movement.
