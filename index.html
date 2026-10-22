@@ -276,7 +276,7 @@ function buildStructureMesh(kind,x,z,rot=0,open=false){
   const panel=new THREE.Group();g.add(panel);for(let i=0;i<9;i++)cube(panel,-w/2+.18+i*(w-.36)/8,.92,0,.065,1.72,.12,ironLight);cube(panel,0,.18,0,w-.12,.12,.13,iron);cube(panel,0,1.72,0,w-.12,.12,.13,iron);panel.position.x=open?w:0;g.userData.gatePanel=panel;
  }
  scene.add(g);
- const obstacle=addObstacle(x,z,gate?.55:(kind==='wall'?1.65:1.55),gate?.35:(kind==='wall'?.28:.22));
+ const longHalf=kind==='wall'?1.68:1.62,shortHalf=gate?.35:(kind==='wall'?.3:.24);const turned=Math.abs(Math.sin(rot))>.5;const obstacle=addObstacle(x,z,gate?.55:(turned?shortHalf:longHalf),gate?.35:(turned?longHalf:shortHalf));
  if(gate&&open)obstacle.active=false;
  const obj={kind,x,z,rot,open,group:g,obstacle};placedStructures.push(obj);return obj;
 }
@@ -697,7 +697,7 @@ function spawnCars(){
 }
 spawnCars();
 // Bauernhof: Fachwerk-Bauernhaus, Scheune, fahrbarer Traktor, Windmühle, Weizenfeld und Nutzgarten.
-const farmCenter={x:286,z:-286};
+const farmCenter={x:0,z:115};
 const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
 function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,material,true)}
 // farmhouse: large two-storey timber-frame house with steep gabled roof
@@ -713,9 +713,29 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
  const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,4.7);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const front=new THREE.Mesh(geo,farmCream);front.position.set(0,4, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
  for(const z of [-5.8,5.8]){farmCube(g,0,6.1,z,.2,4.2,.2,farmWood);}
- const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,6.15,0);roofL.rotation.z=-.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.75;roofR.rotation.z=.56;g.add(roofR);
+ const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,6.15,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.75;roofR.rotation.z=-.56;g.add(roofR);
  // front door and porch
- farmCube(g,0,1.25,-5.75,1.35,2.5,.18,farmWood);farmCube(g,0,1.25,-5.88,1.05,2.2,.08,farmWoodLight);farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
+ // Entry porch and an operable front door; keep the doorway clear so the player can enter.
+ farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
+ const farmDoorPivot=new THREE.Group();farmDoorPivot.position.set(-.7,0,-5.82);g.add(farmDoorPivot);
+ farmCube(farmDoorPivot,.7,1.15,0,1.35,2.3,.13,farmWood);farmCube(farmDoorPivot,.7,1.15,-.08,1.12,2.08,.06,farmWoodLight);
+ const farmDoorObstacle=addObstacle(farmCenter.x,farmCenter.z+13-5.55, .72,.38);
+ houseDoors.push({pivot:farmDoorPivot,open:false,obstacle:farmDoorObstacle,x:farmCenter.x,z:farmCenter.z+13-5.55,doorW:1.4,breachProgress:0,breached:false});
+ // Solid perimeter walls stop entry through the timber walls, but leave the front doorway open.
+ addObstacle(farmCenter.x,farmCenter.z+13-5.55,7.9,.22);
+ solidObstacles[solidObstacles.length-1].active=false;
+ addObstacle(farmCenter.x,farmCenter.z+13+5.55,7.9,.28);
+ addObstacle(farmCenter.x-7.55,farmCenter.z+13,.28,5.6);addObstacle(farmCenter.x+7.55,farmCenter.z+13,.28,5.6);
+ // The front wall collision is split around the door opening.
+ addObstacle(farmCenter.x-4.2,farmCenter.z+13-5.55,3.3,.3);addObstacle(farmCenter.x+4.2,farmCenter.z+13-5.55,3.3,.3);
+ // Interior floor and simple furniture so the farmhouse is explorable.
+ farmCube(g,0,.1,0,14.6,.14,10.6,mat(0x806b50,.98));
+ farmCube(g,-3,.55,1.2,2.2,.8,1.4,farmWood);farmCube(g,2,.48,-1.0,2.0,.65,1.2,farmWoodLight);
+ farmCube(g,4,.42,2.8,1.4,.55,2.2,farmDark);farmCube(g,4,.75,2.65,1.3,.16,1.9,mat(0x9b9b89));
+ // Staircase/ladder to the second floor.
+ for(let i=0;i<9;i++)farmCube(g,-5+i*.48,.22+i*.24,1.7,.55,.18,1.15,farmWoodLight);
+ // Upstairs floor with an open edge near the stairs.
+ farmCube(g,0,3.98,0,14.5,.16,10.5,mat(0x806b50,.98));
  addObstacle(farmCenter.x,farmCenter.z+13,7.9,5.9);
 }
 // barn with wide sliding doors and loft vent
@@ -725,7 +745,7 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,2.25,-5.08,.18,4.4,.18,farmWoodLight);
  for(const y of [.22,2.25,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
  farmCube(g,0,1.65,-5.22,4.8,3.2,.18,farmDark);farmCube(g,-1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));farmCube(g,1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));
- const rl=new THREE.Mesh(new THREE.BoxGeometry(8,.3,11),farmRoof);rl.position.set(-3.2,5.25,0);rl.rotation.z=-.48;g.add(rl);const rr=rl.clone();rr.position.x=3.2;rr.rotation.z=.48;g.add(rr);
+ const rl=new THREE.Mesh(new THREE.BoxGeometry(8,.3,11),farmRoof);rl.position.set(-3.2,5.25,0);rl.rotation.z=.48;g.add(rl);const rr=rl.clone();rr.position.x=3.2;rr.rotation.z=-.48;g.add(rr);
  farmCube(g,0,5.2,0,1.5,.5,1.4,farmWoodLight);addObstacle(x,z,7.4,5.4);
 }
 // Windmill tower and a single rotating four-sail rotor
