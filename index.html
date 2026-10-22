@@ -717,9 +717,9 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  for(const x of [-4.5,0,4.5]){farmCube(g,x,5.6,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,5.6,5.82,.09,1.05,.07,farmWood)}
  // triangular gables and steep roof planes
  const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
- const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,6.2);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,7.6, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
- for(const z of [-5.8,5.8]){farmCube(g,0,9.1,z,.2,4.2,.2,farmWood);}
- const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,9.15,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.75;roofR.rotation.z=-.56;g.add(roofR);
+ const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,7.0);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,7.6, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
+ for(const z of [-5.8,5.8]){farmCube(g,0,9.65,z,.2,5.3,.2,farmWood);}
+ const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,9.15,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.85;roofR.position.y=9.75;roofR.rotation.z=-.66;g.add(roofR);
  // front door and porch
  // Entry porch and an operable front door; keep the doorway clear so the player can enter.
  farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
@@ -744,23 +744,32 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  stairZones.push({x:farmCenter.x+stairX,zStart:farmCenter.z+13+3.9,zEnd:farmCenter.z+13-3.6,w:1.55,height:3.85,baseY:1.7,topY:5.55,houseX:farmCenter.x,houseZ:farmCenter.z+13,halfW:7.2,halfD:5.3,level:0});
  // Upstairs floor; leave a stairwell opening so the player can actually reach the landing.
  farmCube(g,1.0,3.98,0,12.5,.16,10.5,mat(0x806b50,.98)); farmCube(g,-5.3,3.98,-1.6,3.7,.16,7.2,mat(0x806b50,.98));
- // Do not place a solid collision wall across the interior: it blocked the entrance behind the front door.
- // The exterior wall collisions above already keep the player inside the building.
+ // Register the upper floor with the movement/landing system so the player cannot fall through it.
+ buildingFloors.push({x:farmCenter.x,z:farmCenter.z+13,w:14.1,d:10.1,y:3.98,level:1});
+ // Upstairs furniture: bed, wardrobe and bedside table with matching collision footprints.
+ farmCube(g,2.2,4.62,-2.8,2.35,1.12,1.35,farmWoodLight);farmCube(g,2.2,5.22,-2.8,2.28,.14,1.28,mat(0x9aaba8,.98));
+ farmCube(g,2.2,4.72,-3.25,2.2,.32,.52,mat(0x6f8790,.98));addObstacle(farmCenter.x+2.2,farmCenter.z+13-2.8,1.25,.78);
+ farmCube(g,5.4,4.72,1.0,1.25,1.35,.85,farmWood);farmCube(g,4.0,4.35,-4.0,.8,.7,.7,farmWoodLight);
+ addObstacle(farmCenter.x+5.4,farmCenter.z+13+1.0,.75,.55);addObstacle(farmCenter.x+4.0,farmCenter.z+13-4.0,.5,.45);
+ // Keep the stairwell clear and leave a landing around the stair exit.
+ // The exterior wall collisions above keep the player inside the building.
 }
 // barn with wide sliding doors and loft vent
 {
  const x=farmCenter.x-17,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
  // Open-front barn shell: split the front facade around the sliding gate so no red wall remains behind it.
  const barnWall=mat(0x8b3028,.96);
- farmCube(g,-6.88,2.25,0,.24,4.5,10,barnWall);farmCube(g,6.88,2.25,0,.24,4.5,10,barnWall);
- farmCube(g,0,2.25,4.88,13.8,4.5,.24,barnWall);
- farmCube(g,-4.7,2.25,-4.88,4.4,4.5,.24,barnWall);farmCube(g,4.7,2.25,-4.88,4.4,4.5,.24,barnWall);
- farmCube(g,0,4.05,-4.88,4.9,.9,.24,barnWall);
+ farmCube(g,-6.88,2.65,0,.24,5.3,10,barnWall);farmCube(g,6.88,2.65,0,.24,5.3,10,barnWall);
+ farmCube(g,0,2.65,4.88,13.8,5.3,.24,barnWall);
+ farmCube(g,-4.7,2.65,-4.88,4.4,5.3,.24,barnWall);farmCube(g,4.7,2.65,-4.88,4.4,5.3,.24,barnWall);
+ farmCube(g,0,4.85,-4.88,4.9,1.1,.24,barnWall);
  for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,2.25,-5.08,.18,4.4,.18,farmWoodLight);
- for(const y of [.22,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
+ for(const y of [.22,5.12])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
+ // Solid triangular gable infill above the barn walls, closing the roof-end hole.
+ {const gs=new THREE.Shape();gs.moveTo(-6.8,0);gs.lineTo(6.8,0);gs.lineTo(0,3.9);gs.closePath();const gg=new THREE.ShapeGeometry(gs);const gm=barnWall.clone();gm.side=THREE.DoubleSide;const gw=new THREE.Mesh(gg,gm);gw.position.set(0,5.3,-4.78);g.add(gw);const gw2=gw.clone();gw2.position.z=4.78;gw2.rotation.y=Math.PI;g.add(gw2);}
  // Clear the entire central doorway: the animated sliding panels below are the ONLY doors.
  // Raised, correctly oriented gable roof with a taller ridge above the barn walls.
- const rl=new THREE.Mesh(new THREE.BoxGeometry(8.8,.34,11.4),farmRoof);rl.position.set(-3.15,6.0,0);rl.rotation.z=.52;g.add(rl);const rr=rl.clone();rr.position.x=3.15;rr.rotation.z=-.52;g.add(rr);
+ const rl=new THREE.Mesh(new THREE.BoxGeometry(9.4,.38,11.7),farmRoof);rl.position.set(-3.35,6.75,0);rl.rotation.z=.62;g.add(rl);const rr=rl.clone();rr.position.x=3.35;rr.position.y=6.75;rr.rotation.z=-.62;g.add(rr);
  farmCube(g,0,5.95,0,1.5,.5,1.4,farmWoodLight);
  // Leave the front opening free of a solid building-sized collider. Side and rear walls remain solid.
  addObstacle(x-7.0,z,.28,5.1);addObstacle(x+7.0,z,.28,5.1);addObstacle(x,z+5.0,6.9,.28);
@@ -775,7 +784,7 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
 let farmWindmillRotor=null;
 {
  const x=farmCenter.x+20,z=farmCenter.z-2,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.35,2.15,10,8),mat(0xd7c9a8,.95));tower.position.y=5;g.add(tower);
+ const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.35,2.15,10,8),mat(0xd7c9a8,.95));tower.position.y=5;g.add(tower);addObstacle(x,z,2.05,2.05);
  const cap=new THREE.Mesh(new THREE.ConeGeometry(2.1,2.0,8),farmRoof);cap.position.y=10.6;g.add(cap);
  farmCube(g,0,1.0,1.72,1.0,1.8,.12,farmDark);
  farmWindmillRotor=new THREE.Group();farmWindmillRotor.position.set(0,8.7,-1.85);g.add(farmWindmillRotor);
@@ -808,7 +817,7 @@ let farmWindmillRotor=null;
  for(let i=0;i<14;i++){farmCube(scene,x-10+i*1.5,.42,z+6.5,.09,.84,.1,farmWoodLight)}farmCube(scene,x, .35,z+6.5,21,.12,.12,farmWood);
  farmCube(scene,x+12,.55,z+2,1.5,1.1,1.5,farmWood);farmCube(scene,x+12,1.12,z+2,1.4,.12,1.4,leafMat);
  // fruit tree
- const treeX=x+15.5,treeZ=z-2.0;const trunk=farmCube(scene,treeX,1.6,treeZ,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(treeX+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,treeZ+Math.sin(i*1.25)*.6);scene.add(crown)}
+ const treeX=x-14.0,treeZ=z-2.0;const trunk=farmCube(scene,treeX,1.6,treeZ,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(treeX+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,treeZ+Math.sin(i*1.25)*.6);scene.add(crown)}
 }
 // Old green farm tractor. It shares the existing vehicle controls, repair, collision and save system.
 {
