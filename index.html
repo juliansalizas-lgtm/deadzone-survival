@@ -89,7 +89,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
     <div class="small">SPIELBARER PROTOTYP · VERSION 5.6.0</div>
     <h1>DEADZONE</h1>
     <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
-    <p><b>NEU v5.7:</b> Flughafen mit steuerbarem Jet, Fabrikhallen und Zug mit sichtbaren Rädern.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
+    <p><b>NEU v5.7:</b> Flughafen mit steuerbarem Jet, Fabrikhallen und Zug mit sichtbaren Rädern.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten · Ctrl tauchen<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION · in Flüssen schwimmen</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="startStatus" class="small" style="min-height:16px;margin-top:6px" aria-live="polite"></div><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
     <p class="small">Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
@@ -189,18 +189,18 @@ for(let ci=0;ci<13;ci++){
 // Wettereffekte: leichte Regenlinien, dunklere Bewölkung und gelegentliche Blitze im Gewitter.
 const weatherNames={sunny:'☀️ Sonnig',cloudy:'☁️ Bewölkt',rain:'🌧️ Regen',storm:'⛈️ Gewitter'};
 let currentWeather=['sunny','cloudy','rain','storm'][Math.floor(Math.random()*4)],weatherTimer=75+Math.random()*55,lightningTimer=5+Math.random()*8;
-const rainPositions=new Float32Array(900*2*3);
+const rainPositions=new Float32Array(1800*2*3);
 const rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
 const rainMat=new THREE.LineBasicMaterial({color:0xa9c9dc,transparent:true,opacity:.48});
 const rainLines=new THREE.LineSegments(rainGeo,rainMat);rainLines.frustumCulled=false;rainLines.visible=false;scene.add(rainLines);
-for(let i=0;i<900;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*70;rainPositions[j+1]=Math.random()*32;rainPositions[j+2]=(Math.random()-.5)*70;rainPositions[j+3]=rainPositions[j]-.08;rainPositions[j+4]=rainPositions[j+1]-.8;rainPositions[j+5]=rainPositions[j+2]-.08;}
+for(let i=0;i<1800;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*85;rainPositions[j+1]=Math.random()*38;rainPositions[j+2]=(Math.random()-.5)*85;rainPositions[j+3]=rainPositions[j]-.12;rainPositions[j+4]=rainPositions[j+1]-.95;rainPositions[j+5]=rainPositions[j+2]-.04;}
 rainGeo.attributes.position.needsUpdate=true;
 const lightningFlash=new THREE.PointLight(0xd9eaff,0,260,1.2);lightningFlash.position.set(0,32,0);scene.add(lightningFlash);
 function isPlayerSheltered(){try{if(!player||!Array.isArray(houseZones))return false;return houseZones.some(h=>Math.abs(player.pos.x-h.x)<h.w/2-.12&&Math.abs(player.pos.z-h.z)<h.d/2-.12&&player.pos.y<h.roofY+1.2);}catch(e){return false;}}
-function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'?.72:.38;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'?.48:type==='cloudy'?.9:type==='rain'?.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
+function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'?.82:.62;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'?.48:type==='cloudy'?.9:type==='rain'?.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
 function updateWeather(dt){
  weatherTimer-=dt;if(weatherTimer<=0){const choices=['sunny','cloudy','rain','storm'].filter(w=>w!==currentWeather);setWeather(choices[Math.floor(Math.random()*choices.length)]);weatherTimer=75+Math.random()*90;}
- rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?30:19);if(y<player.pos.y-2){y=player.pos.y+18+Math.random()*16;a.setX(i,(Math.random()-.5)*70);a.setZ(i,(Math.random()-.5)*70);}else{a.setX(i,a.getX(i));a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
+ rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?38:27);if(y<player.pos.y-2){y=player.pos.y+20+Math.random()*20;a.setX(i,player.pos.x+(Math.random()-.5)*85);a.setZ(i,player.pos.z+(Math.random()-.5)*85);}else{a.setX(i,a.getX(i)-dt*1.8);a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
  if(currentWeather==='storm'){lightningTimer-=dt;if(lightningTimer<=0){lightningFlash.position.set(player.pos.x+(Math.random()-.5)*90,25+Math.random()*22,player.pos.z+(Math.random()-.5)*90);lightningFlash.intensity=5+Math.random()*7;lightningTimer=3+Math.random()*8;}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);
 }
 setWeather(currentWeather);
@@ -545,14 +545,7 @@ for(const [cx,cz] of [[-62,-62],[66,62]]){
  addObstacle(cx,cz,3.2,2.3);
 }
 // Alte zufällig verteilte Hügel entfernt; Hügel gibt es nur noch in der vorgesehenen Hügellandschaft.
-// entrance and barrier
-addObstacle(-1,-14,5,.32);
-cube(scene,-1,1.4,-14,10,2.8,.5,mat(0x4a554e));
-cube(scene,-1,2.95,-14,10,.25,.65,metal);
-for(let x=-5;x<=3;x+=2) cube(scene,x,1.25,-13.65,.16,2.5,.18,metal);
-for(let x=-7;x<=7;x+=2.3) {addObstacle(x,-22,.7,.7);cube(scene,x,.65,-22,1.2,1.3,1.2,crateMat); cube(scene,x,.66,-22,1.23,.12,1.23,wood)}
-// sandbags
-for(let i=0;i<8;i++){addObstacle(-7+i*1.05,-8,.5,.38);const s=cube(scene,-7+i*1.05,.38,-8,.95,.65,.62,mat(0x8a826d));s.rotation.y=(i%2)*.1}
+// Spawn area intentionally kept clear: removed the old barrier wall, crate row and sandbags.
 // Neue Landschaftsbereiche: Wald, Blumenwiese, Hügellandschaft und Vorort.
 // Vier klar unterscheidbare Landschaftsbereiche: dichter Nadelwald, Blumenwiese und sanfte Hügel.
 groundPatch(-235,105,155,190,mat(0x344b35,1),-.035);
@@ -999,7 +992,7 @@ const jetFlightControls=document.createElement('div');jetFlightControls.id='jetF
 $('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetExitBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();exitJet();});
 function buildRailwayAndStation(){
  const railMat=mat(0x4b4f4b,.9), sleeperMat=mat(0x493a2d,.98), ballastMat=mat(0x66675f,1), stationWall=mat(0xb4b1a2,.92), stationTrim=mat(0x343b37,.8), trainBody=mat(0x344c43,.55,.25), trainRoof=mat(0x29322e,.7,.2), windowMat=mat(0x1b3033,.25,.1);
- const trackX=355, zStart=-100,zEnd=150;
+ const trackX=355, zStart=-260,zEnd=260;
  // Schotterbett und zwei durchgehende Schienen mit Schwellen.
  for(const tx of [trackX,trackX+8]){
   cube(scene,tx,.025,(zStart+zEnd)/2,4.2,.06,zEnd-zStart,ballastMat,false);
@@ -1049,6 +1042,22 @@ function buildRailwayAndStation(){
  for(const z of [-48,-25,78,103,128]){cube(scene,trackX+15,.55,z,2.1,1.1,1.4,mat(0x625644,.9));addObstacle(trackX+15,z,1.1,.8)}
 }
 buildRailwayAndStation();
+
+// Two broad, swimmable rivers with a solid road bridge crossing the main river.
+const riverWaterMat=new THREE.MeshStandardMaterial({color:0x286c89,roughness:.25,metalness:.12,transparent:true,opacity:.82});
+const riverBedMat=mat(0x4e5c4e,1);
+const riverZ=205,riverHalfWidth=9;
+cube(scene,0,-.22,riverZ,600,.28,riverHalfWidth*2,riverBedMat,false);
+const riverSurface=new THREE.Mesh(new THREE.PlaneGeometry(600,riverHalfWidth*2),riverWaterMat);riverSurface.rotation.x=-Math.PI/2;riverSurface.position.set(0,.035,riverZ);scene.add(riverSurface);
+// Smaller connected branch river.
+cube(scene,-170,-.22,40,riverHalfWidth*2,.28,280,riverBedMat,false);
+const branchWater=new THREE.Mesh(new THREE.PlaneGeometry(riverHalfWidth*2,280),riverWaterMat);branchWater.rotation.x=-Math.PI/2;branchWater.position.set(-170,.04,40);scene.add(branchWater);
+// Bridge deck and rails. It spans the river in the north/south direction and stays walkable.
+const bridgeDeck=mat(0x686d69,.9),bridgeRail=mat(0x454d4a,.85);
+cube(scene,0,.42,riverZ,10,.72,26,bridgeDeck,false);
+for(const side of [-1,1]){cube(scene,side*4.65,1.25,riverZ, .28,1.25,26,bridgeRail,false);for(let z=riverZ-11;z<=riverZ+11;z+=3)cube(scene,side*4.65,1.9,z,.32,.18,.25,bridgeRail,false);}
+addObstacle(0,riverZ,5.1,13.1);
+
 
 // New industrial zone and airport. Hangars have solid side/rear walls and an open front.
 function buildIndustrialAirport(){
@@ -2118,7 +2127,7 @@ function animate(){
     // Persisted or abandoned aircraft always resume falling; apply gravity every frame.
     jetFallVelocity=Math.min(55,Math.max(1.5,jetFallVelocity)+9.8*dt);
     flyableJet.position.y-=jetFallVelocity*dt;
-    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-55);jetAirborne=false;jetRunDistance=0;flyableJet.rotation.x=0;flyableJet.rotation.z=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
+    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-18);jetAirborne=false;jetRunDistance=0;flyableJet.rotation.x=0;flyableJet.rotation.z=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
   }
   if(flashTime>0){flashTime-=dt;if(flashTime<=0){muzzle.visible=false;flashLight.intensity=0}}
   if(shotHeld&&fireCooldown<=0)shoot();
@@ -2153,7 +2162,7 @@ function animate(){
       // Fuel loss in the air causes a real fall; no hover and no infinite flight.
       if(jetFuel<=0){player.vy-=9.8*dt;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
       else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
-      if(player.pos.y<=2.4){player.pos.y=2.4;jetAirborne=false;player.vy=0;jetHealth=Math.max(0,jetHealth-35);jetRunDistance=0;jetFuelTimer=0;message(jetHealth>0?'💥 Harte Landung! Jet beschädigt. Du musst erneut auf der Startbahn beschleunigen.':'💥 Jet zerstört!');if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
+      if(player.pos.y<=2.4){const landingSpeed=Math.abs(vertical);player.pos.y=2.4;jetAirborne=false;player.vy=0;const landingDamage=landingSpeed<=3?0:landingSpeed<=8?1:Math.min(18,Math.round((landingSpeed-7)*1.5));jetHealth=Math.max(0,jetHealth-landingDamage);jetRunDistance=0;jetFuelTimer=0;message(landingDamage===0?'✈️ Saubere Landung! Kein Schaden am Jet.':landingDamage<=5?'✈️ Sanfte Landung! Jet kaum beschädigt.':'💥 Harte Landung! Jet beschädigt.');if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
     }else{player.pos.y=2.4;player.vy=0;}
     // The model's nose points along local -Z, matching camera forward and W movement.
     flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.order='YXZ';flyableJet.rotation.y=player.yaw;flyableJet.rotation.x=player.pitch;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
@@ -2199,6 +2208,21 @@ function animate(){
       if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
     }
     player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
+  }
+  // Water movement: entering a river switches to swimming; hold Ctrl to dive, release to float.
+  if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
+    const inMainRiver=Math.abs(player.pos.z-riverZ)<riverHalfWidth && Math.abs(player.pos.x)<299;
+    const inBranchRiver=Math.abs(player.pos.x+170)<riverHalfWidth && Math.abs(player.pos.z)<180;
+    const onBridge=inMainRiver&&Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2;
+    if((inMainRiver||inBranchRiver)&&!onBridge){
+      player.onGround=false;player.vy=0;
+      const diving=!!(keys.ControlLeft||keys.ControlRight);
+      const swimY=diving?0.45:1.18;
+      player.pos.y+= (swimY-player.pos.y)*Math.min(1,dt*3.5);
+      if(diving&&player.pos.y>0.52)player.pos.y=Math.max(.45,player.pos.y-dt*1.7);
+      if(!diving&&player.pos.y<1.12)player.pos.y=Math.min(1.18,player.pos.y+dt*1.2);
+      if(forward!==0||side!==0){const swimSpeed=diving?player.speed*.55:player.speed*.72;player.pos.x+=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*swimSpeed*dt;player.pos.z+=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*swimSpeed*dt;}
+    }
   }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
   if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
