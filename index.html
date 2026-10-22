@@ -705,7 +705,11 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
 // farmhouse: large two-storey timber-frame house with steep gabled roof
 {
  const g=new THREE.Group();g.position.set(farmCenter.x,0,farmCenter.z+13);scene.add(g);
- farmCube(g,0,2.0,0,15,4,11,farmCream);
+ // Build the shell from separate wall sections instead of one solid box: the front doorway must be a real opening.
+ farmCube(g,-7.38,2,0,.24,4,11,farmCream);farmCube(g,7.38,2,0,.24,4,11,farmCream);
+ farmCube(g,0,2,5.38,14.8,4,.24,farmCream);
+ farmCube(g,-4.25,2,-5.38,6.5,4,.24,farmCream);farmCube(g,4.25,2,-5.38,6.5,4,.24,farmCream);
+ farmCube(g,0,3.35,-5.38,2.1,1.3,.24,farmCream);
  for(const y of [.18,2.05,3.9]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
  for(const x of [-6.9,-4.6,-2.3,0,2.3,4.6,6.9]){farmCube(g,x,2.05,-5.62,.18,3.8,.18,farmWood);farmCube(g,x,2.05,5.62,.18,3.8,.18,farmWood)}
  for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2,z,.18,3.6,.18,farmWood);farmCube(g,7.62,2,z,.18,3.6,.18,farmWood)}
@@ -744,7 +748,12 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
 // barn with wide sliding doors and loft vent
 {
  const x=farmCenter.x-17,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- farmCube(g,0,2.25,0,14,4.5,10,mat(0x8b3028,.96));
+ // Open-front barn shell: split the front facade around the sliding gate so no red wall remains behind it.
+ const barnWall=mat(0x8b3028,.96);
+ farmCube(g,-6.88,2.25,0,.24,4.5,10,barnWall);farmCube(g,6.88,2.25,0,.24,4.5,10,barnWall);
+ farmCube(g,0,2.25,4.88,13.8,4.5,.24,barnWall);
+ farmCube(g,-4.7,2.25,-4.88,4.4,4.5,.24,barnWall);farmCube(g,4.7,2.25,-4.88,4.4,4.5,.24,barnWall);
+ farmCube(g,0,4.05,-4.88,4.9,.9,.24,barnWall);
  for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,2.25,-5.08,.18,4.4,.18,farmWoodLight);
  for(const y of [.22,2.25,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
  farmCube(g,0,1.65,-5.22,4.8,3.2,.18,farmDark);farmCube(g,-1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));farmCube(g,1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));
