@@ -2118,6 +2118,10 @@ function animate(){
    if(roofY!==null&&player.vy<0){player.pos.y=roofY;player.vy=0;player.onGround=true;}
    else if(player.pos.y<=1.7){player.pos.y=1.7;player.vy=0;player.onGround=true;}
   }
+  // Movement input must be initialized before the water/swimming override uses it.
+  let forward=climbingLadder?0:(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
+  let side=climbingLadder?0:(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
+  const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
   // Final water-state override AFTER gravity/terrain: the player must swim, not walk on the river bed.
   if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
     const riverDistance=Math.min(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath),distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath));
@@ -2146,10 +2150,7 @@ function animate(){
   }
   if(flashTime>0){flashTime-=dt;if(flashTime<=0){muzzle.visible=false;flashLight.intensity=0}}
   if(shotHeld&&fireCooldown<=0)shoot();
-  // PC or mobile movement, relative to camera direction
-  let forward=climbingLadder?0:(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
-  let side=climbingLadder?0:(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
-  const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
+  // PC or mobile movement, relative to camera direction; forward/side are set above for swimming too.
   const sprint=(sprinting||keys.ShiftLeft||keys.ShiftRight)&&!sneaking;
   if(activeJet&&flyableJet){
     const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
