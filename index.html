@@ -695,18 +695,18 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
 {
  const g=new THREE.Group();g.position.set(farmCenter.x,0,farmCenter.z+13);scene.add(g);
  // Build the shell from separate wall sections instead of one solid box: the front doorway must be a real opening.
- farmCube(g,-7.38,2.1,0,.24,4.2,11,farmCream);farmCube(g,7.38,2.1,0,.24,4.2,11,farmCream);
- farmCube(g,0,2.1,5.38,14.8,4.2,.24,farmCream);
- farmCube(g,-4.25,2.1,-5.38,6.5,4.2,.24,farmCream);farmCube(g,4.25,2.1,-5.38,6.5,4.2,.24,farmCream);
- farmCube(g,0,3.55,-5.38,2.1,1.4,.24,farmCream);
- for(const y of [.18,4.05]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
- for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,2.1,-5.62,.18,4.0,.18,farmWood);farmCube(g,x,2.1,5.62,.18,4.0,.18,farmWood)}
- for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2.1,z,.18,4.0,.18,farmWood);farmCube(g,7.62,2.1,z,.18,4.0,.18,farmWood)}
+ farmCube(g,-7.38,3.8,0,.24,7.6,11,farmCream);farmCube(g,7.38,3.8,0,.24,7.6,11,farmCream);
+ farmCube(g,0,3.8,5.38,14.8,7.6,.24,farmCream);
+ farmCube(g,-4.25,3.8,-5.38,6.5,7.6,.24,farmCream);farmCube(g,4.25,3.8,-5.38,6.5,7.6,.24,farmCream);
+ farmCube(g,0,4.95,-5.38,2.1,5.3,.24,farmCream);
+ for(const y of [.18,7.45]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
+ for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,3.85,-5.62,.18,7.2,.18,farmWood);farmCube(g,x,3.85,5.62,.18,7.2,.18,farmWood)}
+ for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,3.8,z,.18,7.2,.18,farmWood);farmCube(g,7.62,3.8,z,.18,7.2,.18,farmWood)}
  // upper-storey windows
- for(const x of [-4.5,0,4.5]){farmCube(g,x,3.15,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,3.15,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,3.15,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,3.15,5.82,.09,1.05,.07,farmWood)}
+ for(const x of [-4.5,0,4.5]){farmCube(g,x,5.6,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,5.6,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,5.6,5.82,.09,1.05,.07,farmWood)}
  // triangular gables and steep roof planes
  const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
- const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,7.0);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,4.2, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.y=4.2;back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
+ const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,7.0);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,7.6, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
  for(const z of [-5.8,5.8]){farmCube(g,0,9.65,z,.2,5.3,.2,farmWood);}
  const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,9.15,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.85;roofR.position.y=9.75;roofR.rotation.z=-.66;g.add(roofR);
  // front door and porch
@@ -810,7 +810,7 @@ let farmWindmillRotor=null;
 }
 // Old green farm tractor. It shares the existing vehicle controls, repair, collision and save system.
 {
- const x=farmCenter.x-27,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(1.35);scene.add(g);
+ const x=farmCenter.x-25,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(1.35);scene.add(g);
  const green=mat(0x47733b,.55,.25),greenDark=mat(0x2f512b,.7,.2),tire=mat(0x171a17,1),rim=mat(0x858b76,.5,.4),seat=mat(0x342820,.9);
  farmCube(g,0,.95,-.1,1.75,.95,2.35,green);farmCube(g,0,1.72,-.15,1.15,.78,1.25,greenDark);farmCube(g,0,2.1,-.15,1.0,.09,1.05,green);
  farmCube(g,0,1.35,1.22,1.45,.22,.65,green);farmCube(g,0,1.85,.9,.9,.12,.12,greenDark);farmCube(g,0,1.6,.1,.6,.7,.6,seat);
@@ -818,7 +818,7 @@ let farmWindmillRotor=null;
  farmCube(g,0,1.1,-1.34,1.2,.28,.12,greenDark);farmCube(g,-.55,.72,-1.45,.14,.7,.14,farmMetal);farmCube(g,.55,.72,-1.45,.14,.7,.14,farmMetal);
  // Bright roof beacon and exhaust make the tractor easy to spot from a distance.
  farmCube(g,0,2.22,-.55,.22,.18,.22,mat(0xffc52f,.45));farmCube(g,.52,2.18,-.45,.12,.62,.12,farmMetal);
- const tractor={group:g,x,z,rot:0,hp:140,maxHp:140,fuel:100,maxFuel:100,driveFuelTimer:0,repaired:true,bricks:100+Math.floor(Math.random()*401),metal:300+Math.floor(Math.random()*301),planks:50+Math.floor(Math.random()*51),destroyed:false,isTractor:true};cars.push(tractor);
+ const tractor={group:g,x,z,rot:0,hp:500,maxHp:500,fuel:1+Math.floor(Math.random()*20),maxFuel:100,driveFuelTimer:0,repaired:true,bricks:100+Math.floor(Math.random()*401),metal:300+Math.floor(Math.random()*301),planks:50+Math.floor(Math.random()*51),destroyed:false,isTractor:true};cars.push(tractor);
 }
 // Drei Militärlager mit je einem fahrbaren Panzer, vielen Zombies und Loot.
 const tanks=[]; const militaryCamps=[]; let activeTank=null;
@@ -874,14 +874,14 @@ function updateTankDriving(dt){if(!activeTank)return;const t=activeTank;const th
 }
 function repairCar(car){
  if(inventory.bricks<car.bricks||inventory.metalScrap<car.metal||inventory.planks<car.planks){message('Für die Reparatur brauchst du: '+car.bricks+' Ziegelsteine, '+car.metal+' Metall und '+car.planks+' Holzbretter.',3.5);return false}
- inventory.bricks-=car.bricks;inventory.metalScrap-=car.metal;inventory.planks-=car.planks;car.hp=car.isTractor?140:500;car.destroyed=false;car.repaired=true;car.fuel=car.isTractor?100:1+Math.floor(Math.random()*50);car.emptyFuelNotified=false;car.group.visible=true;
+ inventory.bricks-=car.bricks;inventory.metalScrap-=car.metal;inventory.planks-=car.planks;car.hp=500;car.destroyed=false;car.repaired=true;car.fuel=1+Math.floor(Math.random()*50);car.emptyFuelNotified=false;car.group.visible=true;
  restoreWreckAppearance(car.group);
- message((car.isTractor?'Traktor repariert! 140/140 Leben.':'Auto repariert! 500/500 Leben.')+' Kosten: '+car.bricks+' Ziegel · '+car.metal+' Metall · '+car.planks+' Bretter.',3.2);updateInventory();saveProgress();return true;
+ message('Auto repariert! 500/500 Herzen. Kosten: '+car.bricks+' Ziegel · '+car.metal+' Metall · '+car.planks+' Bretter.',3.2);updateInventory();saveProgress();return true;
 }
 function enterCar(car){
  if(!car.repaired||car.destroyed||car.hp<=0){message('Dieses Auto muss erst repariert werden. Stelle dich daneben und tippe auf AKTION.',2.8);return}
  activeCar=car;player.inCar=true;player.pos.set(car.group.position.x,1.7,car.group.position.z);player.yaw=car.group.rotation.y;player.vy=0;player.onGround=true;carInterior.visible=true;handProp.visible=false;handRig.visible=false;gliderVisual.visible=false;
- message(car.isTractor?'🚜 Traktor: '+Math.ceil(car.hp)+'/140 Leben · 100 Liter Tank · W/S fahren · A/D lenken · E aussteigen.':'Im Auto: '+Math.ceil(car.hp)+'/'+car.maxHp+' Leben · W/S fahren · A/D lenken · E aussteigen. Zombies beschädigen nur das Fahrzeug!',3.2);
+ message('Im Auto: 500/500 Herzen · W/S fahren · A/D lenken · E aussteigen. Zombies beschädigen nur das Auto!',3.2);
 }
 function exitCar(){
  if(!activeCar)return;
@@ -1043,21 +1043,29 @@ function buildRailwayAndStation(){
 }
 buildRailwayAndStation();
 
-// Two broad, swimmable rivers with a solid road bridge crossing the main river.
-const riverWaterMat=new THREE.MeshStandardMaterial({color:0x286c89,roughness:.25,metalness:.12,transparent:true,opacity:.82});
+// Curved rivers: overlapping angled segments follow a winding path instead of straight rectangles.
+const riverWaterMat=new THREE.MeshStandardMaterial({color:0x286c89,roughness:.25,metalness:.12,transparent:true,opacity:.84});
 const riverBedMat=mat(0x4e5c4e,1);
-const riverZ=205,riverHalfWidth=9;
-cube(scene,0,-.22,riverZ,600,.28,riverHalfWidth*2,riverBedMat,false);
-const riverSurface=new THREE.Mesh(new THREE.PlaneGeometry(600,riverHalfWidth*2),riverWaterMat);riverSurface.rotation.x=-Math.PI/2;riverSurface.position.set(0,.035,riverZ);scene.add(riverSurface);
-// Smaller connected branch river.
-cube(scene,-170,-.22,40,riverHalfWidth*2,.28,280,riverBedMat,false);
-const branchWater=new THREE.Mesh(new THREE.PlaneGeometry(riverHalfWidth*2,280),riverWaterMat);branchWater.rotation.x=-Math.PI/2;branchWater.position.set(-170,.04,40);scene.add(branchWater);
-// Bridge deck and rails. It spans the river in the north/south direction and stays walkable.
+const riverHalfWidth=9, riverZ=205;
+const mainRiverPath=[];
+for(let x=-300;x<=300;x+=12) mainRiverPath.push({x,z:205+18*Math.sin(x/68)+5*Math.sin(x/27)});
+const branchRiverPath=[];
+for(let z=-100;z<=180;z+=10) branchRiverPath.push({x:-170+13*Math.sin(z/34)+4*Math.sin(z/13),z});
+function buildCurvedRiver(path,width){
+ for(let i=0;i<path.length-1;i++){
+  const a=path[i],b=path[i+1],dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz),ang=Math.atan2(-dx,dz),mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
+  const bed=cube(scene,mx,-.22,mz,len+2,.28,width*2,riverBedMat,false);bed.rotation.y=ang;
+  const water=new THREE.Mesh(new THREE.PlaneGeometry(len+2,width*2),riverWaterMat);water.rotation.set(-Math.PI/2,0,ang);water.position.set(mx,.035,mz);scene.add(water);
+ }
+}
+buildCurvedRiver(mainRiverPath,riverHalfWidth);
+buildCurvedRiver(branchRiverPath,riverHalfWidth);
+function distanceToRiverPath(x,z,path){let best=Infinity;for(let i=0;i<path.length-1;i++){const a=path[i],b=path[i+1],dx=b.x-a.x,dz=b.z-a.z,l2=dx*dx+dz*dz;const t=Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.z)*dz)/l2));const px=a.x+t*dx,pz=a.z+t*dz;best=Math.min(best,Math.hypot(x-px,z-pz));}return best;}
+// Bridge deck and rails cross the main river at its central crossing.
 const bridgeDeck=mat(0x686d69,.9),bridgeRail=mat(0x454d4a,.85);
 cube(scene,0,.42,riverZ,10,.72,26,bridgeDeck,false);
-for(const side of [-1,1]){cube(scene,side*4.65,1.25,riverZ, .28,1.25,26,bridgeRail,false);for(let z=riverZ-11;z<=riverZ+11;z+=3)cube(scene,side*4.65,1.9,z,.32,.18,.25,bridgeRail,false);}
+for(const side of [-1,1]){cube(scene,side*4.65,1.25,riverZ,.28,1.25,26,bridgeRail,false);for(let z=riverZ-11;z<=riverZ+11;z+=3)cube(scene,side*4.65,1.9,z,.32,.18,.25,bridgeRail,false);}
 addObstacle(0,riverZ,5.1,13.1);
-
 
 // New industrial zone and airport. Hangars have solid side/rear walls and an open front.
 function buildIndustrialAirport(){
@@ -2159,10 +2167,18 @@ function animate(){
     if(jetAirborne){
       jetFuelTimer+=dt;
       while(jetFuelTimer>=5&&jetFuel>0){jetFuel--;jetFuelTimer-=5;}
-      // Fuel loss in the air causes a real fall; no hover and no infinite flight.
-      if(jetFuel<=0){player.vy-=9.8*dt;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
-      else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
-      if(player.pos.y<=2.4){const landingSpeed=Math.abs(vertical);player.pos.y=2.4;jetAirborne=false;player.vy=0;const landingDamage=landingSpeed<=3?0:landingSpeed<=8?1:Math.min(18,Math.round((landingSpeed-7)*1.5));jetHealth=Math.max(0,jetHealth-landingDamage);jetRunDistance=0;jetFuelTimer=0;message(landingDamage===0?'✈️ Saubere Landung! Kein Schaden am Jet.':landingDamage<=5?'✈️ Sanfte Landung! Jet kaum beschädigt.':'💥 Harte Landung! Jet beschädigt.');if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
+      // Keep the vertical speed in this scope so landing checks cannot throw a ReferenceError.
+      let vertical=lift>0?12:lift<0?-8:-2.2;
+      if(jetFuel<=0){player.vy-=9.8*dt;vertical=player.vy;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
+      else {player.vy=vertical;player.pos.y+=vertical*dt;}
+      if(player.pos.y<=2.4){
+        const landingSpeed=Number.isFinite(vertical)?Math.abs(vertical):2.2;
+        player.pos.y=2.4;player.vy=0;jetAirborne=false;jetFalling=false;jetFallVelocity=0;
+        const landingDamage=landingSpeed<=3?0:landingSpeed<=8?1:Math.min(18,Math.round((landingSpeed-7)*1.5));
+        jetHealth=Math.max(0,(Number.isFinite(jetHealth)?jetHealth:500)-landingDamage);jetRunDistance=0;jetFuelTimer=0;
+        message(landingDamage===0?'✈️ Saubere Landung! Kein Schaden am Jet.':landingDamage<=5?'✈️ Sanfte Landung! Jet kaum beschädigt.':'💥 Harte Landung! Jet beschädigt.');
+        if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}
+      }
     }else{player.pos.y=2.4;player.vy=0;}
     // The model's nose points along local -Z, matching camera forward and W movement.
     flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.order='YXZ';flyableJet.rotation.y=player.yaw;flyableJet.rotation.x=player.pitch;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
@@ -2211,18 +2227,22 @@ function animate(){
   }
   // Water movement: entering a river switches to swimming; hold Ctrl to dive, release to float.
   if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
-    const inMainRiver=Math.abs(player.pos.z-riverZ)<riverHalfWidth && Math.abs(player.pos.x)<299;
-    const inBranchRiver=Math.abs(player.pos.x+170)<riverHalfWidth && Math.abs(player.pos.z)<180;
-    const onBridge=inMainRiver&&Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2;
-    if((inMainRiver||inBranchRiver)&&!onBridge){
+    const inMainRiver=distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath)<riverHalfWidth;
+    const inBranchRiver=distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath)<riverHalfWidth;
+    const onBridge=Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2;
+    const playerSwimming=(inMainRiver||inBranchRiver)&&!onBridge;
+    if(playerSwimming){
       player.onGround=false;player.vy=0;
       const diving=!!(keys.ControlLeft||keys.ControlRight);
-      const swimY=diving?0.45:1.18;
-      player.pos.y+= (swimY-player.pos.y)*Math.min(1,dt*3.5);
-      if(diving&&player.pos.y>0.52)player.pos.y=Math.max(.45,player.pos.y-dt*1.7);
-      if(!diving&&player.pos.y<1.12)player.pos.y=Math.min(1.18,player.pos.y+dt*1.2);
-      if(forward!==0||side!==0){const swimSpeed=diving?player.speed*.55:player.speed*.72;player.pos.x+=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*swimSpeed*dt;player.pos.z+=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*swimSpeed*dt;}
+      const swimY=diving?0.35:1.15;
+      player.pos.y+=(swimY-player.pos.y)*Math.min(1,dt*4.5);
+      if(forward!==0||side!==0){const swimSpeed=diving?player.speed*.48:player.speed*.82;const sx=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*swimSpeed*dt;const sz=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*swimSpeed*dt;const nx=player.pos.x+sx,nz=player.pos.z+sz;if(distanceToRiverPath(nx,nz,mainRiverPath)<riverHalfWidth-0.6||distanceToRiverPath(nx,nz,branchRiverPath)<riverHalfWidth-0.6){player.pos.x=nx;player.pos.z=nz;}}
     }
+  }
+  // Water keeps the player buoyant after gravity/terrain processing too.
+  if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
+    const stillInWater=(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath)<riverHalfWidth||distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath)<riverHalfWidth)&&!(Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2);
+    if(stillInWater){const diving=!!(keys.ControlLeft||keys.ControlRight);player.onGround=false;player.vy=0;player.pos.y+=((diving?0.35:1.15)-player.pos.y)*Math.min(1,dt*4.5);}
   }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
   if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
