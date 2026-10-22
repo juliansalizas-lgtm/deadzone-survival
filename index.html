@@ -738,7 +738,8 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
  for(let i=0;i<9;i++)farmCube(g,-5+i*.48,.22+i*.24,1.7,.55,.18,1.15,farmWoodLight);
  // Upstairs floor with an open edge near the stairs.
  farmCube(g,0,3.98,0,14.5,.16,10.5,mat(0x806b50,.98));
- addObstacle(farmCenter.x,farmCenter.z+13,7.9,5.9);
+ // Do not place a solid collision wall across the interior: it blocked the entrance behind the front door.
+ // The exterior wall collisions above already keep the player inside the building.
 }
 // barn with wide sliding doors and loft vent
 {
