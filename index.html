@@ -696,6 +696,87 @@ function spawnCars(){
  for(let i=0;i<9;i++){const spot=spots.splice(Math.floor(Math.random()*spots.length),1)[0];if(spot){const car=buildCar(spot.x,spot.z,spot.rot);cars.push(car)}}
 }
 spawnCars();
+// Bauernhof: Fachwerk-Bauernhaus, Scheune, fahrbarer Traktor, Windmühle, Weizenfeld und Nutzgarten.
+const farmCenter={x:286,z:-286};
+const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
+function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,material,true)}
+// farmhouse: large two-storey timber-frame house with steep gabled roof
+{
+ const g=new THREE.Group();g.position.set(farmCenter.x,0,farmCenter.z+13);scene.add(g);
+ farmCube(g,0,2.0,0,15,4,11,farmCream);
+ for(const y of [.18,2.05,3.9]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
+ for(const x of [-6.9,-4.6,-2.3,0,2.3,4.6,6.9]){farmCube(g,x,2.05,-5.62,.18,3.8,.18,farmWood);farmCube(g,x,2.05,5.62,.18,3.8,.18,farmWood)}
+ for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2,z,.18,3.6,.18,farmWood);farmCube(g,7.62,2,z,.18,3.6,.18,farmWood)}
+ // upper-storey windows
+ for(const x of [-4.5,0,4.5]){farmCube(g,x,2.9,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,2.9,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,2.9,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,2.9,5.82,.09,1.05,.07,farmWood)}
+ // triangular gables and steep roof planes
+ const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
+ const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,4.7);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const front=new THREE.Mesh(geo,farmCream);front.position.set(0,4, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
+ for(const z of [-5.8,5.8]){farmCube(g,0,6.1,z,.2,4.2,.2,farmWood);}
+ const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,6.15,0);roofL.rotation.z=-.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.75;roofR.rotation.z=.56;g.add(roofR);
+ // front door and porch
+ farmCube(g,0,1.25,-5.75,1.35,2.5,.18,farmWood);farmCube(g,0,1.25,-5.88,1.05,2.2,.08,farmWoodLight);farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
+ addObstacle(farmCenter.x,farmCenter.z+13,7.9,5.9);
+}
+// barn with wide sliding doors and loft vent
+{
+ const x=farmCenter.x-17,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ farmCube(g,0,2.25,0,14,4.5,10,mat(0x8b3028,.96));
+ for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,2.25,-5.08,.18,4.4,.18,farmWoodLight);
+ for(const y of [.22,2.25,4.35])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
+ farmCube(g,0,1.65,-5.22,4.8,3.2,.18,farmDark);farmCube(g,-1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));farmCube(g,1.18,1.65,-5.35,2.25,3.0,.16,mat(0x7e3026));
+ const rl=new THREE.Mesh(new THREE.BoxGeometry(8,.3,11),farmRoof);rl.position.set(-3.2,5.25,0);rl.rotation.z=-.48;g.add(rl);const rr=rl.clone();rr.position.x=3.2;rr.rotation.z=.48;g.add(rr);
+ farmCube(g,0,5.2,0,1.5,.5,1.4,farmWoodLight);addObstacle(x,z,7.4,5.4);
+}
+// Windmill tower and a single rotating four-sail rotor
+let farmWindmillRotor=null;
+{
+ const x=farmCenter.x+20,z=farmCenter.z-2,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.35,2.15,10,8),mat(0xd7c9a8,.95));tower.position.y=5;g.add(tower);
+ const cap=new THREE.Mesh(new THREE.ConeGeometry(2.1,2.0,8),farmRoof);cap.position.y=10.6;g.add(cap);
+ farmCube(g,0,1.0,1.72,1.0,1.8,.12,farmDark);
+ farmWindmillRotor=new THREE.Group();farmWindmillRotor.position.set(0,8.7,-1.85);g.add(farmWindmillRotor);
+ const hub=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.55,12),farmWood);hub.rotation.x=Math.PI/2;farmWindmillRotor.add(hub);
+ for(let i=0;i<4;i++){const sail=new THREE.Group();sail.rotation.z=i*Math.PI/2;farmWindmillRotor.add(sail);const beam=farmCube(sail,0,2.15,0,.22,4.35,.18,farmWood);const canvas=farmCube(sail,0,2.15,.12,.92,3.25,.08,mat(0xe9e1cc,.9));canvas.rotation.z=-.12;}
+}
+// Wheat field, with rows of golden stalks and a narrow dirt track
+{
+ const x=farmCenter.x+2,z=farmCenter.z-24;farmCube(scene,x,.035,z,31,.06,17,soilMat);
+ for(let row=0;row<12;row++)for(let col=0;col<27;col++){
+  const xx=x-14.5+col*1.1,zz=z-7.4+row*1.25;
+  const stalk=new THREE.Group();stalk.position.set(xx,0,zz);scene.add(stalk);
+  const stem=farmCube(stalk,0,.48,0,.055,.96,.055,(row+col)%3?wheatMatA:wheatMatB);stem.rotation.z=((col%3)-1)*.07;
+  const head=farmCube(stalk,.02,.95,0,.12,.32,.12,wheatMatB);head.rotation.z=-.18;
+ }
+}
+// Kitchen garden: raised beds, planted rows, compost and a little fruit tree
+{
+ const x=farmCenter.x-18,z=farmCenter.z+19;farmCube(scene,x,.025,z,21,.05,13,mat(0x6e7b45,1));
+ for(let b=0;b<4;b++){
+  const bx=x-7.2+b*4.8,bz=z-2.2;
+  farmCube(scene,bx,.28,bz,3.8,.48,3.0,farmWoodLight);farmCube(scene,bx,.53,bz,3.45,.12,2.65,soilMat);
+  for(let r=0;r<3;r++)for(let c=0;c<5;c++){
+   const plant=new THREE.Group();plant.position.set(bx-1.25+c*.62,.6,bz-.8+r*.78);scene.add(plant);
+   const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.42,5),leafMat);stem.position.y=.2;plant.add(stem);
+   for(let k=0;k<3;k++){const leaf=new THREE.Mesh(new THREE.SphereGeometry(.18,6,5),mat(k%2?0x47723a:0x5c8b45,1));leaf.position.set((k-1)*.14,.34,(k%2)*.12);leaf.scale.set(1,.45,.65);plant.add(leaf)}
+  }
+ }
+ // low garden fence and compost bin
+ for(let i=0;i<14;i++){farmCube(scene,x-10+i*1.5,.42,z+6.5,.09,.84,.1,farmWoodLight)}farmCube(scene,x, .35,z+6.5,21,.12,.12,farmWood);
+ farmCube(scene,x+12,.55,z+2,1.5,1.1,1.5,farmWood);farmCube(scene,x+12,1.12,z+2,1.4,.12,1.4,leafMat);
+ // fruit tree
+ const trunk=farmCube(scene,x+12,1.6,z-5,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(x+12+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,z-5+Math.sin(i*1.25)*.6);scene.add(crown)}
+}
+// Old green farm tractor. It shares the existing vehicle controls, repair, collision and save system.
+{
+ const x=farmCenter.x-17,z=farmCenter.z-8,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
+ const green=mat(0x47733b,.55,.25),greenDark=mat(0x2f512b,.7,.2),tire=mat(0x171a17,1),rim=mat(0x858b76,.5,.4),seat=mat(0x342820,.9);
+ farmCube(g,0,.95,-.1,1.75,.95,2.35,green);farmCube(g,0,1.72,-.15,1.15,.78,1.25,greenDark);farmCube(g,0,2.1,-.15,1.0,.09,1.05,green);
+ farmCube(g,0,1.35,1.22,1.45,.22,.65,green);farmCube(g,0,1.85,.9,.9,.12,.12,greenDark);farmCube(g,0,1.6,.1,.6,.7,.6,seat);
+ for(const side of [-1,1])for(const zz of [-.85,.9]){const rad=zz<0?.58:.38;const wheel=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,.28,14),tire);wheel.rotation.z=Math.PI/2;wheel.position.set(side*(zz<0?1.0:.86),rad,zz);g.add(wheel);const r=new THREE.Mesh(new THREE.CylinderGeometry(rad*.55,rad*.55,.3,10),rim);r.rotation.z=Math.PI/2;r.position.copy(wheel.position);g.add(r);for(let t=0;t<10;t++){const lug=farmCube(g,side*(zz<0?1.15:1.01),rad,zz,.08,.1,rad*.18,greenDark);lug.rotation.y=t*Math.PI/5}}
+ farmCube(g,0,1.1,-1.34,1.2,.28,.12,greenDark);farmCube(g,-.55,.72,-1.45,.14,.7,.14,farmMetal);farmCube(g,.55,.72,-1.45,.14,.7,.14,farmMetal);
+ const tractor={group:g,x,z,rot:0,hp:500,maxHp:500,fuel:1+Math.floor(Math.random()*20),maxFuel:100,driveFuelTimer:0,repaired:true,bricks:100+Math.floor(Math.random()*401),metal:300+Math.floor(Math.random()*301),planks:50+Math.floor(Math.random()*51),destroyed:false,isTractor:true};cars.push(tractor);
+}
 // Drei Militärlager mit je einem fahrbaren Panzer, vielen Zombies und Loot.
 const tanks=[]; const militaryCamps=[]; let activeTank=null;
 function makeTank(x,z,rot=0){
@@ -1884,6 +1965,7 @@ function updateZombieDoorBreaches(dt){
 function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04);
+ if(farmWindmillRotor)farmWindmillRotor.rotation.z+=dt*.62;
  if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);updateBuildPreview();}else if(buildPreview||buildPreviewRing){if(buildPreview)buildPreview.visible=false;if(buildPreviewRing)buildPreviewRing.visible=false;}
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.knifeReturn){v.age=(v.age||0)+dt;const t=Math.min(1,v.age/.8);v.obj.position.lerpVectors(v.start,v.end,t);v.obj.rotation.z+=dt*10;v.obj.rotation.x+=dt*4;}if(v.life<=0){scene.remove(v.obj);if(v.groupShot){v.obj.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}})}else{if(v.geo&&v.geo.dispose)v.geo.dispose();if(v.material&&v.material.dispose)v.material.dispose()}shotVisuals.splice(i,1)}else if(v.groupShot){v.obj.traverse(o=>{if(o.material&&o.material.opacity!==undefined){o.material.transparent=true;o.material.opacity=Math.max(0,v.life*5)}})}else if(v.material&&v.material.opacity!==undefined)v.material.opacity=Math.max(0,v.life*5)}
  for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){if(q.kind==='rocket'&&q.impactStats){detonateExplosive(q.end,q.impactStats,q.impactColor||0xffd36a)}scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
