@@ -111,7 +111,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <button id="mapOpenBtn" type="button" style="position:fixed;right:14px;top:14px;z-index:10000;padding:12px 17px;background:#26372de8;border:3px solid #d2dfc8;box-shadow:0 3px 14px #000b;font-weight:900">🗺️ KARTE</button>
   <div id="mapModal" style="display:none;position:fixed;inset:0;z-index:10030;background:#000c;align-items:center;justify-content:center;padding:14px;pointer-events:auto">
     <div style="width:min(680px,96vw);max-height:90vh;overflow:auto;background:#29352e;border:3px solid #c5d1ba;border-radius:13px;padding:12px;box-shadow:0 12px 40px #000c">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:2px 0 8px">🗺️ Karte</h2><button id="mapCloseBtn" type="button">SCHLIESSEN ✕</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:2px 0 8px">🗺️ Karte</h2><button id="mapCloseBtn" type="button" aria-label="Karte schließen" style="width:48px;height:48px;flex:none;font-size:27px;line-height:1;padding:0;border:2px solid #fff;background:#a72c2c;color:white;border-radius:50%;cursor:pointer;pointer-events:auto;position:relative;z-index:10050">✕</button></div>
       <canvas id="worldMapCanvas" width="640" height="640" style="width:100%;height:auto;display:block;border:2px solid #778879;border-radius:8px;background:#829477"></canvas>
       <p style="font-size:13px;margin:8px 2px">🔵 Du · ✈️ Jet · 🟩 Panzer · 🚗 Fahrzeuge · Karte aktualisiert sich live.</p>
     </div>
@@ -2148,25 +2148,51 @@ function updateZombieDoorBreaches(dt){
  }
 }
 const mapModal=$('mapModal'),worldMapCanvas=$('worldMapCanvas'),worldMapCtx=worldMapCanvas.getContext('2d');
-function closeWorldMap(){mapModal.style.display='none';}
-$('mapOpenBtn').addEventListener('click',()=>{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();mapModal.style.display='flex';drawWorldMap();});
+function closeWorldMap(){mapModal.style.display='none';mapModal.setAttribute('aria-hidden','true');document.body.style.touchAction='';}
+mapModal.setAttribute('aria-hidden','true');
+$('mapOpenBtn').addEventListener('click',()=>{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();mapModal.style.display='flex';mapModal.setAttribute('aria-hidden','false');document.body.style.touchAction='none';drawWorldMap();});
 $('mapCloseBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeWorldMap();});
 mapModal.addEventListener('click',e=>{if(e.target===mapModal)closeWorldMap();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mapModal.style.display==='flex'){e.preventDefault();closeWorldMap();}});
 function drawWorldMap(){
- if(!worldMapCtx)return;const c=worldMapCtx,w=c.canvas.width,h=c.canvas.height,scale=w/800;
- c.clearRect(0,0,w,h);c.fillStyle='#8a9b78';c.fillRect(0,0,w,h);
- for(const [x,z,rx,rz] of [[-300,-110,75,95],[305,95,60,80],[-275,285,65,55],[250,-320,70,55],[-90,-300,65,55],[-275,-230,60,60],[270,-250,60,60]]){c.fillStyle='#36583a';c.fillRect((x-rx+400)*scale,(z-rz+400)*scale,2*rx*scale,2*rz*scale)}
- c.strokeStyle='#525953';c.lineWidth=10;c.beginPath();c.moveTo(400*scale,0);c.lineTo(400*scale,800);c.moveTo(448*scale,0);c.lineTo(448*scale,800);c.moveTo(0,438*scale);c.lineTo(800,438*scale);c.stroke();
- c.strokeStyle='#477caa';c.lineWidth=7;c.beginPath();for(let x=-400;x<=400;x+=4){const z=205+18*Math.sin(x/68)+5*Math.sin(x/27);if(x===-400)c.moveTo((x+400)*scale,(z+400)*scale);else c.lineTo((x+400)*scale,(z+400)*scale)}c.stroke();
- c.strokeStyle='#353a3d';c.lineWidth=5;c.beginPath();c.moveTo(355*scale,140*scale);c.lineTo(355*scale,660*scale);c.moveTo(363*scale,140*scale);c.lineTo(363*scale,660*scale);c.stroke();
- c.fillStyle='#b9bfc0';c.fillRect(295*scale,35*scale,20*scale,140*scale);c.fillStyle='#f2e6a0';c.fillRect(304*scale,48*scale,2*scale,124*scale);
- c.fillStyle='#d5b05d';c.fillRect(357*scale,480*scale,86*scale,72*scale);
- const dot=(x,z,color,r)=>{c.beginPath();c.fillStyle=color;c.arc((x+400)*scale,(z+400)*scale,r,0,Math.PI*2);c.fill();c.strokeStyle='#101510';c.lineWidth=2;c.stroke()};
- for(const car of cars)if(car.group)dot(car.group.position.x,car.group.position.z,'#e7d6a0',4);
- for(const t of tanks)if(t.group)dot(t.group.position.x,t.group.position.z,'#54e36b',6);
- if(flyableJet){const jp=new THREE.Vector3();flyableJet.getWorldPosition(jp);dot(jp.x,jp.z,'#ffb13b',7);c.fillStyle='#ffdf9a';c.font='bold 16px sans-serif';c.fillText('JET',(jp.x+400)*scale+8,(jp.z+400)*scale-7)}
- if(player&&player.pos){const px=(player.pos.x+400)*scale,pz=(player.pos.z+400)*scale; c.beginPath();c.arc(px,pz,12,0,Math.PI*2);c.fillStyle='#eafaff';c.fill();c.strokeStyle='#168bd2';c.lineWidth=4;c.stroke();c.beginPath();c.arc(px,pz,6,0,Math.PI*2);c.fillStyle='#00aaff';c.fill();c.strokeStyle='#071d2b';c.lineWidth=1.5;c.stroke();c.fillStyle='#ffffff';c.font='bold 17px sans-serif';c.lineWidth=3;c.strokeStyle='#102018';c.strokeText('DU',px+14,pz-9);c.fillText('DU',px+14,pz-9);}
+ if(!worldMapCtx)return;
+ const c=worldMapCtx,w=c.canvas.width,h=c.canvas.height,scale=w/800;
+ const sx=x=>(x+400)*scale, sz=z=>(z+400)*scale;
+ c.clearRect(0,0,w,h);
+ // Schematic terrain map with natural-looking woodland, fields, river, roads, rail and airport.
+ c.fillStyle='#a7b28a';c.fillRect(0,0,w,h);
+ // Fields and meadows
+ for(const [x,z,rx,rz,col] of [[-315,-310,72,48,'#b8b987'],[-180,275,85,65,'#b6bc8b'],[245,210,90,65,'#b9b78a'],[-210,30,65,55,'#9eae7c'],[125,-205,75,48,'#b8bd91']]){c.fillStyle=col;c.beginPath();c.ellipse(sx(x),sz(z),rx*scale,rz*scale,0,0,Math.PI*2);c.fill();}
+ // Woods: irregular clusters rather than square blocks
+ let seed=9421;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ for(const [cx,cz,rx,rz] of [[-305,-115,88,120],[300,80,78,105],[-280,285,86,62],[210,-300,92,65],[-95,-310,85,55],[285,-230,72,65],[-365,90,42,100],[45,310,90,50]]){
+   for(let i=0;i<125;i++){const x=cx+(rand()*2-1)*rx,z=cz+(rand()*2-1)*rz;if((x-cx)**2/rx**2+(z-cz)**2/rz**2>1)continue;c.fillStyle=['#36563a','#416642','#4b7046','#2e4d35'][Math.floor(rand()*4)];c.beginPath();c.arc(sx(x),sz(z),(1.8+rand()*3.2)*scale,0,Math.PI*2);c.fill();}
+ }
+ // River with banks and winding course
+ c.strokeStyle='#71835c';c.lineWidth=19*scale;c.lineCap='round';c.beginPath();for(let x=-410;x<=410;x+=3){const z=205+18*Math.sin(x/68)+5*Math.sin(x/27);if(x===-410)c.moveTo(sx(x),sz(z));else c.lineTo(sx(x),sz(z));}c.stroke();
+ c.strokeStyle='#5596b8';c.lineWidth=13*scale;c.beginPath();for(let x=-410;x<=410;x+=3){const z=205+18*Math.sin(x/68)+5*Math.sin(x/27);if(x===-410)c.moveTo(sx(x),sz(z));else c.lineTo(sx(x),sz(z));}c.stroke();
+ // Road network, with casing and asphalt
+ const road=(pts,width=8)=>{c.lineCap='round';c.lineJoin='round';c.strokeStyle='#d3cfb7';c.lineWidth=(width+3)*scale;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(sx(p[0]),sz(p[1])):c.moveTo(sx(p[0]),sz(p[1])));c.stroke();c.strokeStyle='#656a65';c.lineWidth=width*scale;c.stroke();};
+ road([[-390,20],[-250,15],[-120,35],[10,5],[150,18],[280,5],[390,25]],9);
+ road([[-240,-390],[-230,-260],[-190,-150],[-150,-40],[-120,80],[-110,220],[-80,390]],7);
+ road([[60,-390],[65,-270],[80,-150],[95,-35],[140,70],[190,190],[230,390]],7);
+ road([[210,-60],[275,-45],[330,-5],[390,35]],6);
+ // Railway tracks and sleepers
+ c.strokeStyle='#514f49';c.lineWidth=5*scale;c.beginPath();c.moveTo(sx(355),sz(-260));c.lineTo(sx(355),sz(330));c.moveTo(sx(365),sz(-260));c.lineTo(sx(365),sz(330));c.stroke();
+ c.strokeStyle='#b2a99a';c.lineWidth=1.5*scale;c.beginPath();for(let z=-260;z<=330;z+=9){c.moveTo(sx(351),sz(z));c.lineTo(sx(369),sz(z));}c.stroke();
+ // Airport apron/runway
+ c.fillStyle='#777d7b';c.beginPath();c.roundRect(sx(255),sz(-385),42*scale,205*scale,3*scale);c.fill();
+ c.fillStyle='#e9e6d2';c.fillRect(sx(275),sz(-375),2*scale,185*scale);for(let z=-355;z<-200;z+=22)c.fillRect(sx(273),sz(z),6*scale,9*scale);
+ c.fillStyle='#c2b99d';c.fillRect(sx(220),sz(-210),110*scale,28*scale);
+ // Houses and station icons
+ for(const [x,z] of [[-175,5],[-160,20],[-145,34],[-130,45],[-115,60],[-100,75],[-85,90],[-70,105]]){c.fillStyle='#d7d1bd';c.fillRect(sx(x)-3*scale,sz(z)-3*scale,7*scale,7*scale);c.fillStyle='#a35d4d';c.fillRect(sx(x)-3*scale,sz(z)-4.5*scale,7*scale,2*scale);}
+ c.fillStyle='#d4d6d0';c.fillRect(sx(355)-8*scale,sz(75)-10*scale,17*scale,18*scale);c.fillStyle='#a4b4c0';c.fillRect(sx(355)-5*scale,sz(75)-7*scale,11*scale,12*scale);
+ // Dynamic vehicle markers use actual 3D world positions, not guessed map coordinates.
+ const dot=(x,z,color,r)=>{c.beginPath();c.fillStyle=color;c.arc(sx(x),sz(z),r,0,Math.PI*2);c.fill();c.strokeStyle='#172019';c.lineWidth=2;c.stroke();};
+ for(const car of cars)if(car.group&&car.group.visible)dot(car.group.position.x,car.group.position.z,'#f1dfaa',4.5);
+ for(const t of tanks)if(t.group&&t.group.visible)dot(t.group.position.x,t.group.position.z,'#54e36b',6);
+ if(flyableJet){const jp=new THREE.Vector3();flyableJet.getWorldPosition(jp);dot(jp.x,jp.z,'#ffb13b',7);c.fillStyle='#ffdf9a';c.font='bold 16px sans-serif';c.lineWidth=3;c.strokeStyle='#20251f';c.strokeText('JET',sx(jp.x)+9,sz(jp.z)-7);c.fillText('JET',sx(jp.x)+9,sz(jp.z)-7);}
+ if(player&&player.pos){const px=sx(player.pos.x),pz=sz(player.pos.z);c.beginPath();c.arc(px,pz,10,0,Math.PI*2);c.fillStyle='#eafaff';c.fill();c.strokeStyle='#168bd2';c.lineWidth=4;c.stroke();c.beginPath();c.arc(px,pz,4,0,Math.PI*2);c.fillStyle='#00aaff';c.fill();c.fillStyle='#fff';c.font='bold 16px sans-serif';c.lineWidth=3;c.strokeStyle='#102018';c.strokeText('DU',px+13,pz-9);c.fillText('DU',px+13,pz-9);}
  c.fillStyle='#17231a';c.font='bold 14px sans-serif';c.fillText('N',w-24,20);c.fillStyle='#dce5d4';c.beginPath();c.moveTo(w-20,26);c.lineTo(w-27,42);c.lineTo(w-13,42);c.closePath();c.fill();
 }
 function animate(){
