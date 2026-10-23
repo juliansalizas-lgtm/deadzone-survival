@@ -1846,6 +1846,12 @@ function detonateThrownGrenade(pos){const stats={damage:85,kind:'grenade'};deton
 function detonateExplosive(pos,wstats,color){
  const radius=wstats.kind==='rocket'?17:10;
  for(const z of zombies){if(z.dead)continue;const dist=distanceXZ(z.group.position,pos);if(dist<radius){z.hp-=Math.max(0,Math.round(wstats.damage*(1-dist/radius)));if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group)}}}
+ // Explosionen verletzen jetzt auch den Spieler, abhängig von der Entfernung zum Explosionszentrum.
+ // Granaten verursachen bis zu 85 Schaden direkt am Zentrum und weniger Schaden am Rand.
+ if(wstats.kind==='grenade'){
+  const playerDist=Math.hypot(player.pos.x-pos.x,player.pos.z-pos.z);
+  if(playerDist<radius){const damage=Math.max(0,Math.round(85*(1-playerDist/radius)));if(damage>0){damagePlayer(damage);message('💥 Granate trifft dich! -'+damage+' Leben',2.0);}}
+ }
  spawnBlast(pos,color,wstats.kind);if(wstats.kind==='rocket')createFireZone(pos);message(wstats.kind==='rocket'?'Rakete explodiert!':'Granate explodiert!',1.1);
 }
 function shoot(){
