@@ -648,6 +648,7 @@ for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-31
 for(const center of [[-310,-110],[305,95],[-275,285],[250,-320],[-90,-300]]){
  for(let i=0;i<42;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,1.25+Math.random()*1.75);}
 }
+const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
 // Abbaubare Fels- und Metalladern für die Spitzhacke.
 const mineNodes=[];
 for(const [x,z,kind] of [[170,60,'stone'],[205,82,'stone'],[235,38,'metal'],[255,70,'stone'],[-235,175,'metal'],[-260,205,'stone'],[300,245,'metal'],[-310,-170,'stone'],[120,-260,'metal'],[85,275,'stone']]){
@@ -726,7 +727,6 @@ function spawnCars(){
 spawnCars();
 // Bauernhof: Fachwerk-Bauernhaus, Scheune, fahrbarer Traktor, Windmühle, Weizenfeld und Nutzgarten.
 const farmCenter={x:0,z:115};
-const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
 function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,material,true)}
 // farmhouse: large two-storey timber-frame house with steep gabled roof
 {
