@@ -218,17 +218,17 @@ groundPatch(-4, 0, 25, 22, concrete,-.01);
 // Leichte Umwelt-Details: InstancedMesh hält die zusätzlichen Details iPad-freundlich.
 const detailRng=(n)=>{const v=Math.sin(n*127.1+311.7)*43758.5453;return v-Math.floor(v)};
 // Variationen im Boden: kleine Grasbüschel und flache Steine, ohne hunderte Draw Calls.
-const grassBladeGeo=new THREE.ConeGeometry(.055,.42,3);
+const grassBladeGeo=new THREE.ConeGeometry(.035,.52,4);
 grassBladeGeo.translate(0,.21,0);
-const grassBladeMat=new THREE.MeshStandardMaterial({color:0x627653,roughness:1});
-const grassInstances=new THREE.InstancedMesh(grassBladeGeo,grassBladeMat,520);grassInstances.castShadow=false;grassInstances.receiveShadow=true;
+const grassBladeMat=new THREE.MeshStandardMaterial({color:0x627653,roughness:1,side:THREE.DoubleSide});
+const grassInstances=new THREE.InstancedMesh(grassBladeGeo,grassBladeMat,6200);grassInstances.castShadow=false;grassInstances.receiveShadow=true;
 const grassDummy=new THREE.Object3D();let grassCount=0;
-for(let i=0;i<520;i++){
- const x=(detailRng(i+4)-.5)*210,z=(detailRng(i+700)-.5)*210;
+for(let i=0;i<6200;i++){
+ const x=(detailRng(i+4)-.5)*760,z=(detailRng(i+700)-.5)*760;
  // Keep the road and main building entrances clear.
  if(Math.abs(x)<8&&z>-50&&z<50)continue;
  if(Math.abs(x+4)<15&&Math.abs(z)<14)continue;
- grassDummy.position.set(x,.02,z);grassDummy.rotation.set((detailRng(i+1300)-.5)*.16,detailRng(i+1800)*Math.PI,0);const scale=.45+detailRng(i+2200)*1.05;grassDummy.scale.set(scale,scale,scale);grassDummy.updateMatrix();grassInstances.setMatrixAt(grassCount++,grassDummy.matrix);
+ grassDummy.position.set(x,.02,z);grassDummy.rotation.set((detailRng(i+1300)-.5)*.16,detailRng(i+1800)*Math.PI,0);const scale=.45+detailRng(i+2200)*1.35;grassDummy.scale.set(scale*(.7+detailRng(i+3300)*.6),scale,scale*(.7+detailRng(i+4400)*.6));grassDummy.updateMatrix();grassInstances.setMatrixAt(grassCount++,grassDummy.matrix);
 }
 grassInstances.count=grassCount;scene.add(grassInstances);
 const pebbleGeo=new THREE.DodecahedronGeometry(.34,0);
@@ -622,13 +622,17 @@ function onRoad(x,z){
 }
 const harvestableTrees=[];
 function tree(x,z,s=1){
- const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
- addObstacle(x,z,.48*s,.48*s);
- const tall=5.0+Math.random()*4.0;cube(g,0,tall*.30,0,.48,.6*tall,.48,bark,false);
- const c1=cube(g,0,tall*.64,0,2.8+Math.random()*1.2,2.6+Math.random()*1.3,2.8+Math.random()*1.2,leaf,false);
- const c2=cube(g,.1,tall*.82,.05,2.0+Math.random(),2.0+Math.random(),2.0+Math.random(),leaf2,false);
- const c3=cube(g,-.05,tall*.96,0,1.25,1.5,1.25,leaf,false);
- c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;harvestableTrees.push({x,z,group:g,harvested:false});
+ const g=new THREE.Group();g.position.set(x,0,z);g.scale.set(s*(.86+Math.random()*.3),s,s*(.86+Math.random()*.3));g.rotation.y=Math.random()*Math.PI;scene.add(g);
+ addObstacle(x,z,.52*s,.52*s);
+ const tall=7.5+Math.random()*8.5;
+ const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.42,tall*.62,8),bark);trunk.position.y=tall*.31;trunk.castShadow=true;trunk.receiveShadow=true;g.add(trunk);
+ const shades=[0x263f30,0x304b36,0x3c573b,0x435d40];
+ for(let tier=0;tier<5;tier++){
+  const f=tier/5, h=tall*(.36+Math.random()*.08), radius=(tall*.20)*(1-f*.72)*(0.82+Math.random()*.25);
+  const crown=new THREE.Mesh(new THREE.ConeGeometry(radius,h,7,2),mat(shades[(tier+Math.floor(Math.random()*2))%shades.length],1));
+  crown.position.set((Math.random()-.5)*.18,tall*(.35+f*.125), (Math.random()-.5)*.18);crown.rotation.y=Math.random()*Math.PI;crown.castShadow=true;crown.receiveShadow=true;g.add(crown);
+ }
+ harvestableTrees.push({x,z,group:g,harvested:false});
 }
 // Alte, über die gesamte Karte verteilte Vegetation entfernt; die neuen Biome besitzen eigene Vegetation.
 // rubble / boxes
@@ -642,11 +646,22 @@ for(let i=0;i<22;i++){
 // v3.0: Straßenlaternen entfernt, um die Renderlast zu senken.
 // Forest clusters at the expanded edges, leaving corridors between them.
 for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-310]]){
- for(let i=0;i<62;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.95+Math.random()*1.9)}
+ for(let i=0;i<105;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.95+Math.random()*1.9)}
 }
 // Dichtere Waldgebiete mit großen, unterschiedlich hohen Nadelbäumen.
 for(const center of [[-310,-110],[305,95],[-275,285],[250,-320],[-90,-300]]){
- for(let i=0;i<42;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,1.25+Math.random()*1.75);}
+ for(let i=0;i<78;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,1.25+Math.random()*1.75);}
+}
+
+// Additional large, dense conifer forests across the map, with clear gaps around roads and buildings.
+for(const center of [[-350,20],[345,-90],[-175,-350],[175,340],[-360,300],[350,300],[15,-350]]){
+ for(let i=0;i<95;i++){
+  const a=Math.random()*Math.PI*2,r=8+Math.random()*68;
+  const x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;
+  const river=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)))<13||Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)))<13;
+  const nearHome=suburbPositions.some(h=>Math.abs(x-h.x)<16&&Math.abs(z-h.z)<19);
+  if(Math.abs(x)<390&&Math.abs(z)<390&&!onRoad(x,z)&&!river&&!nearHome)tree(x,z,1.1+Math.random()*1.8);
+ }
 }
 const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
 // Abbaubare Fels- und Metalladern für die Spitzhacke.
