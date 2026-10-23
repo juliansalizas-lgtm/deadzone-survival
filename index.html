@@ -752,7 +752,7 @@ function spawnCars(){
  const spots=[];
  for(let z=-230;z<=230;z+=38)if(Math.abs(z-12)>35)spots.push({x:(Math.random()<.5?-48:48)+(Math.random()-.5)*1.5,z,rot:0});
  for(let x=-220;x<=220;x+=42)if(Math.abs(x)>28)spots.push({x,z:Math.random()<.5?38:-52,rot:Math.PI/2});
- for(let i=0;i<9;i++){const spot=spots.splice(Math.floor(Math.random()*spots.length),1)[0];if(spot){const car=buildCar(spot.x,spot.z,spot.rot);cars.push(car)}}
+ for(let i=0;i<4;i++){const spot=spots.splice(Math.floor(Math.random()*spots.length),1)[0];if(spot){const car=buildCar(spot.x,spot.z,spot.rot);cars.push(car)}}
 }
 spawnCars();
 // Bauernhof: Fachwerk-Bauernhaus, Scheune, fahrbarer Traktor, Windmühle, Weizenfeld und Nutzgarten.
@@ -905,7 +905,7 @@ function makeCamp(cx,cz,index){
  for(const [tx,tz] of [[-12,-12],[12,-12],[-12,12],[12,12]]){const tent=cube(group,tx,1.2,tz,6,2.4,5,mat(0x4b5846,.98));cube(group,tx,2.45,tz,6.3,.25,5.3,mat(0x343f32,.95));}
  for(let i=0;i<7;i++){const bx=(i%4)*4-6,bz=(Math.floor(i/4))*4-2;const crate=cube(group,bx,.55,bz,1.5,1.1,1.4,mat(i%2?0x66513a:0x81704b,.9));crate.userData.militaryLoot=true;addObstacle(cx+bx,cz+bz,.9,.85);}
  // Panzer außerhalb der Umzäunung auf freier Fläche spawnen, nicht zwischen Kisten/Zelten.
- const tank=makeTank(cx+29,cz+3,index*.65);tank.campIndex=index;
+ const tank=index===0?makeTank(cx+29,cz+3,index*.65):null;if(tank)tank.campIndex=index;
  militaryCamps.push({group,x:cx,z:cz,tank,index});
  // A very dense horde guarding each camp.
  for(let i=0;i<18;i++){const a=Math.random()*Math.PI*2,r=10+Math.random()*25;makeZombie(cx+Math.cos(a)*r,cz+Math.sin(a)*r,Math.random()<.18)}
@@ -1047,7 +1047,7 @@ for(let i=0;i<28;i++){
 // Keine Boss-Zombies werden erzeugt.
 // Einige Häuser sind nicht sicher: Zombies im Inneren und verlassene Leichen.
 for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
-makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
+makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2); // Nur das erste Militärlager erhält einen fahrbaren Panzer.
 
 // Erweiterter Kartenrand: Bahnhof, zweigleisige Strecke und ein nicht fahrbarer Zug.
 const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;let jetFuel=100,jetHealth=500,jetFuelTimer=0,jetRunDistance=0,jetAirborne=false,jetWasMoving=false,jetFalling=false,jetFallVelocity=0;
@@ -1223,7 +1223,7 @@ function makeHouseCorpse(x,z,rot){
 for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]])makeHouseCorpse(x-2.0,z+(z===-164?1.4:-1.4),rot);
 
 // Lootkisten und Versorgungspakete
-const inventory = { axe:1, pickaxe:1, cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, armorPieces:[], weapons:{Blaster:1} };
+const inventory = { axe:1, pickaxe:1, treeSaplings:0, cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, armorPieces:[], weapons:{Blaster:1} };
 let gliderEquipped=false, gliderVisual=null;
 let gliderBoostTime=0,gliderBoostCooldown=0;
 const armorSets=[{name:'Ranger',rarity:'common',color:'#66785d',reduce:.04},{name:'Waldläufer',rarity:'uncommon',color:'#3f9b62',reduce:.08},{name:'Taktisch',rarity:'rare',color:'#428ad6',reduce:.13},{name:'Schatten',rarity:'epic',color:'#9b57d6',reduce:.18},{name:'Titan',rarity:'legendary',color:'#d6a43d',reduce:.24},{name:'Aegis',rarity:'mythic',color:'#e85fce',reduce:.30},{name:'Kosmischer Wächter',rarity:'ultra',color:'#49f2f0',reduce:.36}];
@@ -1437,7 +1437,8 @@ function lootToast(text){
 function updateInventory(){
  const items=[
   ['axe','🪓','Axt (Holz abbauen)',inventory.axe],
-  ['pickaxe','⛏️','Spitzhacke (Stein & Metall)',inventory.pickaxe],
+  ['pickaxe','⛏️','Spitzhacke (Stein, Metall, Eisentore & Steinmauern)',inventory.pickaxe],
+  ['treeSaplings','🌱','Baumsetzlinge (zum Pflanzen)',inventory.treeSaplings],
   ['medicine','💊','Medizin',inventory.medicine],
   ['glider','🪂','Taktischer Gleiter',inventory.glider],
   ['food','🍎','Essen',inventory.food],
@@ -1659,9 +1660,14 @@ function mineNearbyResource(){
  if(!isAxe&&!isPick)return false;
  let bestTree=null,bd=3.6;for(const t of harvestableTrees){if(t.harvested)continue;const d=distanceXZ(player.pos,t);if(d<bd){bd=d;bestTree=t;}}
  let bestNode=null,nd=3.8;for(const n of mineNodes){if(n.remaining<=0)continue;const d=distanceXZ(player.pos,n);if(d<nd){nd=d;bestNode=n;}}
- if(isAxe&&bestTree){bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);message('🪓 Baum gefällt: Bretter gesammelt!');updateInventory();saveProgress();return true;}
+ if(isAxe&&bestTree){bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);inventory.treeSaplings+=1+Math.floor(Math.random()*2);message('🪓 Baum gefällt: Bretter und Setzlinge gesammelt! Pflanze einen Setzling mit der Aktionstaste.');updateInventory();saveProgress();return true;}
+ // Axt baut Holzzäune und Gartentore ab; Spitzhacke baut Eisentore und Steinmauern ab.
+ const targetKinds=isAxe?['fence','gardenGate']:['ironGate','wall'];
+ const structure=placedStructures.filter(o=>targetKinds.includes(o.kind)&&distanceXZ(player.pos,o.group.position)<4.0).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];
+ if(structure){scene.remove(structure.group);const oi=solidObstacles.indexOf(structure.obstacle);if(oi>=0)solidObstacles.splice(oi,1);const si=placedStructures.indexOf(structure);if(si>=0)placedStructures.splice(si,1);if(structure.kind==='fence'||structure.kind==='gardenGate'){inventory.planks+=2;}else{inventory.bricks+=3+Math.floor(Math.random()*3);if(structure.kind==='ironGate')inventory.metalScrap+=2;}message((isAxe?'🪓 Holzstruktur':'⛏️ Stein/Eisen-Struktur')+' abgebaut!');updateInventory();saveProgress();return true;}
+ if(isAxe&&inventory.treeSaplings>0){const x=player.pos.x-Math.sin(player.yaw)*2.2,z=player.pos.z-Math.cos(player.yaw)*2.2;if(!blockedAt(x,z,.65)&&!onRoad(x,z)){inventory.treeSaplings--;tree(x,z,.8+Math.random()*.35);message('🌱 Setzling gepflanzt! Der Baum wächst mit der Zeit.');updateInventory();saveProgress();return true;}}
  if(isPick&&bestNode){if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
- if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?'Keine Bäume in Reichweite.':'Kein Stein oder Metall in Reichweite.');return true;}
+ if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?(inventory.treeSaplings>0?'Kein Baum in Reichweite. Tippe auf AKTION, um einen Setzling zu pflanzen.':'Keine Bäume oder abbaubaren Holzzäune in Reichweite.'):'Kein Stein, Metall, Eisentor oder Steinmauer in Reichweite.');return true;}
  return false;
 }
 function interact(){
@@ -2478,7 +2484,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?'🪓 HOLZ ABBAUEN':(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL ABBAUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
+  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?(inventory.treeSaplings>0?'🪓 HOLZ / ZAUN ABB AUEN · 🌱 SETZLING PFLANZEN':'🪓 HOLZ / ZAUN / GARTENTOR ABBAUEN'):(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL / EISENTOR / MAUER ABB AUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
