@@ -121,7 +121,7 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
-  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="dismantleBtn" type="button" style="background:#68452f;border-color:#d4a27c">🛠️ ABBAUEN</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
+  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
 <script>
 // iPad/Safari: Startwunsch puffern, falls das 3D-Modul noch initialisiert.
@@ -620,14 +620,15 @@ for(let i=0;i<240;i++){
 function onRoad(x,z){
  return Math.abs(x)<5.2 || Math.abs(x+48)<4.2 || Math.abs(x-48)<4.2 || Math.abs(z-38)<5.2 || Math.abs(z+52)<4.8;
 }
+const harvestableTrees=[];
 function tree(x,z,s=1){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
- addObstacle(x,z,.42*s,.42*s);
- cube(g,0,1.4,0,.48,2.8,.48,bark,false);
- const c1=cube(g,0,3.0,0,2.6,2.2,2.6,leaf,false);
- const c2=cube(g,.1,4.1,.05,1.9,1.8,1.9,leaf2,false);
- const c3=cube(g,-.05,4.9,0,1.15,1.35,1.15,leaf,false);
- c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;
+ addObstacle(x,z,.48*s,.48*s);
+ const tall=5.0+Math.random()*4.0;cube(g,0,tall*.30,0,.48,.6*tall,.48,bark,false);
+ const c1=cube(g,0,tall*.64,0,2.8+Math.random()*1.2,2.6+Math.random()*1.3,2.8+Math.random()*1.2,leaf,false);
+ const c2=cube(g,.1,tall*.82,.05,2.0+Math.random(),2.0+Math.random(),2.0+Math.random(),leaf2,false);
+ const c3=cube(g,-.05,tall*.96,0,1.25,1.5,1.25,leaf,false);
+ c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;harvestableTrees.push({x,z,group:g,harvested:false});
 }
 // Alte, über die gesamte Karte verteilte Vegetation entfernt; die neuen Biome besitzen eigene Vegetation.
 // rubble / boxes
@@ -641,8 +642,40 @@ for(let i=0;i<22;i++){
 // v3.0: Straßenlaternen entfernt, um die Renderlast zu senken.
 // Forest clusters at the expanded edges, leaving corridors between them.
 for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-310]]){
- for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.8+Math.random()*1.25)}
+ for(let i=0;i<62;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.95+Math.random()*1.9)}
 }
+// Dichtere Waldgebiete mit großen, unterschiedlich hohen Nadelbäumen.
+for(const center of [[-310,-110],[305,95],[-275,285],[250,-320],[-90,-300]]){
+ for(let i=0;i<42;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,1.25+Math.random()*1.75);}
+}
+// Abbaubare Fels- und Metalladern für die Spitzhacke.
+const mineNodes=[];
+for(const [x,z,kind] of [[170,60,'stone'],[205,82,'stone'],[235,38,'metal'],[255,70,'stone'],[-235,175,'metal'],[-260,205,'stone'],[300,245,'metal'],[-310,-170,'stone'],[120,-260,'metal'],[85,275,'stone']]){
+ const y=Math.max(0,hillSurfaceY(x,z));const g=new THREE.Group();g.position.set(x,y,z);scene.add(g);
+ if(kind==='stone'){for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.55+Math.random()*.35,0),mat(0x777b78,.95));m.position.set((Math.random()-.5)*1.1,.35+Math.random()*.25,(Math.random()-.5)*.9);m.scale.y=.8;g.add(m);}}
+ else {for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.45+Math.random()*.3,0),mat(0x626f6d,.8,.55));m.position.set((Math.random()-.5)*1.1,.3+Math.random()*.3,(Math.random()-.5)*.9);g.add(m);const ore=new THREE.Mesh(new THREE.BoxGeometry(.18,.12,.12),mat(0x9b7651,.65,.4));ore.position.copy(m.position).add(new THREE.Vector3(.12,.12,.12));g.add(ore);}}
+ mineNodes.push({x,z,kind,group:g,remaining:kind==='stone'?4:3});
+}
+// Unterirdischer Schutzbunker mit betonierter Zugangsrutsche, schwerer Tür und sichtbarem Innenraum.
+{
+ const bx=-245,bz=35;const concrete=mat(0x555d5c,.98),dark=mat(0x252c2b,.95),steel=mat(0x394342,.75,.45),lamp=mat(0xc8dca2,.4);
+ // recessed-looking concrete bunker shell and raised earth berm
+ const berm=new THREE.Mesh(new THREE.CylinderGeometry(13,15,1.7,12),mat(0x4b6140,1));berm.position.set(bx,.35,bz);berm.scale.z=.78;scene.add(berm);
+ const shell=new THREE.Group();shell.position.set(bx,0,bz);scene.add(shell);
+ farmCube(shell,0,1.25,0,10,2.5,8,concrete);farmCube(shell,0,2.55,0,10.4,.35,8.4,dark);
+ farmCube(shell,0,.12,0,9.5,.24,7.5,mat(0x343b39,.98));
+ // access stairwell and sloped steel hatch at ground level
+ const entry=new THREE.Group();entry.position.set(bx,0,bz-5.2);scene.add(entry);
+ farmCube(entry,0,.55,0,4.2,1.1,3.8,concrete);farmCube(entry,0,.95,-1.35,2.5,.12,1.0,steel);
+ for(let i=0;i<6;i++)farmCube(entry,0,.8-i*.16,-.6-i*.42,2.3,.12,.42,mat(0x606866,.9));
+ const hatch=farmCube(entry,0,1.22,-2.0,2.6,.16,.12,steel);hatch.rotation.x=-.15;
+ // inside light, bunks, storage lockers and a table make it read as an actual bunker
+ for(const x of [-3.7,3.7]){farmCube(shell,x,1.9,-2.5,.7,1.1,1.4,steel);farmCube(shell,x,2.5,-2.5,.72,.08,1.42,dark);}
+ for(const z of [-2.5,2.5]){const light=cube(shell,0,2.25,z,1.4,.08,.18,lamp,false);}
+ farmCube(shell,-1.8,.65,1.7,2.2,.8,1.0,farmWoodLight);farmCube(shell,1.6,.65,1.7,2.0,.8,1.0,farmWoodLight);
+ addObstacle(bx-5,bz, .25,4);addObstacle(bx+5,bz,.25,4);addObstacle(bx,bz+4,5,.25);
+}
+
 // Wide, colorful wildflower meadows in several clearings.
 for(const center of [[-225,30],[225,-25],[-35,245],[155,275],[-270,-80]]){
  for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(mainD<12.5||branchD<12.5)continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
@@ -699,20 +732,20 @@ function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,ma
 {
  const g=new THREE.Group();g.position.set(farmCenter.x,0,farmCenter.z+13);scene.add(g);
  // Build the shell from separate wall sections instead of one solid box: the front doorway must be a real opening.
- farmCube(g,-7.38,2.1,0,.24,4.2,11,farmCream);farmCube(g,7.38,2.1,0,.24,4.2,11,farmCream);
- farmCube(g,0,2.1,5.38,14.8,4.2,.24,farmCream);
- farmCube(g,-4.25,2.1,-5.38,6.5,4.2,.24,farmCream);farmCube(g,4.25,2.1,-5.38,6.5,4.2,.24,farmCream);
- farmCube(g,0,3.55,-5.38,2.1,2.5,.24,farmCream);
- for(const y of [.18,4.05]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
- for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,2.1,-5.62,.18,4.0,.18,farmWood);farmCube(g,x,2.1,5.62,.18,4.0,.18,farmWood)}
- for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2.1,z,.18,4.0,.18,farmWood);farmCube(g,7.62,2.1,z,.18,4.0,.18,farmWood)}
+ farmCube(g,-7.38,2.9,0,.24,5.8,11,farmCream);farmCube(g,7.38,2.9,0,.24,5.8,11,farmCream);
+ farmCube(g,0,2.9,5.38,14.8,5.8,.24,farmCream);
+ farmCube(g,-4.25,2.9,-5.38,6.5,5.8,.24,farmCream);farmCube(g,4.25,2.9,-5.38,6.5,5.8,.24,farmCream);
+ farmCube(g,0,4.1,-5.38,2.1,3.4,.24,farmCream);
+ for(const y of [.18,5.65]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
+ for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,2.9,-5.62,.18,5.55,.18,farmWood);farmCube(g,x,2.9,5.62,.18,5.55,.18,farmWood)}
+ for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2.9,z,.18,5.55,.18,farmWood);farmCube(g,7.62,2.9,z,.18,5.55,.18,farmWood)}
  // upper-storey windows
- for(const x of [-4.5,0,4.5]){farmCube(g,x,3.15,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,3.15,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,3.15,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,3.15,5.82,.09,1.05,.07,farmWood)}
+ for(const x of [-4.5,0,4.5]){farmCube(g,x,4.55,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,4.55,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,4.55,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,4.55,5.82,.09,1.05,.07,farmWood)}
  // triangular gables and steep roof planes
  const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
- const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,2.8);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,4.2, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
- for(const z of [-5.8,5.8]){farmCube(g,0,5.65,z,.2,2.9,.2,farmWood);}
- const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,5.45,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.85;roofR.position.y=5.7;roofR.rotation.z=-.56;g.add(roofR);
+ const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,3.55);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,5.8, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
+ for(const z of [-5.8,5.8]){farmCube(g,0,7.25,z,.2,3.0,.2,farmWood);}
+ const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,7.0,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.85;roofR.position.y=7.0;roofR.rotation.z=-.56;g.add(roofR);
  // front door and porch
  // Entry porch and an operable front door; keep the doorway clear so the player can enter.
  farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
@@ -1160,7 +1193,7 @@ function makeHouseCorpse(x,z,rot){
 for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]])makeHouseCorpse(x-2.0,z+(z===-164?1.4:-1.4),rot);
 
 // Lootkisten und Versorgungspakete
-const inventory = { cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, armorPieces:[], weapons:{Blaster:1} };
+const inventory = { axe:1, pickaxe:1, cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, armorPieces:[], weapons:{Blaster:1} };
 let gliderEquipped=false, gliderVisual=null;
 let gliderBoostTime=0,gliderBoostCooldown=0;
 const armorSets=[{name:'Ranger',rarity:'common',color:'#66785d',reduce:.04},{name:'Waldläufer',rarity:'uncommon',color:'#3f9b62',reduce:.08},{name:'Taktisch',rarity:'rare',color:'#428ad6',reduce:.13},{name:'Schatten',rarity:'epic',color:'#9b57d6',reduce:.18},{name:'Titan',rarity:'legendary',color:'#d6a43d',reduce:.24},{name:'Aegis',rarity:'mythic',color:'#e85fce',reduce:.30},{name:'Kosmischer Wächter',rarity:'ultra',color:'#49f2f0',reduce:.36}];
@@ -1373,6 +1406,8 @@ function lootToast(text){
 }
 function updateInventory(){
  const items=[
+  ['axe','🪓','Axt (Holz abbauen)',inventory.axe],
+  ['pickaxe','⛏️','Spitzhacke (Stein & Metall)',inventory.pickaxe],
   ['medicine','💊','Medizin',inventory.medicine],
   ['glider','🪂','Taktischer Gleiter',inventory.glider],
   ['food','🍎','Essen',inventory.food],
@@ -1412,7 +1447,7 @@ function updateInventory(){
    selectedItem=id;
    $('itemActions').style.display='flex';
    $('addHotbarBtn').style.display='block';
-   $('equipItemBtn').textContent=id.startsWith('armor:')?'RÜSTUNG ANLEGEN':id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':id.startsWith('crafted')?'BAUTEIL AUSWÄHLEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='nightVision'?'NACHTSICHT AN/AUS':(id==='arrows'?'PFEILE AUSWÄHLEN':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND'))));
+   $('equipItemBtn').textContent=id.startsWith('armor:')?'RÜSTUNG ANLEGEN':id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':(['axe','pickaxe'].includes(id)?'WERKZEUG AUSRÜSTEN':id.startsWith('crafted')?'BAUTEIL AUSWÄHLEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='nightVision'?'NACHTSICHT AN/AUS':(id==='arrows'?'PFEILE AUSWÄHLEN':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND')))));
    rebuildHandProp();updateInventory();
   });
   $('inventoryItems').appendChild(b);
@@ -1589,11 +1624,22 @@ function exitJet(){
  if(leftInAir){player.vy=-1;message('Du bist aus dem Jet gesprungen! Du fällst jetzt herunter – der Jet stürzt ebenfalls ab.',2.2)}else{player.pos.y=1.7;player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');}
  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();
 }
+function mineNearbyResource(){
+ const isAxe=selectedItem==='axe'&&inventory.axe>0,isPick=selectedItem==='pickaxe'&&inventory.pickaxe>0;
+ if(!isAxe&&!isPick)return false;
+ let bestTree=null,bd=3.6;for(const t of harvestableTrees){if(t.harvested)continue;const d=distanceXZ(player.pos,t);if(d<bd){bd=d;bestTree=t;}}
+ let bestNode=null,nd=3.8;for(const n of mineNodes){if(n.remaining<=0)continue;const d=distanceXZ(player.pos,n);if(d<nd){nd=d;bestNode=n;}}
+ if(isAxe&&bestTree){bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);message('🪓 Baum gefällt: Bretter gesammelt!');updateInventory();saveProgress();return true;}
+ if(isPick&&bestNode){if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
+ if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?'Keine Bäume in Reichweite.':'Kein Stein oder Metall in Reichweite.');return true;}
+ return false;
+}
 function interact(){
  if(!started)return;
  if(activeJet){exitJet();return}
  if(player.inTank){exitTank();return}
  if(player.inCar){exitCar();return}
+ if(mineNearbyResource())return;
  if(placeSelectedStructure())return;
  const nearbyPlacedGate=placedStructures.find(o=>['ironGate','gardenGate'].includes(o.kind)&&distanceXZ(player.pos,o.group.position)<3.8);if(nearbyPlacedGate){togglePlacedGate(nearbyPlacedGate);return}
  if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(jetHealth<=0){if(inventory.metalScrap<100){message('🔧 Jet zerstört! Du brauchst 100 Metall zur Reparatur. Du hast '+inventory.metalScrap+'.',3);return}inventory.metalScrap-=100;jetHealth=500;jetFuel=Math.max(jetFuel,25);jetFalling=false;jetFallVelocity=0;jetAirborne=false;jetRunDistance=0;restoreWreckAppearance(flyableJet);flyableJet.position.y=0.45;updateInventory();updateJetStatus();message('🔧 Jet repariert! 500 Leben, 100 Metall verbraucht.');saveProgress();return}if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Jet bereit! Erst mit W auf der Startbahn beschleunigen (18 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
@@ -1666,7 +1712,7 @@ function interact(){
  updateHUD();
 }
 function createGroundItem(item,count,pos,label,createdAt=Date.now()){
- const g=new THREE.Group();g.position.set(pos.x,.08,pos.z);scene.add(g);
+ const g=new THREE.Group();const groundY=typeof hillSurfaceY==='function'?Math.max(0,hillSurfaceY(pos.x,pos.z)):0;g.position.set(pos.x,groundY+.08,pos.z);scene.add(g);
  const M=(c)=>mat(c,.55,.25);
  if(item==='bricks'){
     for(let i=0;i<Math.min(5,count);i++){const b=cube(g,((i%3)-1)*.16,.12+Math.floor(i/3)*.12,Math.floor(i/3)*.12,.28,.16,.22,M(0xa94e36));b.rotation.y=(i%2)*.12;}
@@ -1940,7 +1986,7 @@ $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
-$('dismantleBtn').addEventListener('click',dismantleNearestStructure);
+
 const gliderBoostBtn=$('gliderBoostBtn');
 function boostGlider(){if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.65;gliderBoostCooldown=2.4;player.vy=Math.max(player.vy,-.18);message('🪂 BOOST! Mehr Geschwindigkeit!',1.1);}
 if(gliderBoostBtn){gliderBoostBtn.addEventListener('click',boostGlider);gliderBoostBtn.addEventListener('pointerup',e=>{e.preventDefault();boostGlider()});}
@@ -2280,7 +2326,7 @@ function animate(){
     }
     if(floorSupportY!==null && player.vy<=.25){player.pos.y=floorSupportY;player.vy=0;player.onGround=true;}
   }
-  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
+  camera.position.copy(player.pos);if(sneaking)camera.position.y-=.38;const _camRiver=Math.min(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath),distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath));if(_camRiver<riverHalfWidth-.15)camera.position.y-=.28;camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
   if(dynamicGun){dynamicGun.position.z=-.35+Math.sin(performance.now()*.012)*.008;dynamicGun.rotation.x=Math.sin(performance.now()*.009)*.012;}
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
@@ -2393,7 +2439,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION'));
+  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?'🪓 HOLZ ABBAUEN':(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL ABBAUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
