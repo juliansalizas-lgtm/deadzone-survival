@@ -2185,7 +2185,7 @@ function animate(){
    // If we're currently on a stair or upper floor, keep the feet supported instead of
    // applying gravity every frame and snapping the camera into a stair tread.
    let supportedY=null;
-   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-1.25,zMax=Math.max(st.zStart,st.zEnd)+1.25;if(Math.abs(player.pos.x-st.x)<st.w*.78&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<.62){supportedY=y;break}}}
+   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.45,zMax=Math.max(st.zStart,st.zEnd)+.45;if(Math.abs(player.pos.x-st.x)<st.w*.82&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);const lo=Math.min(st.baseY,st.topY)-.9,hi=Math.max(st.baseY,st.topY)+.9;if(player.pos.y>=lo&&player.pos.y<=hi){supportedY=y;break}}}
    if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
    if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
    else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
@@ -2341,9 +2341,10 @@ function animate(){
       const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));
       const candidate=st.baseY+t*(st.topY-st.baseY);
       const d=Math.abs(candidate-player.pos.y);
-      // Never teleport the player vertically onto a stair from below or from a nearby floor.
-      // Only apply stair support when the player's feet are already close to that tread height.
-      if(d<.62 && d<stairSupportDistance){stairSupportDistance=d;stairSupportY=candidate;}
+      const lo=Math.min(st.baseY,st.topY)-.9,hi=Math.max(st.baseY,st.topY)+.9;
+      // Inside the stair footprint, support the player across the full step-height range.
+      // The old narrow .62m threshold could leave the player suspended between two treads.
+      if(player.pos.y>=lo&&player.pos.y<=hi&&d<stairSupportDistance){stairSupportDistance=d;stairSupportY=candidate;}
     }
   }
   if(stairSupportY!==null){player.pos.y=stairSupportY;player.vy=0;player.onGround=true;}
