@@ -630,9 +630,13 @@ function onRoad(x,z){
 }
 const harvestableTrees=[];
 function clearForTree(x,z){
- // Keep both airport runway/apron and the complete railway corridor clear of trees.
+ // Keep airport runway/apron, railway corridor, both rivers and muddy banks clear of trees.
  if(x>250&&x<360&&z>-365&&z<-220)return false;
  if(x>350&&x<368&&z>-270&&z<270)return false;
+ const mainRiverZ=205+18*Math.sin(x/68)+5*Math.sin(x/27);
+ const branchRiverX=-170+13*Math.sin(z/34)+4*Math.sin(z/13);
+ if(Math.abs(z-mainRiverZ)<15.5)return false;
+ if(Math.abs(x-branchRiverX)<15.5)return false;
  return true;
 }
 function tree(x,z,s=1,planted=false){
@@ -2144,9 +2148,11 @@ function updateZombieDoorBreaches(dt){
  }
 }
 const mapModal=$('mapModal'),worldMapCanvas=$('worldMapCanvas'),worldMapCtx=worldMapCanvas.getContext('2d');
-$('mapOpenBtn').addEventListener('click',()=>{mapModal.style.display='flex';drawWorldMap();});
-$('mapCloseBtn').addEventListener('click',()=>{mapModal.style.display='none';});
-mapModal.addEventListener('click',e=>{if(e.target===mapModal)mapModal.style.display='none';});
+function closeWorldMap(){mapModal.style.display='none';}
+$('mapOpenBtn').addEventListener('click',()=>{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();mapModal.style.display='flex';drawWorldMap();});
+$('mapCloseBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeWorldMap();});
+mapModal.addEventListener('click',e=>{if(e.target===mapModal)closeWorldMap();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mapModal.style.display==='flex'){e.preventDefault();closeWorldMap();}});
 function drawWorldMap(){
  if(!worldMapCtx)return;const c=worldMapCtx,w=c.canvas.width,h=c.canvas.height,scale=w/800;
  c.clearRect(0,0,w,h);c.fillStyle='#8a9b78';c.fillRect(0,0,w,h);
@@ -2160,7 +2166,7 @@ function drawWorldMap(){
  for(const car of cars)if(car.group)dot(car.group.position.x,car.group.position.z,'#e7d6a0',4);
  for(const t of tanks)if(t.group)dot(t.group.position.x,t.group.position.z,'#54e36b',6);
  if(flyableJet){const jp=new THREE.Vector3();flyableJet.getWorldPosition(jp);dot(jp.x,jp.z,'#ffb13b',7);c.fillStyle='#ffdf9a';c.font='bold 16px sans-serif';c.fillText('JET',(jp.x+400)*scale+8,(jp.z+400)*scale-7)}
- if(player&&player.pos)dot(player.pos.x,player.pos.z,'#48c8ff',7);
+ if(player&&player.pos){const px=(player.pos.x+400)*scale,pz=(player.pos.z+400)*scale; c.beginPath();c.arc(px,pz,12,0,Math.PI*2);c.fillStyle='#eafaff';c.fill();c.strokeStyle='#168bd2';c.lineWidth=4;c.stroke();c.beginPath();c.arc(px,pz,6,0,Math.PI*2);c.fillStyle='#00aaff';c.fill();c.strokeStyle='#071d2b';c.lineWidth=1.5;c.stroke();c.fillStyle='#ffffff';c.font='bold 17px sans-serif';c.lineWidth=3;c.strokeStyle='#102018';c.strokeText('DU',px+14,pz-9);c.fillText('DU',px+14,pz-9);}
  c.fillStyle='#17231a';c.font='bold 14px sans-serif';c.fillText('N',w-24,20);c.fillStyle='#dce5d4';c.beginPath();c.moveTo(w-20,26);c.lineTo(w-27,42);c.lineTo(w-13,42);c.closePath();c.fill();
 }
 function animate(){
