@@ -201,7 +201,7 @@ for(let i=0;i<900;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*70;rainPo
 rainGeo.attributes.position.needsUpdate=true;
 const lightningFlash=new THREE.PointLight(0xd9eaff,0,260,1.2);lightningFlash.position.set(0,32,0);scene.add(lightningFlash);
 function isPlayerSheltered(){try{if(!player||!Array.isArray(houseZones))return false;return houseZones.some(h=>Math.abs(player.pos.x-h.x)<h.w/2-.12&&Math.abs(player.pos.z-h.z)<h.d/2-.12&&player.pos.y<h.roofY+1.2);}catch(e){return false;}}
-function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'? .72:.38;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'? .48:type==='cloudy'? .9:type==='rain'? .86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
+function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'? 0.72:.38;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'? 0.48:type==='cloudy'? 0.9:type==='rain'? 0.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
 function updateWeather(dt){
  weatherTimer-=dt;if(weatherTimer<=0){const choices=['sunny','cloudy','rain','storm'].filter(w=>w!==currentWeather);setWeather(choices[Math.floor(Math.random()*choices.length)]);weatherTimer=75+Math.random()*90;}
  rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?30:19);if(y<player.pos.y-2){y=player.pos.y+18+Math.random()*16;a.setX(i,(Math.random()-.5)*70);a.setZ(i,(Math.random()-.5)*70);}else{a.setX(i,a.getX(i));a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
@@ -267,10 +267,10 @@ function buildStructureMesh(kind,x,z,rot=0,open=false){
  const gate=kind==='ironGate'||kind==='gardenGate',w=gate?2.5:3.0;
  if(kind==='fence'||kind==='gardenGate'){
   for(let i=-1;i<=1;i++){cube(g,i*w/2,.62,0,.13,1.24,.14,woodLight);}
-  if(kind==='fence'){for(const y of [.34,.82])cube(g,0,y,0,w,.12,.13,wood);for(let i=0;i<7;i++){const p=cube(g,-w/2+.23+i*(w-.46)/6,.57,0,.065,.76,.11,woodLight);p.rotation.z=(i%2? .025:-.025)}}
+  if(kind==='fence'){for(const y of [.34,.82])cube(g,0,y,0,w,.12,.13,wood);for(let i=0;i<7;i++){const p=cube(g,-w/2+.23+i*(w-.46)/6,.57,0,.065,.76,.11,woodLight);p.rotation.z=(i%2? 0.025:-.025)}}
   else {const panel=new THREE.Group();g.add(panel);for(let i=0;i<7;i++)cube(panel,-w/2+.2+i*(w-.4)/6,.58,0,.09,1.05,.13,woodLight);cube(panel,0,.15,0,w-.18,.12,.15,wood);cube(panel,0,.95,0,w-.18,.12,.15,wood);panel.position.x=open?w:0;g.userData.gatePanel=panel;}
  }else if(kind==='wall'){
-  for(let row=0;row<4;row++)for(let col=0;col<5;col++){const b=cube(g,-1.2+col*.6,.28+row*.56,0,.57,.53,.42,(row+col)%3===0?brick:brick);b.position.x+=row%2? .22:0;}
+  for(let row=0;row<4;row++)for(let col=0;col<5;col++){const b=cube(g,-1.2+col*.6,.28+row*.56,0,.57,.53,.42,(row+col)%3===0?brick:brick);b.position.x+=row%2? 0.22:0;}
  }else if(kind==='ironGate'){
   for(const xpost of [-w/2,w/2])cube(g,xpost,.95,0,.16,1.9,.18,ironLight);
   const panel=new THREE.Group();g.add(panel);for(let i=0;i<9;i++)cube(panel,-w/2+.18+i*(w-.36)/8,.92,0,.065,1.72,.12,ironLight);cube(panel,0,.18,0,w-.12,.12,.13,iron);cube(panel,0,1.72,0,w-.12,.12,.13,iron);panel.position.x=open?w:0;g.userData.gatePanel=panel;
@@ -291,8 +291,8 @@ function buildStructureMesh(kind,x,z,rot=0,open=false){
  // Collision bounds follow the actual long axis of walls/fences/gates after rotation.
  // The old gate bounds were far too narrow and the long axis was not swapped at 90°,
  // which let the player (and zombies) pass through some placed pieces.
- let localHX=gate?1.27:(kind==='wall'?1.52:isFurniture? .48:isTurret? .55:1.52);
- let localHZ=gate? .16:(kind==='wall'? .24:isFurniture? .45:isTurret? .55:.16);
+ let localHX=gate?1.27:(kind==='wall'?1.52:isFurniture? 0.48:isTurret? 0.55:1.52);
+ let localHZ=gate? 0.16:(kind==='wall'? 0.24:isFurniture? 0.45:isTurret? 0.55:.16);
  const quarterTurn=Math.abs(Math.sin(rot))>.707;
  const obstacle=addObstacle(x,z,quarterTurn?localHZ:localHX,quarterTurn?localHX:localHZ);
  if(gate&&open)obstacle.active=false;
@@ -330,7 +330,7 @@ function updateBuildPreview(){
  if(buildPreviewKind!==kind){clearBuildPreview();const before=placedStructures.length;const obj=buildStructureMesh(kind,0,-1000,0,false);buildPreview=obj.group;placedStructures.splice(before,1);const oi=solidObstacles.indexOf(obj.obstacle);if(oi>=0)solidObstacles.splice(oi,1);buildPreviewKind=kind;buildPreview.traverse(o=>{if(o.isMesh&&o.material){const old=Array.isArray(o.material)?o.material:[o.material];o.material=old.map(m=>{const n=m.clone();n.transparent=true;n.opacity=.42;n.depthWrite=false;return n;});}});buildPreviewRing=new THREE.Mesh(new THREE.RingGeometry(.8,1.12,32),new THREE.MeshBasicMaterial({color:0x54f078,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));buildPreviewRing.rotation.x=-Math.PI/2;buildPreviewRing.position.y=.035;scene.add(buildPreviewRing);buildGuideLine=new THREE.Mesh(new THREE.BoxGeometry(kind==='wall'?3.0:2.5,.035,.075),new THREE.MeshBasicMaterial({color:0x31e8ff,transparent:true,opacity:.95,depthTest:false,depthWrite:false}));buildGuideLine.position.y=.065;buildGuideLine.renderOrder=998;scene.add(buildGuideLine);}
  const place=getBuildPlacement(),x=place.x,z=place.z,yaw=place.yaw;
  const overlapsPlaced=placedStructures.some(o=>{const dx=x-o.x,dz=z-o.z;const limit=(kind==='wall'?1.25:1.05)+(o.kind==='wall'?1.25:1.05);return dx*dx+dz*dz<limit*limit;});
- const valid=!blockedAt(x,z,['wall','turret'].includes(kind)? .28:.42)&&!overlapsPlaced;buildPreview.position.set(x,0,z);buildPreview.rotation.y=yaw;buildPreview.visible=true;buildPreviewRing.position.set(x,.035,z);buildPreviewRing.material.color.setHex(valid?0x54f078:0xff4d4d);buildPreviewRing.visible=true;buildGuideLine.position.set(x,.065,z);buildGuideLine.rotation.y=yaw;buildGuideLine.material.color.setHex(valid?0x31e8ff:0xff4d4d);buildGuideLine.visible=true;buildPreview.traverse(o=>{if(o.isMesh&&o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.color)m.color.setHex(valid?0xffffff:0xff7777);}});
+ const valid=!blockedAt(x,z,['wall','turret'].includes(kind)? 0.28:.42)&&!overlapsPlaced;buildPreview.position.set(x,0,z);buildPreview.rotation.y=yaw;buildPreview.visible=true;buildPreviewRing.position.set(x,.035,z);buildPreviewRing.material.color.setHex(valid?0x54f078:0xff4d4d);buildPreviewRing.visible=true;buildGuideLine.position.set(x,.065,z);buildGuideLine.rotation.y=yaw;buildGuideLine.material.color.setHex(valid?0x31e8ff:0xff4d4d);buildGuideLine.visible=true;buildPreview.traverse(o=>{if(o.isMesh&&o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.color)m.color.setHex(valid?0xffffff:0xff7777);}});
 }
 function dismantleNearestStructure(){const o=placedStructures.filter(q=>distanceXZ(player.pos,q.group.position)<4.2).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];if(!o){message('Keine platzierte Basis-Struktur in der Nähe.',1.5);return;}const ids={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate',turret:'craftedTurret',chair:'craftedChair',table:'craftedTable',bed:'craftedBed',lamp:'craftedLamp'};inventory[ids[o.kind]]=(inventory[ids[o.kind]]||0)+1;scene.remove(o.group);const i=solidObstacles.indexOf(o.obstacle);if(i>=0)solidObstacles.splice(i,1);const j=placedStructures.indexOf(o);if(j>=0)placedStructures.splice(j,1);message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor',turret:'Geschütz',chair:'Stuhl',table:'Tisch',bed:'Bett',lamp:'Lampe'})[o.kind]+' abgebaut und zurück ins Inventar gelegt.',2);updateInventory();saveProgress();}
 function blockedAt(x,z,r=.42){return solidObstacles.some(o=>o.active!==false&&x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
@@ -1150,13 +1150,13 @@ function rebuildHandProp(){
    if(st.kind==='melee'||w==='Wurfmesser'){
      // Purpose-built 3D melee silhouettes: handle plus blade/head, never the generic gun shape.
      const wood=mat(w==='Elektroschlagstock'?0x252d35:0x765033,.35,.55), metal=mat(0xb7c3c8,.65,.28), dark=mat(0x252a2a,.35,.6), glow=mat(0x43bfff,.2,.25);
-     const handleLen=(w==='Speer'||w==='Vorschlaghammer'||w==='Kettenkeule')? .58:.36;
+     const handleLen=(w==='Speer'||w==='Vorschlaghammer'||w==='Kettenkeule')? 0.58:.36;
      const handle=cube(dynamicGun,0,-.015,.04,.075,handleLen,.075,wood);handle.rotation.x=-.12;
      cube(dynamicGun,0,-.02,.04,.09,.12,.085,dark);
      if(w.includes('Messer')||w==='Küchenmesser'){const blade=cube(dynamicGun,0,.17,-.015,.055,.25,.025,metal);blade.rotation.z=-.06;cube(dynamicGun,0,.29,-.015,.025,.06,.02,mat(0xe3e8e8));}
-     else if(w==='Machete'||w==='MacheteMk2'||w==='Katana'){const blade=cube(dynamicGun,0,.29,-.025,.045,w==='Katana'? .67:.48,.025,metal);blade.rotation.z=w==='Katana'? .035:-.12;cube(dynamicGun,0,.065,.035,.14,.045,.10,dark);if(w==='Katana')cube(dynamicGun,0,.075,.035,.16,.025,.11,mat(0xb99b59));}
-     else if(w==='Axt'||w==='Feuerwehr-Axt'){cube(dynamicGun,0,.29,-.015,.055,.48,.055,wood);const head=cube(dynamicGun,w==='Feuerwehr-Axt'? .075:.055,.48,-.015,w==='Feuerwehr-Axt'? .22:.17,.19,.09,metal);head.rotation.z=-.12;cube(dynamicGun,w==='Feuerwehr-Axt'? .14:.105,.48,-.015,.09,.22,.095,dark);}
-     else if(w==='Hammer'||w==='Vorschlaghammer'){cube(dynamicGun,0,.27,-.015,.065,.43,.065,wood);cube(dynamicGun,0,.51,-.015,w==='Vorschlaghammer'? .34:.24,w==='Vorschlaghammer'? .18:.12,.13,metal);}
+     else if(w==='Machete'||w==='MacheteMk2'||w==='Katana'){const blade=cube(dynamicGun,0,.29,-.025,.045,w==='Katana'? 0.67:.48,.025,metal);blade.rotation.z=w==='Katana'? 0.035:-.12;cube(dynamicGun,0,.065,.035,.14,.045,.10,dark);if(w==='Katana')cube(dynamicGun,0,.075,.035,.16,.025,.11,mat(0xb99b59));}
+     else if(w==='Axt'||w==='Feuerwehr-Axt'){cube(dynamicGun,0,.29,-.015,.055,.48,.055,wood);const head=cube(dynamicGun,w==='Feuerwehr-Axt'? 0.075:.055,.48,-.015,w==='Feuerwehr-Axt'? 0.22:.17,.19,.09,metal);head.rotation.z=-.12;cube(dynamicGun,w==='Feuerwehr-Axt'? 0.14:.105,.48,-.015,.09,.22,.095,dark);}
+     else if(w==='Hammer'||w==='Vorschlaghammer'){cube(dynamicGun,0,.27,-.015,.065,.43,.065,wood);cube(dynamicGun,0,.51,-.015,w==='Vorschlaghammer'? 0.34:.24,w==='Vorschlaghammer'? 0.18:.12,.13,metal);}
      else if(w==='Baseballschläger'){const bat=new THREE.Mesh(new THREE.CylinderGeometry(.035,.075,.62,8),wood);bat.position.set(0,.25,.0);bat.rotation.z=.08;dynamicGun.add(bat);}
      else if(w==='Brecheisen'||w==='Rohrzange'){cube(dynamicGun,0,.24,-.015,.055,.48,.055,metal);cube(dynamicGun,.035,.48,-.015,.13,.06,.06,dark);cube(dynamicGun,-.025,.02,-.015,.09,.10,.08,dark);}
      else if(w==='Speer'){const shaft=cube(dynamicGun,0,.27,-.015,.045,.78,.045,wood);shaft.rotation.z=.02;const tip=new THREE.Mesh(new THREE.ConeGeometry(.07,.20,6),metal);tip.position.set(0,.77,-.015);dynamicGun.add(tip);}
@@ -1167,8 +1167,8 @@ function rebuildHandProp(){
    const bodyColor=isLaser?0x263b2b:isShock?0x25374b:(w.includes('Plasma')?0x394d64:0x303a3c);
    const wm=mat(bodyColor,.55,.45);
    // Distinct silhouette: receiver, barrel, grip, magazine and rails
-   cube(dynamicGun,0,0,0,isShot? .23:.17,.15,isSniper? .9:isShot? .42:.48,wm);
-   cube(dynamicGun,0,.015,-(isSniper? .57:.31),isSniper? .085:.075,.075,isSniper? .65:.34,mat(0x151b19,.4,.55));
+   cube(dynamicGun,0,0,0,isShot? 0.23:.17,.15,isSniper? 0.9:isShot? 0.42:.48,wm);
+   cube(dynamicGun,0,.015,-(isSniper? 0.57:.31),isSniper? 0.085:.075,.075,isSniper? 0.65:.34,mat(0x151b19,.4,.55));
    cube(dynamicGun,0,-.13,.09,.105,.23,.14,wm);
    if(!isPistol&&!isShock)cube(dynamicGun,0,-.19,-.03,.09,.22,.13,mat(0x202622,.5,.4));
    if(isSniper){cube(dynamicGun,0,.13,-.14,.1,.09,.35,mat(0x202522));cube(dynamicGun,0,.2,-.14,.15,.06,.12,mat(0x111511));}
@@ -1249,7 +1249,7 @@ function playWeaponSound(kind='rifle'){
       const n=Math.floor(ctx.sampleRate*.075),buf=ctx.createBuffer(1,n,ctx.sampleRate),data=buf.getChannelData(0);
       for(let i=0;i<n;i++)data[i]=(Math.random()*2-1)*(1-i/n);
       const src=ctx.createBufferSource(),ng=ctx.createGain(),filter=ctx.createBiquadFilter();
-      filter.type='lowpass';filter.frequency.value=k==='melee'?520:1700;ng.gain.setValueAtTime(k==='colossus'? .095:.045,now);ng.gain.exponentialRampToValueAtTime(.001,now+.075);
+      filter.type='lowpass';filter.frequency.value=k==='melee'?520:1700;ng.gain.setValueAtTime(k==='colossus'? 0.095:.045,now);ng.gain.exponentialRampToValueAtTime(.001,now+.075);
       src.buffer=buf;src.connect(filter);filter.connect(ng);ng.connect(ctx.destination);src.start(now);src.stop(now+.075);
     }
   }catch(e){}
@@ -1566,8 +1566,8 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
     for(let i=0;i<Math.min(4,count);i++){const m=cube(g,(i-1.5)*.09,.12,(i%2)*.1,.2,.12,.18,M(0x778580));m.rotation.y=i*.35;}
   }else if(item.startsWith('weapon:')){
    const w=item.slice(7), laser=w.includes('Laserkarabiner'),shock=w.includes('Schockpistole'),sniper=/Sniper|Präzisions|Scharfschützen/i.test(w);
-   cube(g,0,.12,0,.13,.12,sniper? .9:.48,M(0x303a35));
-   cube(g,0,.15,sniper?-.32:-.19,.065,.065,sniper? .5:.28,M(0x151a18));
+   cube(g,0,.12,0,.13,.12,sniper? 0.9:.48,M(0x303a35));
+   cube(g,0,.15,sniper?-.32:-.19,.065,.065,sniper? 0.5:.28,M(0x151a18));
    cube(g,0,.035,.08,.085,.17,.12,M(0x272c29));
    if(w==='Armbrust'){cube(g,-.18,.2,-.08,.42,.055,.06,M(0x6d4932));cube(g,0,.22,-.08,.055,.07,.45,M(0x252b28));cube(g,0,.25,-.08,.025,.025,.58,M(0x9ba69d));}if(laser||shock||w==='Laserpistole')cube(g,0,.19,-.04,.08,.035,.15,M(laser?0x35ff56:shock?0x3b9cff:0xff36d5));
  }else if(item==='arrows'){for(let i=0;i<Math.min(count,4);i++){const a=cube(g,(i-1.5)*.09,.15,0,.025,.025,.48,M(0xb7b9a8));a.rotation.y=.08*i;cube(g,(i-1.5)*.09,.18,-.2,.09,.025,.08,M(0x7a8c5c));}}else if(item==='food'){
@@ -1641,15 +1641,15 @@ $('jumpBtn').addEventListener('click',jump);
 function spawnEnergyProjectile(origin,dir,color,kind){
  const length=(kind==='rocket'||kind==='grenade')?Math.min(46,weaponStats[equippedWeapon]?.range||46):kind==='plasma'?26:kind==='pinklaser'?30:34;
  const end=origin.clone().add(dir.clone().multiplyScalar(length));
- const geo=new THREE.SphereGeometry(kind==='rocket'? .16:kind==='grenade'? .13:kind==='plasma'? .105:kind==='pinklaser'? .075:.09,10,8);
+ const geo=new THREE.SphereGeometry(kind==='rocket'? 0.16:kind==='grenade'? 0.13:kind==='plasma'? 0.105:kind==='pinklaser'? 0.075:.09,10,8);
  const material=new THREE.MeshBasicMaterial({color,transparent:true,opacity:1});
  const orb=new THREE.Mesh(geo,material);orb.position.copy(origin).add(dir.clone().multiplyScalar(.8));scene.add(orb);
- const glowGeo=new THREE.SphereGeometry(kind==='plasma'? .19:.15,8,6);
+ const glowGeo=new THREE.SphereGeometry(kind==='plasma'? 0.19:.15,8,6);
  const glowMat=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false});
  const glow=new THREE.Mesh(glowGeo,glowMat);glow.position.copy(orb.position);scene.add(glow);
  const trailGeo=new THREE.BufferGeometry().setFromPoints([orb.position.clone(),orb.position.clone()]);
  const trailMat=new THREE.LineBasicMaterial({color,transparent:true,opacity:.95});const trail=new THREE.Line(trailGeo,trailMat);scene.add(trail);
- const projectile={orb,glow,trail,trailGeo,trailMat,geo,material,origin:origin.clone(),end,dir:dir.clone(),life:(kind==='rocket'||kind==='grenade')? .55:.32,age:0,kind};energyProjectiles.push(projectile);return projectile;
+ const projectile={orb,glow,trail,trailGeo,trailMat,geo,material,origin:origin.clone(),end,dir:dir.clone(),life:(kind==='rocket'||kind==='grenade')? 0.55:.32,age:0,kind};energyProjectiles.push(projectile);return projectile;
 }
 
 function spawnBlast(pos,color,kind='rocket'){
@@ -1679,7 +1679,7 @@ function shoot(){
    else {message(arrowWeapon?'Keine Pfeile! Suche Zombies oder Kisten ab.':(specialWeapon?'Keine Spezial-Laserzellen! Suche violette Munitionskisten.':'Keine Munition! Durchsuche weitere Kisten.'),1.5);playTone(130,.08,'sawtooth',.025);return;}
  }
  if(!meleeWeapon&&!infiniteAmmoWeapon&&!throwingKnifeWeapon){ammoLoaded--;updateInventory();}if(infiniteAmmoWeapon)ammoLoaded=999999;fireCooldown=wstats.cooldown;
- flashTime=.08;muzzle.visible=true;flashLight.intensity=4;player.weaponKick=Math.min(.09,(player.weaponKick||0)+(wstats.kind==='colossus'? .075:.025));
+ flashTime=.08;muzzle.visible=true;flashLight.intensity=4;player.weaponKick=Math.min(.09,(player.weaponKick||0)+(wstats.kind==='colossus'? 0.075:.025));
  playWeaponSound(meleeWeapon?'melee':wstats.kind==='throwingKnife'?'throwingKnife':wstats.kind);player.noise=7;
 
  // small muzzle flash
@@ -1700,7 +1700,7 @@ function shoot(){
  }
  const beamEnd=origin.clone().add(dir.clone().multiplyScalar(Math.min(wstats.range,meleeWeapon?2.1:22)));
  const beamGeo=new THREE.BufferGeometry().setFromPoints([origin.clone(),beamEnd]);
- const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:meleeWeapon?0xffe0a0:beamColor,transparent:true,opacity:meleeWeapon? .3:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
+ const beam=new THREE.Line(beamGeo,new THREE.LineBasicMaterial({color:meleeWeapon?0xffe0a0:beamColor,transparent:true,opacity:meleeWeapon? 0.3:1,linewidth:wstats.kind==='greenlaser'||wstats.kind==='pinklaser'?4:2}));
  scene.add(beam);
  let beamGlow=null;
  if(wstats.kind==='greenlaser'||wstats.kind==='pinklaser'||wstats.kind==='shock'||wstats.kind==='plasma'){
@@ -1720,9 +1720,9 @@ function shoot(){
  if(glassHits.length&&(!wallHits.length||glassHits[0].distance<wallHits[0].distance)&&(!hits.length||glassHits[0].distance<hits[0].distance)){const pane=glassHits[0].object;pane.visible=false;windowPanes.splice(windowPanes.indexOf(pane),1);playTone(900,.07,'triangle',.025);message('Fenster zersplittert!',.8);}
  else if(wallHits.length&&(!hits.length||wallHits[0].distance<hits[0].distance)){
    const wh=wallHits[0], laser=['greenlaser','pinklaser','plasma','shock'].includes(wstats.kind);
-   const markMat=new THREE.MeshBasicMaterial({color:laser?beamColor:0x211e19,transparent:true,opacity:laser? .92:.72,side:THREE.DoubleSide,depthWrite:false});
-   const mark=new THREE.Mesh(new THREE.CircleGeometry(laser? .13:.16,12),markMat);mark.position.copy(wh.point).addScaledVector(wh.face.normal,.012);mark.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),wh.face.normal);scene.add(mark);
-   const ring=new THREE.Mesh(new THREE.RingGeometry(laser? .15:.17,laser? .21:.24,12),new THREE.MeshBasicMaterial({color:laser?beamColor:0x554b3b,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));ring.position.copy(mark.position).addScaledVector(wh.face.normal,.002);ring.quaternion.copy(mark.quaternion);scene.add(ring);impactMarks.push({obj:mark,life:3,ring});
+   const markMat=new THREE.MeshBasicMaterial({color:laser?beamColor:0x211e19,transparent:true,opacity:laser? 0.92:.72,side:THREE.DoubleSide,depthWrite:false});
+   const mark=new THREE.Mesh(new THREE.CircleGeometry(laser? 0.13:.16,12),markMat);mark.position.copy(wh.point).addScaledVector(wh.face.normal,.012);mark.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),wh.face.normal);scene.add(mark);
+   const ring=new THREE.Mesh(new THREE.RingGeometry(laser? 0.15:.17,laser? 0.21:.24,12),new THREE.MeshBasicMaterial({color:laser?beamColor:0x554b3b,transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}));ring.position.copy(mark.position).addScaledVector(wh.face.normal,.002);ring.quaternion.copy(mark.quaternion);scene.add(ring);impactMarks.push({obj:mark,life:3,ring});
  } else if(!hits.length && ray.ray.direction.y < -0.015) {
    // A missed shot that reaches the ground leaves a short-lived impact mark.
    const t=(-.075-origin.y)/ray.ray.direction.y;
@@ -1731,9 +1731,9 @@ function shoot(){
      if(Math.abs(point.x)<255&&Math.abs(point.z)<255){
        const laser=['greenlaser','pinklaser','plasma','shock'].includes(wstats.kind);
        const color=laser?beamColor:0x29251f;
-       const mark=new THREE.Mesh(new THREE.CircleGeometry(laser? .12:.15,12),new THREE.MeshBasicMaterial({color,transparent:true,opacity:laser? .92:.72,side:THREE.DoubleSide,depthWrite:false}));
+       const mark=new THREE.Mesh(new THREE.CircleGeometry(laser? 0.12:.15,12),new THREE.MeshBasicMaterial({color,transparent:true,opacity:laser? 0.92:.72,side:THREE.DoubleSide,depthWrite:false}));
        mark.rotation.x=-Math.PI/2;mark.position.set(point.x,-.067,point.z);scene.add(mark);
-       const ring=new THREE.Mesh(new THREE.RingGeometry(laser? .14:.16,laser? .19:.22,12),new THREE.MeshBasicMaterial({color:laser?beamColor:0x554b3b,transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.set(point.x,-.065,point.z);scene.add(ring);impactMarks.push({obj:mark,life:3,ring});
+       const ring=new THREE.Mesh(new THREE.RingGeometry(laser? 0.14:.16,laser? 0.19:.22,12),new THREE.MeshBasicMaterial({color:laser?beamColor:0x554b3b,transparent:true,opacity:.65,side:THREE.DoubleSide,depthWrite:false}));ring.rotation.x=-Math.PI/2;ring.position.set(point.x,-.065,point.z);scene.add(ring);impactMarks.push({obj:mark,life:3,ring});
      }
    }
  }
@@ -2080,7 +2080,7 @@ function animate(){
     else{player.pos.x=tryX;player.pos.z=tryZ;activeCar.collisionLatched=false;}
     activeCar.group.position.set(player.pos.x,0,player.pos.z);activeCar.group.rotation.y=player.yaw;activeCar.x=player.pos.x;activeCar.z=player.pos.z;player.pos.y=1.7;player.vy=0;steeringWheel.rotation.z=((keys.KeyA?1:0)-(keys.KeyD?1:0))*.55;
   }else{
-    const speed=player.speed*(sneaking? .42:(sprint?1.55:1));
+    const speed=player.speed*(sneaking? 0.42:(sprint?1.55:1));
     const nextX=player.pos.x+(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*speed*dt;
     const nextZ=player.pos.z+(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*speed*dt;
     const onStairFootprint=stairZones.some(st=>Math.abs(player.pos.x-st.x)<st.w*.9&&player.pos.z>=Math.min(st.zStart,st.zEnd)-1.25&&player.pos.z<=Math.max(st.zStart,st.zEnd)+1.25&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2);
