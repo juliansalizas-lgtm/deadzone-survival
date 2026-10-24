@@ -275,7 +275,7 @@ function buildStructureMesh(kind,x,z,rot=0,open=false){
   else if(kind==='metalFence'){for(const y of [.35,1.05,1.75,2.45,3.15])cube(g,0,y,0,w,.075,.09,iron);for(let i=0;i<19;i++)cube(g,-w/2+.08+i*(w-.16)/18,1.82,0,.055,3.55,.085,ironLight);for(const xpost of [-w/2,0,w/2])cube(g,xpost,1.82,0,.14,3.64,.15,iron);}
   else {const panel=new THREE.Group();g.add(panel);for(let i=0;i<7;i++)cube(panel,-w/2+.2+i*(w-.4)/6,.58,0,.09,1.05,.13,woodLight);cube(panel,0,.15,0,w-.18,.12,.15,wood);cube(panel,0,.95,0,w-.18,.12,.15,wood);panel.position.x=open?w:0;g.userData.gatePanel=panel;}
  }else if(kind==='lantern'){
-  const dark=mat(0x252b29,.55,.45),glass=mat(0xffd78a,.25,.15);cube(g,0,.06,0,.38,.12,.38,dark);cube(g,0,.18,0,.22,.16,.22,dark);cube(g,0,.72,0,.13,1.0,.13,dark);cube(g,0,1.18,0,.42,.34,.42,dark);cube(g,0,1.18,0,.29,.22,.29,glass);cube(g,0,1.38,0,.48,.08,.48,dark);const light=new THREE.PointLight(0xffd58a,1.8,9,1.5);light.position.set(0,1.2,0);g.add(light);
+  const dark=mat(0x252b29,.55,.45),glass=mat(0xffd78a,.25,.15);cube(g,0,.06,0,.38,.12,.38,dark);cube(g,0,.18,0,.22,.16,.22,dark);cube(g,0,.72,0,.13,1.0,.13,dark);cube(g,0,1.18,0,.42,.34,.42,dark);cube(g,0,1.18,0,.29,.22,.29,glass);cube(g,0,1.38,0,.48,.08,.48,dark);const light=new THREE.PointLight(0xffd58a,6.5,30,1.25);light.position.set(0,1.2,0);light.castShadow=false;g.add(light);
  }else if(kind==='wall'){
   for(let row=0;row<4;row++)for(let col=0;col<5;col++){const b=cube(g,-1.2+col*.6,.28+row*.56,0,.57,.53,.42,(row+col)%3===0?brick:brick);b.position.x+=row%2?.22:0;}
  }else if(slidingGate){
@@ -1343,9 +1343,9 @@ let nightVisionActive=false;
 let sniperNightVisionActive=true;
 function updateNightVisionEffect(){const nv=$('nightVision');const scopeNV=sniperZoom&&sniperNightVisionActive;const active=nightVisionActive||scopeNV;if(nv)nv.style.display=active?'block':'none';scene.traverse(o=>{if(o.isHemisphereLight)o.intensity=active?3.8:2.0; if(o.isAmbientLight)o.intensity=active?2.0:1.0;});if(nv)nv.style.background=nightVisionActive||scopeNV?'radial-gradient(ellipse at center,rgba(190,255,155,.30) 0%,rgba(95,255,100,.38) 58%,rgba(25,100,35,.62) 100%)':'radial-gradient(ellipse at center,rgba(175,255,145,.16) 0%,rgba(90,255,100,.24) 58%,rgba(30,90,40,.52) 100%)';}
 const lanternProp=new THREE.Group();camera.add(lanternProp);lanternProp.position.set(-.42,-.28,-.48);
-const lanternGlow=new THREE.PointLight(0xffd78a,0,32,1.0);lanternGlow.position.set(-.30,-.16,-.42);camera.add(lanternGlow);
-const lanternBeam=new THREE.SpotLight(0xffdca0,0,38,Math.PI/4,0.35,1.0);lanternBeam.castShadow=false;const lanternBeamTarget=new THREE.Object3D();scene.add(lanternBeam,lanternBeamTarget);lanternBeam.position.set(-.28,-.18,-.38);
-function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=7.5;lanternBeam.intensity=75;}
+const lanternGlow=new THREE.PointLight(0xffd78a,0,48,0.8);lanternGlow.position.set(-.30,-.16,-.42);camera.add(lanternGlow);
+const lanternBeam=new THREE.SpotLight(0xffdca0,0,60,Math.PI/3,0.28,0.8);lanternBeam.castShadow=false;const lanternBeamTarget=new THREE.Object3D();scene.add(lanternBeam,lanternBeamTarget);lanternBeam.position.set(-.28,-.18,-.38);
+function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=16;lanternBeam.intensity=125;}
 
 const weaponStats = {
  Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42},
