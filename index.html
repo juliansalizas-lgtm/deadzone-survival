@@ -1376,7 +1376,18 @@ function rebuildHandProp(){
  handRig.children[0].visible=false;handRig.children[1].visible=false;handRig.children[2].visible=false;
  handRig.visible=false;handProp.visible=true;
  const id=selectedItem;
- if(id==='craftedFence'){for(let i=-1;i<=1;i++)cube(handProp,i*.09,.02,-.03,.035,.26,.05,mat(0x9a7445));cube(handProp,0,-.02,-.03,.28,.035,.05,mat(0x765333));cube(handProp,0,.08,-.03,.28,.035,.05,mat(0x765333));
+ if(id==='axe'||id==='pickaxe'){
+   const wood=mat(0x765033,.35,.6),steel=mat(id==='axe'?0xb9c5c8:0x9da8aa,.65,.3),dark=mat(0x303638,.45,.5);
+   const handle=cube(handProp,0,.015,-.035,.065,.43,.065,wood);handle.rotation.z=-.10;
+   cube(handProp,0,-.14,-.035,.08,.06,.08,dark);
+   if(id==='axe'){
+     const head=cube(handProp,.055,.245,-.035,.23,.13,.075,steel);head.rotation.z=-.12;
+     cube(handProp,.105,.245,-.035,.11,.16,.08,dark);
+   }else{
+     const head=cube(handProp,0,.255,-.035,.12,.17,.13,steel);
+     cube(handProp,0,.325,-.035,.19,.045,.15,dark);
+   }
+ }else if(id==='craftedFence'){for(let i=-1;i<=1;i++)cube(handProp,i*.09,.02,-.03,.035,.26,.05,mat(0x9a7445));cube(handProp,0,-.02,-.03,.28,.035,.05,mat(0x765333));cube(handProp,0,.08,-.03,.28,.035,.05,mat(0x765333));
  }else if(id==='craftedWall'){for(let i=0;i<3;i++)cube(handProp,(i-1)*.075,.02+(i%2)*.055,-.03,.14,.075,.09,mat(0x9a4b37));
  }else if(id==='craftedIronGate'||id==='craftedGardenGate'){const c=id==='craftedIronGate'?0x7a8584:0x9a7445;for(let i=-1;i<=1;i++)cube(handProp,i*.075,.02,-.03,.025,.28,.035,mat(c));cube(handProp,0,-.02,-.03,.25,.025,.035,mat(c));
  }else if(id==='bricks'){
@@ -1762,19 +1773,29 @@ function exitJet(){
  if(leftInAir){player.vy=-1;message(exitingHelicopter?'Du bist aus dem Helikopter gesprungen! Er sinkt ebenfalls ab.':'Du bist aus dem Jet gesprungen! Du fällst jetzt herunter – der Jet stürzt ebenfalls ab.',2.2)}else{player.pos.y=1.7;player.onGround=true;message(exitingHelicopter?'Du bist aus dem Helikopter ausgestiegen.':'Du bist aus dem Jet ausgestiegen.');}
  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();
 }
+let miningProgress={target:null,hits:0,lastHit:0};
+let toolSwing=0;
+function miningHit(target,required,label){
+ const now=performance.now();
+ if(miningProgress.target!==target||now-miningProgress.lastHit>2200){miningProgress={target,hits:0,lastHit:0};}
+ if(now-miningProgress.lastHit<360){message('⏳ Schlag kurz abwarten …',.6);return false;}
+ miningProgress.hits++;miningProgress.lastHit=now;toolSwing=1;
+ if(miningProgress.hits<required){message(label+' · '+miningProgress.hits+'/'+required+' Schläge',.9);return false;}
+ miningProgress={target:null,hits:0,lastHit:0};return true;
+}
 function mineNearbyResource(){
  const isAxe=selectedItem==='axe'&&inventory.axe>0,isPick=selectedItem==='pickaxe'&&inventory.pickaxe>0;
  if(!isAxe&&!isPick)return false;
  let bestTree=null,bd=3.6;for(const t of harvestableTrees){if(t.harvested)continue;const d=distanceXZ(player.pos,t);if(d<bd){bd=d;bestTree=t;}}
  let bestNode=null,nd=3.8;for(const n of mineNodes){if(n.remaining<=0)continue;const d=distanceXZ(player.pos,n);if(d<nd){nd=d;bestNode=n;}}
- if(isAxe&&bestTree){bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);inventory.treeSaplings+=1+Math.floor(Math.random()*2);message('🪓 Baum gefällt: Bretter und Setzlinge gesammelt! Pflanze einen Setzling mit der Aktionstaste.');updateInventory();saveProgress();return true;}
+ if(isAxe&&bestTree){if(!miningHit(bestTree,5,'Baum fällen'))return true;bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);inventory.treeSaplings+=1+Math.floor(Math.random()*2);message('🪓 Baum gefällt: Bretter und Setzlinge gesammelt! Pflanze einen Setzling mit der Aktionstaste.');updateInventory();saveProgress();return true;}
  // Axt baut Holzzäune und Gartentore ab; Spitzhacke baut Eisentore und Steinmauern ab.
  const targetKinds=isAxe?['fence','gardenGate']:['ironGate','wall'];
  const structure=placedStructures.filter(o=>targetKinds.includes(o.kind)&&distanceXZ(player.pos,o.group.position)<4.0).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];
- if(structure){scene.remove(structure.group);const oi=solidObstacles.indexOf(structure.obstacle);if(oi>=0)solidObstacles.splice(oi,1);const si=placedStructures.indexOf(structure);if(si>=0)placedStructures.splice(si,1);const recovered={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'}[structure.kind];inventory[recovered]=(inventory[recovered]||0)+1;message((isAxe?'🪓 Holzstruktur':'⛏️ Stein/Eisen-Struktur')+' abgebaut und ins Inventar zurückgelegt!');updateInventory();saveProgress();return true;}
- if(isPick){const fence=(window.__prisonFenceSegments||[]).filter(f=>!f.removed&&distanceXZ(player.pos,f)<4.2).sort((a,b)=>distanceXZ(player.pos,a)-distanceXZ(player.pos,b))[0];if(fence){fence.removed=true;scene.remove(fence.group);const oi=solidObstacles.indexOf(fence.obs);if(oi>=0)solidObstacles.splice(oi,1);inventory.metalScrap+=3;message('⛏️ Stahlzaun abgebaut! +3 Metall.');updateInventory();saveProgress();return true;}}
+ if(structure){if(!miningHit(structure,structure.kind==='wall'?5:3,'Struktur abbauen'))return true;scene.remove(structure.group);const oi=solidObstacles.indexOf(structure.obstacle);if(oi>=0)solidObstacles.splice(oi,1);const si=placedStructures.indexOf(structure);if(si>=0)placedStructures.splice(si,1);const recovered={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'}[structure.kind];inventory[recovered]=(inventory[recovered]||0)+1;message((isAxe?'🪓 Holzstruktur':'⛏️ Stein/Eisen-Struktur')+' abgebaut und ins Inventar zurückgelegt!');updateInventory();saveProgress();return true;}
+ if(isPick){const fence=(window.__prisonFenceSegments||[]).filter(f=>!f.removed&&distanceXZ(player.pos,f)<4.2).sort((a,b)=>distanceXZ(player.pos,a)-distanceXZ(player.pos,b))[0];if(fence){if(!miningHit(fence,4,'Stahlzaun abbauen'))return true;fence.removed=true;scene.remove(fence.group);const oi=solidObstacles.indexOf(fence.obs);if(oi>=0)solidObstacles.splice(oi,1);inventory.metalScrap+=3;message('⛏️ Stahlzaun abgebaut! +3 Metall.');updateInventory();saveProgress();return true;}}
  if(isAxe&&inventory.treeSaplings>0){const x=player.pos.x-Math.sin(player.yaw)*2.2,z=player.pos.z-Math.cos(player.yaw)*2.2;if(!blockedAt(x,z,.65)&&!onRoad(x,z)){inventory.treeSaplings--;tree(x,z,.35,true);message('🌱 Setzling gepflanzt! Der Baum wächst in den nächsten 30 Sekunden.');updateInventory();saveProgress();return true;}}
- if(isPick&&bestNode){if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
+ if(isPick&&bestNode){if(!miningHit(bestNode,3,'Ressource abbauen'))return true;if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
  if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?(inventory.treeSaplings>0?'Kein Baum in Reichweite. Tippe auf AKTION, um einen Setzling zu pflanzen.':'Keine Bäume oder abbaubaren Holzzäune in Reichweite.'):'Kein Stein, Metall, Gefängnis-Stahlzaun, Eisentor oder Steinmauer in Reichweite.');return true;}
  return false;
 }
@@ -2312,13 +2333,14 @@ function drawWorldMap(){
  c.fillStyle='#17231a';c.font='bold 14px sans-serif';c.fillText('N',w-24,20);c.fillStyle='#dce5d4';c.beginPath();c.moveTo(w-20,26);c.lineTo(w-27,42);c.lineTo(w-13,42);c.closePath();c.fill();
 }
 function animate(){
+ const dt=Math.min(clock.getDelta(),.04);
   // Flugzeuge bleiben auch nach Laden/Respawn sichtbar und werden nicht versehentlich ausgeblendet.
   if(flyableJet&&!activeJet){flyableJet.visible=true;flyableJet.traverse(o=>{if(o.isMesh)o.visible=true;});}
   if(flyableHelicopter?.userData?.rotorBlades){for(const b of flyableHelicopter.userData.rotorBlades)b.rotation.y+=dt*(activeHelicopterMode?24:1.2);if(flyableHelicopter.userData.tailRotor)flyableHelicopter.userData.tailRotor.rotation.z+=dt*(activeHelicopterMode?18:1.0);}
  repairFlyableJetVisibility();
  requestAnimationFrame(animate);
  if(mapModal&&mapModal.style.display==='flex')drawWorldMap();
- const dt=Math.min(clock.getDelta(),.04);
+ if(toolSwing>0){toolSwing=Math.max(0,toolSwing-dt*4.5);handProp.rotation.x=-Math.sin((1-toolSwing)*Math.PI)*.85;handProp.rotation.z=Math.sin((1-toolSwing)*Math.PI)*.18;}else{handProp.rotation.x*=.72;handProp.rotation.z*=.72;}
  if(farmWindmillRotor)farmWindmillRotor.rotation.z+=dt*.62;
  for(const t of harvestableTrees){if(t.plantedAt&&!t.harvested){const age=(performance.now()-t.plantedAt)/30000;const size=t.plantedScale+(Math.max(0,Math.min(1,age))*.75);t.group.scale.setScalar(size);if(age>=1)t.plantedAt=0;}}
  if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);updateBuildPreview();}else if(buildPreview||buildPreviewRing){if(buildPreview)buildPreview.visible=false;if(buildPreviewRing)buildPreviewRing.visible=false;}
