@@ -967,13 +967,13 @@ function repairCar(car){
 function enterCar(car){
  if(!car.repaired||car.destroyed||car.hp<=0){message('Dieses Auto muss erst repariert werden. Stelle dich daneben und tippe auf AKTION.',2.8);return}
  activeCar=car;player.inCar=true;player.pos.set(car.group.position.x,1.7,car.group.position.z);player.yaw=car.group.rotation.y;player.vy=0;player.onGround=true;carInterior.visible=true;handProp.visible=false;handRig.visible=false;gliderVisual.visible=false;
- message('Im Auto: 500/500 Herzen · W/S fahren · A/D lenken · E aussteigen. Zombies beschädigen nur das Auto!',3.2);
+ message('Im Auto: 500/500 Herzen · W/S fahren · A/D lenken · E aussteigen. Zombies beschädigen nur das Auto!',3.2);saveProgress();
 }
 function exitCar(){
  if(!activeCar)return;
  const car=activeCar;player.pos.set(car.group.position.x+Math.sin(player.yaw)*2.1,1.7,car.group.position.z+Math.cos(player.yaw)*2.1);
  if(blockedAt(player.pos.x,player.pos.z,.42))player.pos.set(car.group.position.x-Math.sin(player.yaw)*2.1,1.7,car.group.position.z-Math.cos(player.yaw)*2.1);
- activeCar=null;player.inCar=false;carInterior.visible=false;rebuildHandProp();message('Du bist ausgestiegen.',1.2);
+ activeCar=null;player.inCar=false;carInterior.visible=false;rebuildHandProp();message('Du bist ausgestiegen.',1.2);saveProgress();
 }
 let selectedItem="medicine";
 const autoJump=false;
