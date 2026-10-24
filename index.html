@@ -1073,7 +1073,7 @@ const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=fa
 const jetStatus=document.createElement('div');jetStatus.id='jetStatus';jetStatus.style.cssText='display:none;position:fixed;left:50%;top:72px;transform:translateX(-50%);z-index:10060;background:rgba(8,17,22,.9);border:1px solid #77c6e5;border-radius:10px;padding:8px 12px;color:#fff;font:700 13px system-ui;white-space:nowrap;text-align:center;pointer-events:none';document.body.appendChild(jetStatus);
 function setWreckAppearance(group,kind){if(!group)return;group.traverse(o=>{if(o.isMesh&&o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){if(m.color)m.color.setHex(0x292d2b);if('roughness' in m)m.roughness=1;if('metalness' in m)m.metalness=0;}}});group.rotation.z=kind==='jet'?-0.16:0.035;group.rotation.x=kind==='jet'?0.08:0.025;if(kind==='jet'){group.userData.wrecked=true;}}
 function restoreWreckAppearance(group){if(!group)return;group.rotation.x=0;group.rotation.z=0;group.traverse(o=>{if(o.isMesh&&o.material){const mats=Array.isArray(o.material)?o.material:[o.material];for(const m of mats){if(m.color && m.color.getHex()===0x292d2b)m.color.setHex(0x53616a);}}});if(group.userData)delete group.userData.wrecked;}
-function updateJetStatus(){jetStatus.textContent='✈️ JET  ❤️ '+jetHealth+'/500   ⛽ '+jetFuel+'/100   '+(jetAirborne?'IN DER LUFT':jetRunDistance>=50?'STARTBEREIT':'STARTBAHN: '+Math.floor(jetRunDistance)+'/50 m');}
+function updateJetStatus(){jetStatus.textContent=(activeHelicopterMode?'🚁 HELIKOPTER':'✈️ JET')+'  ❤️ '+jetHealth+'/500   ⛽ '+jetFuel+'/100   '+(jetAirborne?'IN DER LUFT':activeHelicopterMode?'STARTBEREIT':jetRunDistance>=50?'STARTBEREIT':'STARTBAHN: '+Math.floor(jetRunDistance)+'/50 m');}
 const jetFlightControls=document.createElement('div');jetFlightControls.id='jetFlightControls';jetFlightControls.style.cssText='display:none;position:fixed;right:18px;bottom:190px;z-index:10060;gap:8px;flex-direction:column;pointer-events:auto';jetFlightControls.innerHTML='<button id="jetUpBtn" style="padding:13px 18px;border-radius:12px;background:#3c754e;color:white;font-weight:800">▲ STEIGEN</button><button id="jetDownBtn" style="padding:13px 18px;border-radius:12px;background:#76513b;color:white;font-weight:800">▼ SINKEN</button><button id="jetExitBtn" style="position:fixed;top:128px;right:18px;z-index:10061;padding:14px 18px;border:2px solid #ffd0d0;border-radius:12px;background:#b52323;color:white;font-weight:900;font-size:15px;box-shadow:0 3px 12px #0009;pointer-events:auto">✖ JET VERLASSEN</button>';document.body.appendChild(jetFlightControls);
 $('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetExitBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();exitJet();});
 function buildRailwayAndStation(){
@@ -1208,7 +1208,51 @@ function buildIndustrialAirport(){
  cube(plane,0,2.5,9.4,11,.3,3.2,planeWhite);cube(plane,0,3.8,10.2,.45,3.1,2.4,planeWhite);
  for(const x of [-2.2,2.2]){const engine=cube(plane,x,1.25,1.2,1.6,1.2,4.5,jetGrey);const wh=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.25,10),rubber);wh.rotation.z=Math.PI/2;wh.position.set(x*.65,.55,2.5);plane.add(wh);}
  // Keine feste Kollisionsbox am großen Flugzeug: Einsteigen und Starten muss möglich bleiben.
+ flyablePlane=plane;
+ // Gefängnishof: verwitterte Ruinen, Zellenreste und hohe abbaubare Stahlzäune.
+ const prisonX=-190,prisonZ=330,prisonW=58,prisonD=48;
+ cube(scene,prisonX,.08,prisonZ,prisonW,.16,prisonD,mat(0x777a75,.98),false);
+ const ruinMat=mat(0x666b68,.95), rust=mat(0x485153,.7,.55), rustDark=mat(0x333b3d,.75,.5);
+ // Teilweise eingestürzte Gefängnisblöcke und offene Zellwände.
+ for(const [x,z,w,d,h] of [[-211,316,15,8,4.8],[-174,316,12,7,3.1],[-210,345,8,12,2.5],[-174,344,13,8,4.2]]){
+   cube(scene,x,h/2,z,w,h,d,ruinMat);cube(scene,x,h+.12,z,w+.3,.24,d+.3,rustDark);
+   for(let k=-1;k<=1;k++)cube(scene,x+k*w*.23,1.35,z+d/2+.06,.12,2.7,.16,rustDark);
+   // rubble around broken wall ends
+   for(let k=0;k<4;k++){const b=cube(scene,x+(Math.random()-.5)*w,.18,z+(Math.random()-.5)*d,.45+Math.random()*.65,.3+Math.random()*.35,.4+Math.random()*.55,ruinMat);b.rotation.y=Math.random()*.8;}
+ }
+ // A small guard booth and a damaged watchtower inside the yard.
+ cube(scene,prisonX-23,1.5,prisonZ-19,5,3,5,ruinMat);cube(scene,prisonX-23,3.1,prisonZ-19,5.6,.25,5.6,rustDark);
+ cube(scene,prisonX+23,4.5,prisonZ+17,3.5,9,3.5,ruinMat);cube(scene,prisonX+23,9.2,prisonZ+17,4.2,.35,4.2,rustDark);
+ const prisonFences=[];
+ function prisonFenceSegment(x1,z1,x2,z2,gate=false){
+   const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),g=new THREE.Group();g.position.set((x1+x2)/2,0,(z1+z2)/2);g.rotation.y=Math.atan2(dx,dz);scene.add(g);
+   const count=Math.max(2,Math.floor(len/1.7));
+   for(let i=0;i<=count;i++){const x=-len/2+len*i/count;cube(g,x,2.35,0,.095,4.7,.095,rust);if(i<count){for(const y of [0.35,1.4,2.45,3.5,4.55])cube(g,x+len/count/2,y,0,len/count-.04,.075,.075,rustDark)}}
+   // Inward-facing angled anti-climb spikes.
+   for(let i=0;i<count;i+=2){const x=-len/2+len*(i+.5)/count;const spike=cube(g,x,4.92,-.05,.055,.55,.055,rust);spike.rotation.z=-.28;}
+   const obs=addObstacle((x1+x2)/2,(z1+z2)/2,Math.abs(dx)>Math.abs(dz)?len/2:.18,Math.abs(dz)>=Math.abs(dx)?len/2:.18);
+   prisonFences.push({group:g,x:(x1+x2)/2,z:(z1+z2)/2,obs,removed:false});
+ }
+ // Front side is split to leave an obvious gate opening for entry.
+ prisonFenceSegment(prisonX-prisonW/2,prisonZ-prisonD/2,prisonX-5,prisonZ-prisonD/2);
+ prisonFenceSegment(prisonX+5,prisonZ-prisonD/2,prisonX+prisonW/2,prisonZ-prisonD/2);
+ prisonFenceSegment(prisonX-prisonW/2,prisonZ+prisonD/2,prisonX+prisonW/2,prisonZ+prisonD/2);
+ prisonFenceSegment(prisonX-prisonW/2,prisonZ-prisonD/2,prisonX-prisonW/2,prisonZ+prisonD/2);
+ prisonFenceSegment(prisonX+prisonW/2,prisonZ-prisonD/2,prisonX+prisonW/2,prisonZ+prisonD/2);
+ // Helipad and a detailed flyable helicopter, parked inside the prison yard.
+ cube(scene,prisonX+8,.035,prisonZ-5,15,.07,13,mat(0x4b514f,.9),false);
+ const H= new THREE.Group();H.position.set(prisonX+8,.35,prisonZ-5);scene.add(H);flyableHelicopter=H;
+ const heliBody=mat(0x4d5c4a,.5,.38),heliDark=mat(0x252d2c,.65,.4),heliGlass=mat(0x263d43,.22,.12),heliMetal=mat(0x9aa3a1,.6,.35);
+ const cabin=new THREE.Mesh(new THREE.SphereGeometry(1,12,9),heliBody);cabin.scale.set(1.35,.8,2.15);cabin.position.y=1.45;H.add(cabin);
+ cube(H,0,1.55,-1.65,1.75,.95,.72,heliGlass);cube(H,0,1.48,.05,1.75,.72,1.05,heliBody);
+ for(const side of [-1,1]){cube(H,side*.82,1.52,-.9,.06,.7,.85,heliGlass);cube(H,side*.86,1.3,.2,.08,.06,1.35,heliDark);const skid=cube(H,side*.85,.32,.15,.1,.1,4.4,heliDark);skid.rotation.y=.03;cube(H,side*.85,.62,-.4,.1,.7,.1,heliMetal);cube(H,side*.85,.62,.9,.1,.7,.1,heliMetal)}
+ const tail=cube(H,0,1.55,3.1,.34,.34,3.5,heliBody);tail.rotation.x=-.06;const fin=cube(H,0,2.15,4.35,.16,1.35,.85,heliBody);fin.rotation.x=-.15;cube(H,0,1.75,4.35,2.2,.12,.18,heliMetal);
+ const rotorHub=cube(H,0,2.42,.05,.35,.25,.35,heliDark);const rotorBlades=[];for(let i=0;i<4;i++){const blade=cube(H,0,2.55,.05,8.5,.055,.22,heliDark);blade.rotation.y=i*Math.PI/2;rotorBlades.push(blade)}H.userData.rotorBlades=rotorBlades;
+ const tailRotor=new THREE.Group();tailRotor.position.set(0,2.05,4.5);H.add(tailRotor);for(let i=0;i<4;i++){const b=cube(tailRotor,0,0,0,.12,1.35,.07,heliMetal);b.rotation.z=i*Math.PI/2}H.userData.tailRotor=tailRotor;
+ // Retain the fence list for the pickaxe interaction handler.
+ window.__prisonFenceSegments=prisonFences;
 }
+let flyablePlane=null,flyableHelicopter=null,activeHelicopterMode=false,helicopterFuel=100,helicopterHealth=500;
 buildIndustrialAirport();
 // Sichtbarkeits-Schutz: Das große Flugzeug bleibt ein echtes, deckend gerendertes 3D-Modell.
 function repairFlyableJetVisibility(){
@@ -1290,7 +1334,7 @@ const weaponStats = {
  Sturmgewehr:{damage:38,cooldown:.16,mag:24,icon:'🟩',range:58},
  Schrotblaster:{damage:80,cooldown:.72,mag:6,icon:'💥',range:22},
  Präzisionsgewehr:{damage:100,cooldown:.85,mag:5,icon:'🎯',range:85},
- Pistole:{damage:24,cooldown:.3,mag:15,icon:'🔸',range:35}, Maschinenpistole:{damage:22,cooldown:.105,mag:30,icon:'🟦',range:38}, Karabiner:{damage:34,cooldown:.22,mag:20,icon:'🟫',range:52}, LeichtesMG:{damage:31,cooldown:.11,mag:45,icon:'🟨',range:55}, Jagdgewehr:{damage:65,cooldown:.62,mag:7,icon:'🏹',range:70}, Doppelflinte:{damage:92,cooldown:.9,mag:2,icon:'💥',range:19}, Revolver:{damage:48,cooldown:.48,mag:6,icon:'🟠',range:43}, Burstgewehr:{damage:42,cooldown:.32,mag:21,icon:'🔷',range:57}, SturmgewehrMk2:{damage:44,cooldown:.145,mag:30,icon:'🟩',range:62}, KompaktSMG:{damage:19,cooldown:.09,mag:32,icon:'🔹',range:34}, TaktischeFlinte:{damage:72,cooldown:.5,mag:8,icon:'🟪',range:27}, Scharfschützengewehr:{damage:125,cooldown:1.05,mag:4,icon:'🎯',range:100}, Raketenwerfer:{damage:145,cooldown:1.35,mag:3,icon:'🚀',range:92,kind:'rocket'}, Armbrust:{damage:78,cooldown:.8,mag:5,icon:'🏹',range:60,kind:'arrow'}, Bogen:{damage:58,cooldown:.65,mag:1,icon:'🏹',range:48,kind:'arrow'}, Nagelpistole:{damage:16,cooldown:.14,mag:25,icon:'🔩',range:24}, Granatwerfer:{damage:110,cooldown:1.2,mag:3,icon:'🟧',range:48,kind:'grenade'}, Plasmawerfer:{damage:90,cooldown:.42,mag:8,icon:'🟣',range:65},
+ Pistole:{damage:24,cooldown:.3,mag:15,icon:'🔸',range:35}, Maschinenpistole:{damage:22,cooldown:.105,mag:30,icon:'🟦',range:38}, Karabiner:{damage:34,cooldown:.22,mag:20,icon:'🟫',range:52}, LeichtesMG:{damage:31,cooldown:.11,mag:45,icon:'🟨',range:55}, Minigun:{damage:18,cooldown:.055,mag:180,icon:'🔫',range:58,price:8500}, Jagdgewehr:{damage:65,cooldown:.62,mag:7,icon:'🏹',range:70}, Doppelflinte:{damage:92,cooldown:.9,mag:2,icon:'💥',range:19}, Revolver:{damage:48,cooldown:.48,mag:6,icon:'🟠',range:43}, Burstgewehr:{damage:42,cooldown:.32,mag:21,icon:'🔷',range:57}, SturmgewehrMk2:{damage:44,cooldown:.145,mag:30,icon:'🟩',range:62}, KompaktSMG:{damage:19,cooldown:.09,mag:32,icon:'🔹',range:34}, TaktischeFlinte:{damage:72,cooldown:.5,mag:8,icon:'🟪',range:27}, Scharfschützengewehr:{damage:125,cooldown:1.05,mag:4,icon:'🎯',range:100}, Raketenwerfer:{damage:145,cooldown:1.35,mag:3,icon:'🚀',range:92,kind:'rocket'}, Armbrust:{damage:78,cooldown:.8,mag:5,icon:'🏹',range:60,kind:'arrow'}, Bogen:{damage:58,cooldown:.65,mag:1,icon:'🏹',range:48,kind:'arrow'}, Nagelpistole:{damage:16,cooldown:.14,mag:25,icon:'🔩',range:24}, Granatwerfer:{damage:110,cooldown:1.2,mag:3,icon:'🟧',range:48,kind:'grenade'}, Plasmawerfer:{damage:90,cooldown:.42,mag:8,icon:'🟣',range:65},
  Schockpistole:{damage:12,cooldown:.38,mag:14,icon:'⚡',range:34,kind:'shock'},
  PlasmaPistole:{damage:38,cooldown:.24,mag:20,icon:'🟣',range:48,kind:'plasma'},
  Laserkarabiner:{damage:42,cooldown:.2,mag:24,icon:'🟢',range:68,kind:'greenlaser'},
@@ -1391,6 +1435,7 @@ function rebuildHandProp(){
  }else if(id.startsWith('weapon:')){
    handRig.visible=true;handProp.visible=false;
    const w=id.slice(7), st=weaponStats[w]||weaponStats.Blaster;
+   if(w==='Minigun'){const dark=mat(0x252b2c,.6,.45),steel=mat(0x7e898a,.65,.35),grip=mat(0x343b3a,.5,.45);cube(dynamicGun,0,.03,-.1,.32,.17,.38,dark);cube(dynamicGun,0,.11,-.27,.26,.12,.16,steel);for(let i=0;i<6;i++){const b=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,.48,8),steel);b.rotation.x=Math.PI/2;b.position.set((i-2.5)*.055,.07,-.55);dynamicGun.add(b)}cube(dynamicGun,0,-.14,-.04,.11,.23,.12,grip);cube(dynamicGun,0,.17,-.08,.19,.045,.17,steel);cube(dynamicGun,.19,.03,-.06,.06,.11,.2,dark);return;}
    if(st.kind==='melee'||w==='Wurfmesser'){
      // Purpose-built 3D melee silhouettes: handle plus blade/head, never the generic gun shape.
      const wood=mat(w==='Elektroschlagstock'?0x252d35:0x765033,.35,.55), metal=mat(0xb7c3c8,.65,.28), dark=mat(0x252a2a,.35,.6), glow=mat(0x43bfff,.2,.25);
@@ -1701,18 +1746,20 @@ function nearbyCarForRefuel(){
 $('refuelBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const car=nearbyCarForRefuel();if(!car){message('Stelle dich neben ein Auto.');return}if(inventory.gasCanister<=0){message('Du brauchst einen Benzinkanister.');return}if(car.fuel>=100){message('Der Tank ist bereits voll.');return}inventory.gasCanister--;car.fuel=Math.min(100,car.fuel+25);message('Benzin aufgefüllt: '+Math.ceil(car.fuel)+' / 100. Kanister geleert.',2.2);updateInventory();saveProgress();});
 function exitJet(){
  if(!activeJet)return;
+ const exitingHelicopter=activeHelicopterMode;
+ const exitingAircraft=flyableJet;
  // Capture whether the aircraft was actually airborne before leaving the controls.
  const wasAirborne=jetAirborne||player.pos.y>2.5;
  activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
- if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;repairFlyableJetVisibility();}
- const leftInAir=wasAirborne||(flyableJet&&flyableJet.position.y>0.55);jetFalling=!!(leftInAir&&flyableJet&&jetHealth>0);jetFallVelocity=jetFalling?4.5:0;jetAirborne=false;if(jetFalling)saveProgress();
+ if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;if(exitingHelicopter){helicopterFuel=jetFuel;helicopterHealth=jetHealth;flyableJet=flyablePlane;activeHelicopterMode=false;}repairFlyableJetVisibility();}
+ const leftInAir=wasAirborne||(exitingAircraft&&exitingAircraft.position.y>0.55);jetFalling=!!(!exitingHelicopter&&leftInAir&&exitingAircraft&&jetHealth>0);jetFallVelocity=jetFalling?4.5:0;jetAirborne=false;if(jetFalling)saveProgress();
  // Set the player beside the aircraft instead of inside its collision volume.
  const sideX=Math.cos(player.yaw)*3.4,sideZ=-Math.sin(player.yaw)*3.4;
  let ex=player.pos.x+sideX,ez=player.pos.z+sideZ;
  if(blockedAt(ex,ez,.45)){ex=player.pos.x-sideX;ez=player.pos.z-sideZ;}
  if(blockedAt(ex,ez,.45)){ex=player.pos.x;ez=player.pos.z;}
  player.pos.x=ex;player.pos.z=ez;player.vy=0;player.onGround=player.pos.y<=2.5;
- if(leftInAir){player.vy=-1;message('Du bist aus dem Jet gesprungen! Du fällst jetzt herunter – der Jet stürzt ebenfalls ab.',2.2)}else{player.pos.y=1.7;player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');}
+ if(leftInAir){player.vy=-1;message(exitingHelicopter?'Du bist aus dem Helikopter gesprungen! Er sinkt ebenfalls ab.':'Du bist aus dem Jet gesprungen! Du fällst jetzt herunter – der Jet stürzt ebenfalls ab.',2.2)}else{player.pos.y=1.7;player.onGround=true;message(exitingHelicopter?'Du bist aus dem Helikopter ausgestiegen.':'Du bist aus dem Jet ausgestiegen.');}
  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();
 }
 function mineNearbyResource(){
@@ -1725,9 +1772,10 @@ function mineNearbyResource(){
  const targetKinds=isAxe?['fence','gardenGate']:['ironGate','wall'];
  const structure=placedStructures.filter(o=>targetKinds.includes(o.kind)&&distanceXZ(player.pos,o.group.position)<4.0).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];
  if(structure){scene.remove(structure.group);const oi=solidObstacles.indexOf(structure.obstacle);if(oi>=0)solidObstacles.splice(oi,1);const si=placedStructures.indexOf(structure);if(si>=0)placedStructures.splice(si,1);const recovered={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'}[structure.kind];inventory[recovered]=(inventory[recovered]||0)+1;message((isAxe?'🪓 Holzstruktur':'⛏️ Stein/Eisen-Struktur')+' abgebaut und ins Inventar zurückgelegt!');updateInventory();saveProgress();return true;}
+ if(isPick){const fence=(window.__prisonFenceSegments||[]).filter(f=>!f.removed&&distanceXZ(player.pos,f)<4.2).sort((a,b)=>distanceXZ(player.pos,a)-distanceXZ(player.pos,b))[0];if(fence){fence.removed=true;scene.remove(fence.group);const oi=solidObstacles.indexOf(fence.obs);if(oi>=0)solidObstacles.splice(oi,1);inventory.metalScrap+=3;message('⛏️ Stahlzaun abgebaut! +3 Metall.');updateInventory();saveProgress();return true;}}
  if(isAxe&&inventory.treeSaplings>0){const x=player.pos.x-Math.sin(player.yaw)*2.2,z=player.pos.z-Math.cos(player.yaw)*2.2;if(!blockedAt(x,z,.65)&&!onRoad(x,z)){inventory.treeSaplings--;tree(x,z,.35,true);message('🌱 Setzling gepflanzt! Der Baum wächst in den nächsten 30 Sekunden.');updateInventory();saveProgress();return true;}}
  if(isPick&&bestNode){if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
- if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?(inventory.treeSaplings>0?'Kein Baum in Reichweite. Tippe auf AKTION, um einen Setzling zu pflanzen.':'Keine Bäume oder abbaubaren Holzzäune in Reichweite.'):'Kein Stein, Metall, Eisentor oder Steinmauer in Reichweite.');return true;}
+ if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?(inventory.treeSaplings>0?'Kein Baum in Reichweite. Tippe auf AKTION, um einen Setzling zu pflanzen.':'Keine Bäume oder abbaubaren Holzzäune in Reichweite.'):'Kein Stein, Metall, Gefängnis-Stahlzaun, Eisentor oder Steinmauer in Reichweite.');return true;}
  return false;
 }
 function interact(){
@@ -1738,11 +1786,12 @@ function interact(){
  if(mineNearbyResource())return;
  if(placeSelectedStructure())return;
  const nearbyPlacedGate=placedStructures.find(o=>['ironGate','gardenGate'].includes(o.kind)&&distanceXZ(player.pos,o.group.position)<3.8);if(nearbyPlacedGate){togglePlacedGate(nearbyPlacedGate);return}
+ if(flyableHelicopter&&!activeJet){const hw=new THREE.Vector3();flyableHelicopter.getWorldPosition(hw);if(distanceXZ(player.pos,hw)<7&&Math.abs(player.pos.y-hw.y)<5){flyableJet=flyableHelicopter;activeHelicopterMode=true;jetFuel=helicopterFuel;jetHealth=helicopterHealth;jetRunDistance=50;jetAirborne=false;jetFalling=false;jetFallVelocity=0;jetFuelTimer=0;scene.attach(flyableJet);activeJet=true;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('🚁 Helikopter gestartet! Mit W/A/S/D fliegen, ▲ steigen, ▼ sinken. Du kannst senkrecht abheben.',4);return}}
  if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(jetHealth<=0){if(inventory.metalScrap<100){message('🔧 Jet zerstört! Du brauchst 100 Metall zur Reparatur. Du hast '+inventory.metalScrap+'.',3);return}inventory.metalScrap-=100;jetHealth=500;jetFuel=Math.max(jetFuel,25);jetFalling=false;jetFallVelocity=0;jetAirborne=false;jetRunDistance=0;restoreWreckAppearance(flyableJet);flyableJet.position.y=0.45;updateInventory();updateJetStatus();message('🔧 Jet repariert! 500 Leben, 100 Metall verbraucht.');saveProgress();return}if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Flugzeug bereit! Erst mit W auf der Startbahn beschleunigen (50 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
  if(playerInsideTrain){playerInsideTrain=null;player.pos.set(355,1.7,48);camera.position.copy(player.pos);message('Du steigst aus dem Zug.');return}
  const nearbyWagon=trainWagons.find(w=>Math.abs(player.pos.z-w.z)<6.3&&Math.abs(player.pos.x-w.x)<3.4);if(nearbyWagon){playerInsideTrain=nearbyWagon;player.pos.set(nearbyWagon.x,1.7,nearbyWagon.z);camera.position.copy(player.pos);message('Du bist im Waggon. Der Zug ist nicht fahrbar.');return}
  let nearestTank=null,tankDist=5.2;for(const t of tanks){const d=distanceXZ(player.pos,t.group.position);if(d<tankDist){nearestTank=t;tankDist=d}}if(nearestTank){if(nearestTank.hp<=0||nearestTank.destroyed){if(inventory.metalScrap<100){message('Panzer zerstört! Du brauchst 100 Metall zur Reparatur.',2.5);return}inventory.metalScrap-=100;nearestTank.hp=nearestTank.maxHp;nearestTank.destroyed=false;restoreWreckAppearance(nearestTank.group);updateInventory();saveProgress();message('Panzer mit 100 Metall repariert!',2);return}enterTank(nearestTank);return}
- const lootCrate=militaryLootCrates.find(c=>!c.opened&&distanceXZ(player.pos,c.group.position)<3.2);if(lootCrate){lootCrate.opened=true;lootCrate.group.visible=false;const rocketCount=3+Math.floor(Math.random()*5);inventory.rockets+=rocketCount;const grenadeCount=1+Math.floor(Math.random()*3);inventory.grenades+=grenadeCount;inventory.medicine+=2+Math.floor(Math.random()*4);inventory.ammo+=45+Math.floor(Math.random()*81);inventory.specialAmmo+=12+Math.floor(Math.random()*25);inventory.food+=2;inventory.water+=2;for(const id of ['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables'])inventory[id]+=(Math.random()<.55?1:0);inventory.metalScrap+=80+Math.floor(Math.random()*121);player.money+=150+Math.floor(Math.random()*451);const weaponPool=['Schrotflinte','Sturmgewehr','Scharfschützengewehr','Raketenwerfer'];const foundWeapon=weaponPool[Math.floor(Math.random()*weaponPool.length)];if(Math.random()<.8)inventory.weapons[foundWeapon]=(inventory.weapons[foundWeapon]||0)+1;message('Militärkiste: Waffe '+(inventory.weapons[foundWeapon]?'· '+foundWeapon+' · ':'')+'+'+grenadeCount+' Granaten, +'+rocketCount+' Raketen, Munition und Vorräte!',3);updateInventory();updateHUD();saveProgress();return}
+ const lootCrate=militaryLootCrates.find(c=>!c.opened&&distanceXZ(player.pos,c.group.position)<3.2);if(lootCrate){lootCrate.opened=true;lootCrate.group.visible=false;const rocketCount=3+Math.floor(Math.random()*5);inventory.rockets+=rocketCount;const grenadeCount=1+Math.floor(Math.random()*3);inventory.grenades+=grenadeCount;inventory.medicine+=2+Math.floor(Math.random()*4);inventory.ammo+=45+Math.floor(Math.random()*81);inventory.specialAmmo+=12+Math.floor(Math.random()*25);inventory.food+=2;inventory.water+=2;for(const id of ['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables'])inventory[id]+=(Math.random()<.55?1:0);inventory.metalScrap+=80+Math.floor(Math.random()*121);player.money+=150+Math.floor(Math.random()*451);const weaponPool=['Schrotflinte','Sturmgewehr','Scharfschützengewehr','Raketenwerfer','Minigun'];const foundWeapon=weaponPool[Math.floor(Math.random()*weaponPool.length)];if(Math.random()<.8)inventory.weapons[foundWeapon]=(inventory.weapons[foundWeapon]||0)+1;message('Militärkiste: Waffe '+(inventory.weapons[foundWeapon]?'· '+foundWeapon+' · ':'')+'+'+grenadeCount+' Granaten, +'+rocketCount+' Raketen, Munition und Vorräte!',3);updateInventory();updateHUD();saveProgress();return}
  let closestCar=null,carDistance=3.4;
  for(const car of cars){const d=distanceXZ(player.pos,car.group.position);if(d<carDistance){closestCar=car;carDistance=d}}
  if(closestCar){
@@ -2265,6 +2314,7 @@ function drawWorldMap(){
 function animate(){
   // Flugzeuge bleiben auch nach Laden/Respawn sichtbar und werden nicht versehentlich ausgeblendet.
   if(flyableJet&&!activeJet){flyableJet.visible=true;flyableJet.traverse(o=>{if(o.isMesh)o.visible=true;});}
+  if(flyableHelicopter?.userData?.rotorBlades){for(const b of flyableHelicopter.userData.rotorBlades)b.rotation.y+=dt*(activeHelicopterMode?24:1.2);if(flyableHelicopter.userData.tailRotor)flyableHelicopter.userData.tailRotor.rotation.z+=dt*(activeHelicopterMode?18:1.0);}
  repairFlyableJetVisibility();
  requestAnimationFrame(animate);
  if(mapModal&&mapModal.style.display==='flex')drawWorldMap();
@@ -2388,7 +2438,7 @@ function animate(){
     const targetJetPitch=jetAirborne?(lift>0?0.42:lift<0?-0.32:0.02):0;player.pitch+=(targetJetPitch-player.pitch)*Math.min(1,dt*2.8);
     // Taxi on the runway first; takeoff is locked until the jet has rolled 18 metres.
     const wasX=player.pos.x,wasZ=player.pos.z;
-    const jetSpeed=throttle>=0?36:15;
+    const jetSpeed=activeHelicopterMode?(throttle>=0?18:10):(throttle>=0?36:15);
     const nextX=Math.max(-390,Math.min(390,wasX-Math.sin(player.yaw)*throttle*jetSpeed*dt));
     const nextZ=Math.max(-390,Math.min(390,wasZ-Math.cos(player.yaw)*throttle*jetSpeed*dt));
     // Aircraft collision: the jet is wide, so test both axes and slide along obstacles.
@@ -2398,14 +2448,14 @@ function animate(){
     if(Math.abs(throttle)>.15&&!jetMoved){jetHealth=Math.max(0,jetHealth-8*dt);if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');message('💥 Jet durch Zusammenstoß zerstört!',2);exitJet();}}
     const travelled=Math.hypot(player.pos.x-wasX,player.pos.z-wasZ);
     if(!jetAirborne&&throttle>.1)jetRunDistance+=travelled;
-    if(!jetAirborne&&jetRunDistance>=50&&lift>.1&&throttle>.05&&jetFuel>0&&jetHealth>0){jetAirborne=true;message('✈️ Abgehoben! Jetzt kannst du steigen und sinken.',2.4)}
+    if(!jetAirborne&&((activeHelicopterMode&&lift>.1)||(jetRunDistance>=50&&lift>.1&&throttle>.05))&&jetFuel>0&&jetHealth>0){jetAirborne=true;message(activeHelicopterMode?'🚁 Helikopter hebt senkrecht ab!':'✈️ Abgehoben! Jetzt kannst du steigen und sinken.',2.4)}
     if(!jetAirborne&&jetFuel<=0&&lift>.1)message('⛽ Kein Benzin mehr! Steig aus, wähle einen Benzinkanister im Inventar und tippe neben dem Jet auf AKTION.',1.2);
     if(jetAirborne){
       jetFuelTimer+=dt;
       while(jetFuelTimer>=5&&jetFuel>0){jetFuel--;jetFuelTimer-=5;}
       // Keep the vertical speed in this scope so landing checks cannot throw a ReferenceError.
-      let vertical=lift>0?12:lift<0?-8:-2.2;
-      if(jetFuel<=0){player.vy-=9.8*dt;vertical=player.vy;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
+      let vertical=lift>0?(activeHelicopterMode?8:12):lift<0?(activeHelicopterMode?-6:-8):(activeHelicopterMode?0:-2.2);
+      if(jetFuel<=0){player.vy-=9.8*dt;vertical=player.vy;player.pos.y+=player.vy*dt;message(activeHelicopterMode?'⛽ Helikoptertank leer! Er stürzt ab!':'⛽ Tank leer! Der Jet stürzt ab!',1.4);}
       else {player.vy=vertical;player.pos.y+=vertical*dt;}
       if(player.pos.y<=2.4){
         const landingSpeed=Number.isFinite(vertical)?Math.abs(vertical):2.2;
@@ -2622,7 +2672,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?(inventory.treeSaplings>0?'🪓 HOLZ / ZAUN ABB AUEN · 🌱 SETZLING PFLANZEN':'🪓 HOLZ / ZAUN / GARTENTOR ABBAUEN'):(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL / EISENTOR / MAUER ABB AUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
+  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?(inventory.treeSaplings>0?'🪓 HOLZ / ZAUN ABB AUEN · 🌱 SETZLING PFLANZEN':'🪓 HOLZ / ZAUN / GARTENTOR ABBAUEN'):(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL / STAHLZAUN / EISENTOR / MAUER ABBAUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
