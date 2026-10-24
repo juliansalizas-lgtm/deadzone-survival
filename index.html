@@ -1352,7 +1352,28 @@ function rebuildHandProp(){
    const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.065,.075,.23,12),mat(0x328fca,.22,.22));bottle.position.set(0,.015,-.035);handProp.add(bottle);
    const neck=new THREE.Mesh(new THREE.CylinderGeometry(.028,.035,.06,10),mat(0x9bc6d4));neck.position.set(0,.16,-.035);handProp.add(neck);
    cube(handProp,0,.2,-.035,.065,.035,.065,mat(0xd8d5bd));cube(handProp,0,.015,.04,.08,.12,.012,mat(0x9de3ef,.2,.1));
- }else if(id==='lantern'){
+ }else if(['cola','fanta','sprite'].includes(id)){
+   // 3D-Getränkedose mit eigenem Markenfarbton und Deckel.
+   const drinkColor=id==='cola'?0x7a2823:id==='fanta'?0xf07819:0x45b84d;
+   const can=new THREE.Mesh(new THREE.CylinderGeometry(.072,.072,.22,14),mat(drinkColor,.32,.22));can.position.set(0,.015,-.035);handProp.add(can);
+   const top=new THREE.Mesh(new THREE.CylinderGeometry(.068,.068,.014,14),mat(0xb9c2c2,.35,.7));top.position.set(0,.132,-.035);handProp.add(top);
+   cube(handProp,0,.14,-.035,.035,.008,.025,mat(0x454b4a,.4,.65));
+   cube(handProp,0,.015,-.108,.085,.07,.012,mat(id==='cola'?0xf0e5cf:id==='fanta'?0xffd34c:0xe8f3e7,.5,0));
+}else if(['apple','potato','meat','vegetables'].includes(id)){
+   if(id==='apple'){
+    const fruit=new THREE.Mesh(new THREE.SphereGeometry(.105,12,10),mat(0xc52f35));fruit.scale.set(1,.94,.92);fruit.position.set(0,.025,-.035);handProp.add(fruit);cube(handProp,0,.12,-.035,.035,.075,.035,mat(0x64864a));
+   }else if(id==='potato'){
+    const food=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),mat(0x9a7447));food.scale.set(1.25,.72,.8);food.position.set(0,.015,-.035);food.rotation.z=.25;handProp.add(food);for(let i=0;i<3;i++)cube(handProp,-.045+i*.04,.035,-.12,.018,.012,.008,mat(0x55402e));
+   }else if(id==='meat'){
+    const meat=new THREE.Mesh(new THREE.SphereGeometry(.095,10,8),mat(0x9d453d));meat.scale.set(1.1,.75,.75);meat.position.set(0,.02,-.035);handProp.add(meat);cube(handProp,.015,.07,-.035,.07,.025,.05,mat(0xe4d7c2));
+   }else{
+    const veg=new THREE.Mesh(new THREE.SphereGeometry(.09,10,8),mat(0x4f913e));veg.scale.set(1,.8,.9);veg.position.set(0,.015,-.035);handProp.add(veg);for(let i=0;i<3;i++){const leafMesh=cube(handProp,(i-1)*.045,.09,-.035,.055,.07,.025,mat(i===1?0x73b94d:0x397a32));leafMesh.rotation.z=(i-1)*.35;}
+   }
+}else if(['beanCan','soupCan'].includes(id)){
+   const canColor=id==='beanCan'?0x55784b:0xb5a05a;cube(handProp,0,.015,-.035,.15,.22,.13,mat(canColor,.38,.25));
+   const lid=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.012,12),mat(0xb7beb8,.35,.65));lid.position.set(0,.13,-.035);handProp.add(lid);
+   cube(handProp,0,.015,-.105,.11,.09,.012,mat(id==='beanCan'?0xd9d6b7:0xe2d6aa));
+}else if(id==='lantern'){
    // Show a small placeholder in the main hand; the actual lantern is toggled separately.
    cube(handProp,0,.02,-.03,.16,.23,.12,mat(0x343b3a,.45,.35));cube(handProp,0,.02,-.097,.11,.15,.025,mat(0xffd88a,.25,.1));cube(handProp,0,.15,-.03,.18,.035,.14,mat(0x202522));cube(handProp,0,-.13,-.03,.12,.035,.1,mat(0x202522));
  }else if(id==='medicine'){
@@ -1803,6 +1824,21 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
    if(w==='Armbrust'){cube(g,-.18,.2,-.08,.42,.055,.06,M(0x6d4932));cube(g,0,.22,-.08,.055,.07,.45,M(0x252b28));cube(g,0,.25,-.08,.025,.025,.58,M(0x9ba69d));}if(laser||shock||w==='Laserpistole')cube(g,0,.19,-.04,.08,.035,.15,M(laser?0x35ff56:shock?0x3b9cff:0xff36d5));
  }else if(item==='arrows'){for(let i=0;i<Math.min(count,4);i++){const a=cube(g,(i-1.5)*.09,.15,0,.025,.025,.48,M(0xb7b9a8));a.rotation.y=.08*i;cube(g,(i-1.5)*.09,.18,-.2,.09,.025,.08,M(0x7a8c5c));}}else if(item==='food'){
    const apple=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),M(0xc52f35));apple.position.y=.18;apple.scale.set(1,.92,.9);g.add(apple);cube(g,0,.33,0,.04,.09,.04,M(0x64864a));cube(g,.05,.35,0,.09,.025,.045,M(0x6e9a43));
+ }else if(['cola','fanta','sprite'].includes(item)){
+   const drinkColor=item==='cola'?0x7a2823:item==='fanta'?0xf07819:0x45b84d;
+   const can=new THREE.Mesh(new THREE.CylinderGeometry(.09,.09,.27,14),M(drinkColor));can.position.y=.2;g.add(can);
+   const top=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.016,14),M(0xb9c2c2));top.position.y=.345;g.add(top);
+   cube(g,0,.2,.096,.105,.085,.012,M(item==='cola'?0xf0e5cf:item==='fanta'?0xffd34c:0xe8f3e7));
+ }else if(item==='apple'){
+   const fruit=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),M(0xc52f35));fruit.position.y=.18;fruit.scale.set(1,.92,.9);g.add(fruit);cube(g,0,.33,0,.04,.09,.04,M(0x64864a));
+ }else if(item==='potato'){
+   const food=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),M(0x9a7447));food.position.y=.17;food.scale.set(1.3,.72,.82);food.rotation.z=.25;g.add(food);for(let i=0;i<3;i++)cube(g,-.06+i*.06,.2,-.105,.025,.016,.01,M(0x55402e));
+ }else if(item==='beanCan'||item==='soupCan'){
+   const canColor=item==='beanCan'?0x55784b:0xb5a05a;cube(g,0,.2,0,.21,.32,.18,M(canColor));cube(g,0,.37,0,.19,.025,.17,M(0xb7beb8));cube(g,0,.2,.095,.15,.12,.015,M(item==='beanCan'?0xd9d6b7:0xe2d6aa));
+ }else if(item==='meat'){
+   const meat=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),M(0x9d453d));meat.position.y=.18;meat.scale.set(1.1,.75,.75);g.add(meat);cube(g,.02,.25,0,.11,.035,.07,M(0xe4d7c2));
+ }else if(item==='vegetables'){
+   const veg=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),M(0x4f913e));veg.position.y=.15;veg.scale.set(1,.8,.9);g.add(veg);for(let i=0;i<3;i++){const leafMesh=cube(g,(i-1)*.07,.25,0,.08,.11,.04,M(i===1?0x73b94d:0x397a32));leafMesh.rotation.z=(i-1)*.35;}
  }else if(item==='gasCanister'){
    const canmat=M(0xb7a62e);cube(g,0,.22,0,.25,.36,.16,canmat);cube(g,0,.43,0,.13,.07,.13,M(0x33352d));cube(g,0,.47,-.015,.11,.035,.08,M(0x20231e));cube(g,0,.22,.085,.12,.12,.018,M(0xe3d9a0));
  }else if(item==='water'){
@@ -2227,6 +2263,8 @@ function drawWorldMap(){
  c.fillStyle='#17231a';c.font='bold 14px sans-serif';c.fillText('N',w-24,20);c.fillStyle='#dce5d4';c.beginPath();c.moveTo(w-20,26);c.lineTo(w-27,42);c.lineTo(w-13,42);c.closePath();c.fill();
 }
 function animate(){
+  // Flugzeuge bleiben auch nach Laden/Respawn sichtbar und werden nicht versehentlich ausgeblendet.
+  if(flyableJet&&!activeJet){flyableJet.visible=true;flyableJet.traverse(o=>{if(o.isMesh)o.visible=true;});}
  repairFlyableJetVisibility();
  requestAnimationFrame(animate);
  if(mapModal&&mapModal.style.display==='flex')drawWorldMap();
@@ -2510,7 +2548,7 @@ function animate(){
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
-   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=!player.inCar&&sneaking&&(player.noise||0)<=0&&d>3.2;let target=player.inCar&&activeCar?activeCar.group.position:(playerHidden?null:player.pos),nearest=playerHidden?Infinity:d;
+   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=!player.inCar&&sneaking&&(player.noise||0)<=0&&d>3.2;const playerDetected=d<=25&&!playerHidden;let target=playerDetected?(player.inCar&&activeCar?activeCar.group.position:player.pos):null,nearest=playerDetected?d:Infinity;
    let targetAlly=null; if(soldiersEnabled)for(const a of allies){if(a.dead)continue;const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position;targetAlly=a}}
    if(!target)continue;
    // Zombies können einer erhöhten Beute über eine nahe Außenleiter folgen.
