@@ -32,6 +32,8 @@ button{border:1px solid #ffffff55;background:rgba(24,39,31,.92);color:#fff;borde
 #lookArea{position:absolute;right:0;top:0;width:58%;height:75%;pointer-events:auto;touch-action:none}
 #mobileActions{position:absolute;right:20px;bottom:26px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
 #mobileActions button{width:116px;min-height:44px;background:#17251fe8;font-size:12px}#sneakBtn.active{background:#7b6330;border-color:#ffe36a;box-shadow:0 0 0 2px #ffe36a55}
+#spawnTeleportBtn{position:fixed;right:12px;top:42%;transform:translateY(-50%);z-index:10050;display:none;padding:12px 10px;background:rgba(35,82,58,.96);border:2px solid #a5e5b7;border-radius:12px;box-shadow:0 4px 16px #0008;font-size:12px;max-width:112px;white-space:normal}
+@media(max-width:700px){#spawnTeleportBtn{right:8px;top:38%;padding:10px 8px;font-size:11px;max-width:100px}}
 #startScreen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:linear-gradient(120deg,rgba(7,13,12,.94),rgba(24,32,27,.82)),radial-gradient(ellipse at center,#465347,#0a0d0b);z-index:5;padding:20px}
 #startCard{max-width:550px;width:100%;padding:28px;border:1px solid #ffffff2e;background:#111b17e8;border-radius:20px;box-shadow:0 20px 80px #0008}
 #startCard h1{margin:0 0 8px;font-size:clamp(28px,5vw,44px);letter-spacing:.04em}
@@ -88,36 +90,29 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
   <div id="startCard">
     <div class="small">SPIELBARER PROTOTYP · VERSION 5.6.0</div>
     <h1>DEADZONE</h1>
-    <p>Erkunde eine verlassene Welt, durchsuche Gebäude und Wälder nach Vorräten und überlebe die Zombie-Gefahr. Entdecke den Bauernhof, die Wohnstraße, den Bahnhof und den Flughafen.</p>
-    <p><b>NEU v5.7:</b> Flughafen mit steuerbarem Jet, Fabrikhallen und Zug mit sichtbaren Rädern.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten · Ctrl tauchen<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION · in Flüssen schwimmen</p>
+    <p>Erkunde einen verlassenen Außenposten, sammle <b>3 Versorgungskisten</b> und hilf dem Soldaten. Sobald seine Aufgabe erledigt ist, schließt er sich dir an. Du kannst deine rekrutierten Soldaten mit dem SOLDATEN-Knopf zurückziehen oder aktivieren. Soldaten können im Kampf sterben.</p>
+    <p><b>NEU v5.7:</b> Flughafen mit steuerbarem Jet, Fabrikhallen und Zug mit sichtbaren Rädern.<br><b>PC:</b> WASD bewegen · Maus umsehen · Linksklick schießen · E interagieren · Shift sprinten<br><b>iPad:</b> linker Joystick bewegen · rechte Bildschirmhälfte umsehen · FEUER / AKTION</p>
     <button id="startBtn" type="button">SPIEL STARTEN</button><div id="startStatus" class="small" style="min-height:16px;margin-top:6px" aria-live="polite"></div><div id="deathOptions" style="display:none;gap:10px;flex-direction:column;margin-top:12px"><button id="reviveBtn" type="button" style="background:#356b48">❤️ HEILEN & WEITERSPIELEN</button><button id="newRunBtn" type="button" style="background:#654039">🔄 NEU SPIELEN (Items verlieren)</button><p class="small">Heilen: volle Lebenspunkte und deine Items bleiben. Neu spielen: neuer Durchlauf ohne deine bisherige Ausrüstung.</p></div>
-    <p class="small">Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
+    <p class="small">Version 5.4.9: Jet sichtbar auf der Startbahn, Minigun mit 120-Schuss-Magazin und verbesserte 3D-Skins für Getränke. Version 5.4.8: Preise reduziert und echte 3D-Modelle für Nahkampfwaffen. Version 5.4.4: Soldatenhandel mit individuellen Angeboten, teuerer Ausrüstung und verbesserter Begleiter-KI. Version 5.4.3: Inventar-Items können verschrottet werden. Version 5.4.2: Soldaten mit unterschiedlichen Dienstgraden gegen Geld anheuern. Version 5.3: Seltenheit für alle Gegenstände und Waffen; sichtbarer orangefarbener Infektionsrand und Warnmeldung. Version 5.1: Unabhängige Nachtsicht-Umschaltung für Sniper; neutrale Soldaten bekämpfen Zombies. Version 5.0: Nachtsichtgerät aus lila Kisten (20 % Chance), grünliche Nachtsicht und gespeicherter Gerätestatus. Version 5.1: Neutrale Soldaten greifen Zombies an; Nachtsicht am Zielfernrohr separat schaltbar. Version 5.0: Nachtsichtgerät, repariertes Laternenlicht, begehbare Hochhaus-Etagen mit wechselnden Treppen und Kisten. Version 4.5: Sichtbare, begehbare Hochhäuser; Kollisionen für feste Hindernisse; Boss-Nametags entfernt; Granaten und Laternen werden zuverlässig aufgenommen und benutzt. Version 4.3: Zombies können Leitern verfolgen und erklimmen; Spezialmunition für Plasma-, Laser- und Schockwaffen; Inventarbedienung für Granaten und Laternen verbessert. Version 4.0: Boden-Items verschwinden nach 2 Minuten. Version 3.9: Leitern werden beim Dagegenlaufen automatisch erklommen, ohne Leiter-Knopf; Waffenlicht reicht etwas weiter nach vorne. Version 3.5: Außenleitern an Häusern; klettere aufs Dach und schieße von oben. Version 3.1: Soldaten umschalten und verwundbare Verbündete; größere Karte, Schleichen, Wälder, Blumenwiesen und drei Boss-Arenen mit einzigartigen Waffen. Korrigierte Hauskollisionen und sichtbare Türen, begehbare Häuser, Medizinmodell und Laserverbesserungen. Größere Karte, laufender Zombie-Nachschub, individuelle 3D-Waffen-Skins und sichtbare Items in Hand und auf dem Boden.</p>
   </div>
 </div>
 <div id="hud">
-  <div id="status" class="panel"><b>ÜBERLEBEN</b><div id="healthLabel">Leben: 100</div><div id="healthOuter"><div id="health"></div></div><div id="fuelWrap"><div id="fuelLabel">⛽ Benzin: 100 / 100</div><div id="fuelOuter"><div id="fuelBar"></div></div></div><div>Hunger</div><div class="barOuter"><div id="hungerBar" class="barFill"></div></div><div>Wasser</div><div class="barOuter"><div id="waterBar" class="barFill"></div></div><div id="weatherLabel" style="margin:4px 0 6px;color:#dce7d9">Wetter: Sonnig</div><div id="ammoLabel">Munition: 12 / 18</div><div id="allyLabel" style="display:none">Verbündete: 0</div><div id="survivalLabel">💰 Geld: 0</div></div>
+  <div id="status" class="panel"><b>ÜBERLEBEN</b><div id="healthLabel">Leben: 100</div><div id="healthOuter"><div id="health"></div></div><div id="fuelWrap"><div id="fuelLabel">⛽ Benzin: 100 / 100</div><div id="fuelOuter"><div id="fuelBar"></div></div></div><div>Hunger</div><div class="barOuter"><div id="hungerBar" class="barFill"></div></div><div>Wasser</div><div class="barOuter"><div id="waterBar" class="barFill"></div></div><div id="weatherLabel" style="margin:4px 0 6px;color:#dce7d9">Wetter: Sonnig</div><div id="ammoLabel">Munition: 12 / 18</div><div id="allyLabel">Verbündete: 0</div><div id="survivalLabel">💰 Geld: 0</div></div>
   
   <div id="lootToast"></div>
-  <div id="objective" class="panel">Aufgabe: Erkunde die Welt und überlebe.</div>
+  <div id="objective" class="panel">Aufgabe: Finde 3 Versorgungskisten für den Soldaten.</div>
   <div id="help" class="panel">WASD bewegen<br>Maus umsehen<br>Linksklick: Schießen<br>E: Interagieren<br>3 Militärlager: Panzer + schwere Beute<br>Shift: Sprinten · Leitern: beim Dagegenlaufen automatisch klettern</div>
   <div id="crosshair">+</div>
   <button id="refuelBtn" type="button">⛽ Benzin auffüllen (+25)</button>
   <button id="tankRocketBtn" type="button" style="display:none;position:fixed;right:14px;bottom:145px;z-index:10020;background:#6b3427;border:2px solid #ffb28b;pointer-events:auto">🚀 RAKETE FEUERN (R)</button>
   <div id="hotbar" aria-label="Hotbar mit zehn Slots"></div>
+  <button id="soldierToggle" type="button" style="position:fixed;left:14px;bottom:78px;z-index:9000;background:#315d45">🪖 SOLDATEN: AN</button>
   <div id="message"></div>
   <button id="interact">AKTION</button>
-  <button id="tradeOpenBtn" type="button" style="display:none!important">HANDEL</button>
+  <button id="tradeOpenBtn" type="button" style="display:none;position:fixed;left:50%;bottom:calc(9% + 58px);transform:translateX(-50%);z-index:10002;background:#725a22;border:2px solid #e9ca65">💰 HANDEL ÖFFNEN</button>
 </div>
-  <button id="mapOpenBtn" type="button" style="position:fixed;right:14px;top:14px;z-index:10000;padding:12px 17px;background:#26372de8;border:3px solid #d2dfc8;box-shadow:0 3px 14px #000b;font-weight:900">🗺️ KARTE</button>
-  <div id="mapModal" style="display:none;position:fixed;inset:0;z-index:10030;background:#000c;align-items:center;justify-content:center;padding:14px;pointer-events:auto">
-    <div style="width:min(680px,96vw);max-height:90vh;overflow:auto;background:#29352e;border:3px solid #c5d1ba;border-radius:13px;padding:12px;box-shadow:0 12px 40px #000c">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><h2 style="margin:2px 0 8px">🗺️ Karte</h2><button id="mapCloseBtn" type="button" aria-label="Karte schließen" style="width:48px;height:48px;flex:none;font-size:27px;line-height:1;padding:0;border:2px solid #fff;background:#a72c2c;color:white;border-radius:50%;cursor:pointer;pointer-events:auto;position:relative;z-index:10050">✕</button></div>
-      <canvas id="worldMapCanvas" width="640" height="640" style="width:100%;height:auto;display:block;border:2px solid #778879;border-radius:8px;background:#829477"></canvas>
-      <p style="font-size:13px;margin:8px 2px">🔵 Du · ✈️ Jet · 🟩 Panzer · 🚗 Fahrzeuge · Karte aktualisiert sich live.</p>
-    </div>
-  </div>
   <button id="inventoryOpenBtn" type="button">🎒 INVENTAR</button>
-  <div id="inventoryModal"><div id="inventoryCard"><h2>🎒 INVENTAR</h2><div id="inventoryLabel">Wähle einen Slot.</div><div id="characterEquipment" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px;background:#252c27;border-radius:9px"><div id="armorAvatar" style="width:88px;height:150px;position:relative;flex:none;background:linear-gradient(#39443d,#202720);border-radius:8px"><div id="avatarHead" style="position:absolute;left:31px;top:12px;width:26px;height:28px;border-radius:5px;background:#a6b49a;border:2px solid #c5d1ba"></div><div id="avatarChest" style="position:absolute;left:22px;top:43px;width:44px;height:43px;background:#4c5d4f;border:2px solid #879783;border-radius:5px"></div><div id="avatarLegs" style="position:absolute;left:25px;top:88px;width:18px;height:36px;background:#39423b;border:2px solid #6e7c6c"></div><div id="avatarLegs2" style="position:absolute;left:45px;top:88px;width:18px;height:36px;background:#39423b;border:2px solid #6e7c6c"></div><div id="avatarBoots" style="position:absolute;left:22px;top:126px;width:23px;height:10px;background:#292b2a;border:1px solid #737873"></div><div id="avatarBoots2" style="position:absolute;left:44px;top:126px;width:23px;height:10px;background:#292b2a;border:1px solid #737873"></div></div><div style="flex:1;min-width:180px"><b>🛡️ Ausgerüstete Rüstung</b><div id="armorSlots" style="font-size:12px;line-height:1.8;margin-top:5px">Helm: keiner<br>Brustplatte: keine<br>Hose: keine<br>Schuhe: keine</div><div class="small">Dein Charakterbild ändert sich, wenn du Rüstung anlegst.</div></div></div><div id="inventoryItems"></div><div id="craftingPanel" style="margin-top:12px;padding:10px;background:#252c27;border:1px solid #697568;border-radius:8px"><b>🛠️ BASE BAUEN · CRAFTING</b><div class="small" style="margin:5px 0 8px">Craften, dann den Gegenstand im Inventar auswählen und mit AKTION vor dir platzieren.</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button id="craftFenceBtn">🪵 Zaun · 9 Bretter</button><button id="craftWallBtn">🧱 Mauer · 20 Ziegel</button><button id="craftIronGateBtn">🚧 Eisentor · 30 Eisen</button><button id="craftGardenGateBtn">🚪 Gartentor · 12 Bretter</button></div></div><div id="itemActions" class="invActions" style="display:none"><button id="equipItemBtn">ITEM AUSRÜSTEN</button><button id="dropItemBtn">ITEM FALLEN LASSEN</button><button id="scrapItemBtn" style="background:#8b4b35;border-color:#e8a17c">♻️ VERSCHROTTEN</button><button id="giveWeaponBtn" style="display:none;background:#385b78;border-color:#9bc9ef">🪖 WAFFE GEBEN</button><button id="addHotbarBtn" style="background:#286b50;border-color:#8de0ad">➕ ZUR HOTBAR HINZUFÜGEN</button><button id="cancelItemBtn">ABBRECHEN</button></div><div style="margin-top:10px"><button id="closeInventoryBtn">SCHLIESSEN</button></div><p class="small">Alle Waffen-Slots sind scrollbar. Wähle einen Slot und danach eine Aktion. Items am Boden kannst du mit AKTION einsammeln. Raketenwerfer und Granatwerfer liegen in den Militärlagern.</p></div></div>
+  <div id="inventoryModal"><div id="inventoryCard"><h2>🎒 INVENTAR</h2><div id="inventoryLabel">Wähle einen Slot.</div><div id="characterEquipment" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:10px 0;padding:10px;background:#252c27;border-radius:9px"><div id="armorAvatar" style="width:88px;height:150px;position:relative;flex:none;background:linear-gradient(#39443d,#202720);border-radius:8px"><div id="avatarHead" style="position:absolute;left:31px;top:12px;width:26px;height:28px;border-radius:5px;background:#a6b49a;border:2px solid #c5d1ba"></div><div id="avatarChest" style="position:absolute;left:22px;top:43px;width:44px;height:43px;background:#4c5d4f;border:2px solid #879783;border-radius:5px"></div><div id="avatarLegs" style="position:absolute;left:25px;top:88px;width:18px;height:36px;background:#39423b;border:2px solid #6e7c6c"></div><div id="avatarLegs2" style="position:absolute;left:45px;top:88px;width:18px;height:36px;background:#39423b;border:2px solid #6e7c6c"></div><div id="avatarBoots" style="position:absolute;left:22px;top:126px;width:23px;height:10px;background:#292b2a;border:1px solid #737873"></div><div id="avatarBoots2" style="position:absolute;left:44px;top:126px;width:23px;height:10px;background:#292b2a;border:1px solid #737873"></div></div><div style="flex:1;min-width:180px"><b>🛡️ Ausgerüstete Rüstung</b><div id="armorSlots" style="font-size:12px;line-height:1.8;margin-top:5px">Helm: keiner<br>Brustplatte: keine<br>Hose: keine<br>Schuhe: keine</div><div class="small">Dein Charakterbild ändert sich, wenn du Rüstung anlegst.</div></div></div><div id="inventoryItems"></div><div id="craftingPanel" style="margin-top:12px;padding:10px;background:#252c27;border:1px solid #697568;border-radius:8px"><b>🛠️ BASE BAUEN · CRAFTING</b><div class="small" style="margin:5px 0 8px">Craften, dann den Gegenstand im Inventar auswählen und mit AKTION vor dir platzieren.</div><div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px"><button id="craftFenceBtn">🪵 Zaun · 9 Bretter</button><button id="craftWallBtn">🧱 Mauer · 20 Ziegel</button><button id="craftIronGateBtn">🚧 Eisentor · 30 Eisen</button><button id="craftGardenGateBtn">🚪 Gartentor · 12 Bretter</button><button id="craftTurretBtn">🎯 Geschütz · 100 Metall, 50 Ziegel, 12 Bretter</button><button id="craftChairBtn">🪑 Stuhl · 10 Metall</button><button id="craftTableBtn">🪵 Tisch · 10 Metall</button><button id="craftBedBtn">🛏️ Bett · 10 Metall</button><button id="craftLampBtn">💡 Lampe · 10 Metall</button></div><div class="small" style="margin-top:6px">Geschütze: höchstens 4 insgesamt. Möbel und Geschütze nach dem Craften auswählen und mit AKTION platzieren.</div></div><div id="itemActions" class="invActions" style="display:none"><button id="equipItemBtn">ITEM AUSRÜSTEN</button><button id="dropItemBtn">ITEM FALLEN LASSEN</button><button id="scrapItemBtn" style="background:#8b4b35;border-color:#e8a17c">♻️ VERSCHROTTEN</button><button id="giveWeaponBtn" style="display:none;background:#385b78;border-color:#9bc9ef">🪖 WAFFE GEBEN</button><button id="addHotbarBtn" style="background:#286b50;border-color:#8de0ad">➕ ZUR HOTBAR HINZUFÜGEN</button><button id="cancelItemBtn">ABBRECHEN</button></div><div style="margin-top:10px"><button id="closeInventoryBtn">SCHLIESSEN</button></div><p class="small">Alle Waffen-Slots sind scrollbar. Wähle einen Slot und danach eine Aktion. Items am Boden kannst du mit AKTION einsammeln. Raketenwerfer und Granatwerfer liegen in den Militärlagern.</p></div></div>
 <div id="tradeModal" style="display:none;position:fixed;inset:0;z-index:10010;background:#000b;align-items:center;justify-content:center;padding:12px;pointer-events:auto">
  <div style="width:min(560px,96vw);max-height:86vh;overflow:auto;background:#252e28;border:3px solid #d3bd71;border-radius:14px;padding:15px;box-shadow:0 12px 45px #000c">
   <h2 id="tradeTitle" style="margin:0 0 6px">💰 Soldatenhandel</h2><p id="tradeSubtitle" class="small">Kaufe Ausrüstung für dein Geld.</p><div id="tradeOffers" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px;margin:12px 0"></div>
@@ -129,7 +124,8 @@ canvas{position:fixed!important;inset:0!important;width:100%!important;height:10
 <div id="mobileControls">
   <div id="lookArea"></div>
   <div id="stickBase"><div id="stick"></div></div>
-  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
+  <button id="spawnTeleportBtn" type="button" aria-label="Zum Spawn teleportieren">↗ ZUM SPAWN</button>
+  <div id="mobileActions"><button id="aimBtn" type="button" style="display:none">🔭 ZIELEN</button><button id="sniperNVBtn" type="button" style="display:none;background:#326b3d">🟢 NV AN</button><button id="fireBtn">FEUER</button><button id="actionBtn">AKTION</button><button id="dismantleBtn" type="button" style="background:#68452f;border-color:#d4a27c">🛠️ ABBAUEN</button><button id="runBtn">SPRINT</button><button id="sneakBtn" aria-pressed="false">🕵️ SCHLEICHEN AUS</button><button id="jumpBtn">SPRUNG</button><button id="gliderBoostBtn" type="button" style="display:none;background:#236d82;border:2px solid #8be8ff;font-weight:900">🪂 BOOSTEN</button></div>
 </div>
 <script>
 // iPad/Safari: Startwunsch puffern, falls das 3D-Modul noch initialisiert.
@@ -197,18 +193,18 @@ for(let ci=0;ci<13;ci++){
 // Wettereffekte: leichte Regenlinien, dunklere Bewölkung und gelegentliche Blitze im Gewitter.
 const weatherNames={sunny:'☀️ Sonnig',cloudy:'☁️ Bewölkt',rain:'🌧️ Regen',storm:'⛈️ Gewitter'};
 let currentWeather=['sunny','cloudy','rain','storm'][Math.floor(Math.random()*4)],weatherTimer=75+Math.random()*55,lightningTimer=5+Math.random()*8;
-const rainPositions=new Float32Array(1800*2*3);
+const rainPositions=new Float32Array(900*2*3);
 const rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPositions,3));
 const rainMat=new THREE.LineBasicMaterial({color:0xa9c9dc,transparent:true,opacity:.48});
 const rainLines=new THREE.LineSegments(rainGeo,rainMat);rainLines.frustumCulled=false;rainLines.visible=false;scene.add(rainLines);
-for(let i=0;i<1800;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*85;rainPositions[j+1]=Math.random()*38;rainPositions[j+2]=(Math.random()-.5)*85;rainPositions[j+3]=rainPositions[j]-.12;rainPositions[j+4]=rainPositions[j+1]-.95;rainPositions[j+5]=rainPositions[j+2]-.04;}
+for(let i=0;i<900;i++){const j=i*6;rainPositions[j]=(Math.random()-.5)*70;rainPositions[j+1]=Math.random()*32;rainPositions[j+2]=(Math.random()-.5)*70;rainPositions[j+3]=rainPositions[j]-.08;rainPositions[j+4]=rainPositions[j+1]-.8;rainPositions[j+5]=rainPositions[j+2]-.08;}
 rainGeo.attributes.position.needsUpdate=true;
 const lightningFlash=new THREE.PointLight(0xd9eaff,0,260,1.2);lightningFlash.position.set(0,32,0);scene.add(lightningFlash);
 function isPlayerSheltered(){try{if(!player||!Array.isArray(houseZones))return false;return houseZones.some(h=>Math.abs(player.pos.x-h.x)<h.w/2-.12&&Math.abs(player.pos.z-h.z)<h.d/2-.12&&player.pos.y<h.roofY+1.2);}catch(e){return false;}}
-function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'?.82:.62;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'?.48:type==='cloudy'?.9:type==='rain'?.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
+function setWeather(type){currentWeather=type;const rainy=type==='rain'||type==='storm';rainLines.visible=rainy&&!isPlayerSheltered();rainMat.opacity=type==='storm'?.72:.38;cloudGroups.forEach(c=>c.children.forEach(p=>{p.material.opacity=type==='sunny'?.48:type==='cloudy'?.9:type==='rain'?.86:.98;p.material.color.setHex(type==='sunny'?0xe3e8e8:type==='cloudy'?0x9ca7ad:0x697783)}));const label=document.getElementById('weatherLabel');if(label)label.textContent='Wetter: '+weatherNames[type];}
 function updateWeather(dt){
  weatherTimer-=dt;if(weatherTimer<=0){const choices=['sunny','cloudy','rain','storm'].filter(w=>w!==currentWeather);setWeather(choices[Math.floor(Math.random()*choices.length)]);weatherTimer=75+Math.random()*90;}
- rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?38:27);if(y<player.pos.y-2){y=player.pos.y+20+Math.random()*20;a.setX(i,player.pos.x+(Math.random()-.5)*85);a.setZ(i,player.pos.z+(Math.random()-.5)*85);}else{a.setX(i,a.getX(i)-dt*1.8);a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
+ rainLines.visible=(currentWeather==='rain'||currentWeather==='storm')&&!isPlayerSheltered();if(rainLines.visible){const a=rainGeo.attributes.position;for(let i=0;i<a.count;i++){let y=a.getY(i)-dt*(currentWeather==='storm'?30:19);if(y<player.pos.y-2){y=player.pos.y+18+Math.random()*16;a.setX(i,(Math.random()-.5)*70);a.setZ(i,(Math.random()-.5)*70);}else{a.setX(i,a.getX(i));a.setZ(i,a.getZ(i));}a.setY(i,y);}rainGeo.attributes.position.needsUpdate=true;rainLines.position.set(player.pos.x,0,player.pos.z);}
  if(currentWeather==='storm'){lightningTimer-=dt;if(lightningTimer<=0){lightningFlash.position.set(player.pos.x+(Math.random()-.5)*90,25+Math.random()*22,player.pos.z+(Math.random()-.5)*90);lightningFlash.intensity=5+Math.random()*7;lightningTimer=3+Math.random()*8;}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);}else lightningFlash.intensity=Math.max(0,lightningFlash.intensity-dt*24);
 }
 setWeather(currentWeather);
@@ -278,11 +274,29 @@ function buildStructureMesh(kind,x,z,rot=0,open=false){
  }else if(kind==='ironGate'){
   for(const xpost of [-w/2,w/2])cube(g,xpost,.95,0,.16,1.9,.18,ironLight);
   const panel=new THREE.Group();g.add(panel);for(let i=0;i<9;i++)cube(panel,-w/2+.18+i*(w-.36)/8,.92,0,.065,1.72,.12,ironLight);cube(panel,0,.18,0,w-.12,.12,.13,iron);cube(panel,0,1.72,0,w-.12,.12,.13,iron);panel.position.x=open?w:0;g.userData.gatePanel=panel;
+ }else if(kind==='turret'){
+  cube(g,0,.22,0,.9,.42,.9,iron);const base=cube(g,0,.55,0,.62,.32,.62,ironLight);base.rotation.y=.2;
+  const head=new THREE.Group();g.add(head);head.position.y=.78;cube(head,0,0,0,.58,.35,.48,mat(0x53675a,.7,.3));cube(head,0,.04,-.43,.16,.15,.78,ironLight);cube(head,0,.04,-.82,.10,.1,.08,mat(0xffb34a,.45,.4));g.userData.turretHead=head;g.userData.muzzle=new THREE.Vector3(0,.82,-1.05);
+ }else if(kind==='chair'){
+  for(const xx of [-.22,.22])for(const zz of [-.2,.2])cube(g,xx,.28,zz,.07,.56,.07,woodLight);cube(g,0,.58,0,.55,.12,.52,wood);cube(g,0,.92,.23,.55,.62,.09,woodLight);
+ }else if(kind==='table'){
+  cube(g,0,.78,0,1.05,.14,.8,woodLight);for(const xx of [-.42,.42])for(const zz of [-.28,.28])cube(g,xx,.38,zz,.09,.72,.09,wood);
+ }else if(kind==='bed'){
+  for(const xx of [-.58,.58])for(const zz of [-.32,.32])cube(g,xx,.22,zz,.09,.42,.09,wood);cube(g,0,.42,0,1.35,.22,.82,woodLight);cube(g,0,.57,0,1.28,.16,.76,mat(0xb4b8ad));cube(g,0,.69,-.27,.48,.12,.25,mat(0xd4d6cb));
+ }else if(kind==='lamp'){
+  cube(g,0,.12,0,.35,.22,.35,iron);cube(g,0,.9,0,.09,1.55,.09,ironLight);cube(g,0,1.72,0,.42,.12,.42,mat(0xffe6a1,.2,.1));const light=new THREE.PointLight(0xffd88a,1.6,13,1.7);light.position.set(0,1.8,0);g.add(light);g.userData.lampLight=light;
  }
  scene.add(g);
- const longHalf=kind==='wall'?1.68:1.62,shortHalf=gate?.35:(kind==='wall'?.3:.24);const turned=Math.abs(Math.sin(rot))>.5;const obstacle=addObstacle(x,z,gate?.55:(turned?shortHalf:longHalf),gate?.35:(turned?longHalf:shortHalf));
+ const isFurniture=['chair','table','bed','lamp'].includes(kind),isTurret=kind==='turret';
+ // Collision bounds follow the actual long axis of walls/fences/gates after rotation.
+ // The old gate bounds were far too narrow and the long axis was not swapped at 90°,
+ // which let the player (and zombies) pass through some placed pieces.
+ let localHX=gate?1.27:(kind==='wall'?1.52:isFurniture?.48:isTurret?.55:1.52);
+ let localHZ=gate?.16:(kind==='wall'?.24:isFurniture?.45:isTurret?.55:.16);
+ const quarterTurn=Math.abs(Math.sin(rot))>.707;
+ const obstacle=addObstacle(x,z,quarterTurn?localHZ:localHX,quarterTurn?localHX:localHZ);
  if(gate&&open)obstacle.active=false;
- const obj={kind,x,z,rot,open,group:g,obstacle};placedStructures.push(obj);return obj;
+ const obj={kind,x,z,rot,open,group:g,obstacle,fireTimer:Math.random()*.6};placedStructures.push(obj);return obj;
 }
 function removePlacedStructures(){for(const o of placedStructures){scene.remove(o.group);const i=solidObstacles.indexOf(o.obstacle);if(i>=0)solidObstacles.splice(i,1)}placedStructures.length=0;}
 function togglePlacedGate(o){if(!o||!['ironGate','gardenGate'].includes(o.kind))return;o.open=!o.open;if(o.group.userData.gatePanel)o.group.userData.gatePanel.position.x=o.open?2.5:0;o.obstacle.active=!o.open;message(o.open?'Tor geöffnet.':'Tor geschlossen.',1.2);saveProgress();}
@@ -291,30 +305,34 @@ $('craftFenceBtn').addEventListener('click',()=>craftBuildItem('craftedFence','p
 $('craftWallBtn').addEventListener('click',()=>craftBuildItem('craftedWall','bricks',20,'Mauer'));
 $('craftIronGateBtn').addEventListener('click',()=>craftBuildItem('craftedIronGate','metalScrap',30,'Eisentor'));
 $('craftGardenGateBtn').addEventListener('click',()=>craftBuildItem('craftedGardenGate','planks',12,'Gartentor'));
+function craftTurret(){const count=(inventory.craftedTurret||0)+placedStructures.filter(o=>o.kind==='turret').length;if(count>=4){message('Maximal 4 Geschütze insgesamt erlaubt!',2.5);return}if(inventory.metalScrap<100||inventory.bricks<50||inventory.planks<12){message('Geschütz benötigt 100 Metall, 50 Ziegelsteine und 12 Bretter.',3);return}inventory.metalScrap-=100;inventory.bricks-=50;inventory.planks-=12;inventory.craftedTurret=(inventory.craftedTurret||0)+1;selectedItem='craftedTurret';rebuildHandProp();updateInventory();saveProgress();message('Geschütz gecraftet! Höchstens 4 insgesamt.',2.5)}
+$('craftTurretBtn').addEventListener('click',craftTurret);
+for(const [btn,id,label] of [['craftChairBtn','craftedChair','Stuhl'],['craftTableBtn','craftedTable','Tisch'],['craftBedBtn','craftedBed','Bett'],['craftLampBtn','craftedLamp','Lampe']])$(btn).addEventListener('click',()=>craftBuildItem(id,'metalScrap',10,label));
 function snappedBuildYaw(){return Math.round(player.yaw/(Math.PI/2))*(Math.PI/2);}
 function getBuildPlacement(){const yaw=snappedBuildYaw(),fx=-Math.sin(yaw),fz=-Math.cos(yaw);return {x:Math.round((player.pos.x+fx*3.2)*2)/2,z:Math.round((player.pos.z+fz*3.2)*2)/2,yaw};}
 function placeSelectedStructure(){
- const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate'};const kind=map[selectedItem];if(!kind)return false;
+ const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate',craftedTurret:'turret',craftedChair:'chair',craftedTable:'table',craftedBed:'bed',craftedLamp:'lamp'};const kind=map[selectedItem];if(!kind)return false;
  if((inventory[selectedItem]||0)<=0){message('Du hast dieses Bauteil nicht mehr im Inventar.');return true;}
+ if(kind==='turret'&&placedStructures.filter(o=>o.kind==='turret').length>=4){message('Maximal 4 Geschütze insgesamt erlaubt!');return true;}
  const place=getBuildPlacement(),x=place.x,z=place.z,yaw=place.yaw;
  // Use a compact center check for placement. The previous 1.4 m radius for walls
  // rejected most valid spots because it overlapped nearby environmental collision boxes.
  const checkRadius=kind==='wall'?0.28:0.42;
  const overlapsPlaced=placedStructures.some(o=>{const dx=x-o.x,dz=z-o.z;const limit=(kind==='wall'?1.25:1.05)+(o.kind==='wall'?1.25:1.05);return dx*dx+dz*dz<limit*limit;});
  if(blockedAt(x,z,checkRadius)||overlapsPlaced){message('Hier ist zu wenig Platz zum Bauen. Gehe etwas weiter weg und versuche es erneut.');return true;}
- buildStructureMesh(kind,x,z,yaw,false);inventory[selectedItem]--;message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor'})[kind]+' platziert!');updateInventory();saveProgress();return true;
+ buildStructureMesh(kind,x,z,yaw,false);inventory[selectedItem]--;message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor',turret:'Geschütz',chair:'Stuhl',table:'Tisch',bed:'Bett',lamp:'Lampe'})[kind]+' platziert!');updateInventory();saveProgress();return true;
 }
 let buildPreview=null,buildPreviewKind=null,buildPreviewRing=null,buildGuideLine=null;
 function clearBuildPreview(){if(buildPreview){scene.remove(buildPreview);buildPreview.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}});buildPreview=null;}if(buildPreviewRing){scene.remove(buildPreviewRing);buildPreviewRing.geometry.dispose();buildPreviewRing.material.dispose();buildPreviewRing=null;}if(buildGuideLine){scene.remove(buildGuideLine);buildGuideLine.geometry.dispose();buildGuideLine.material.dispose();buildGuideLine=null;}buildPreviewKind=null;}
 function updateBuildPreview(){
- const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate'},kind=map[selectedItem];
+ const map={craftedFence:'fence',craftedWall:'wall',craftedIronGate:'ironGate',craftedGardenGate:'gardenGate',craftedTurret:'turret',craftedChair:'chair',craftedTable:'table',craftedBed:'bed',craftedLamp:'lamp'},kind=map[selectedItem];
  if(!started||gameOver||!kind||(inventory[selectedItem]||0)<=0||activeJet||player.inCar||player.inTank){if(buildPreview||buildPreviewRing)clearBuildPreview();return;}
  if(buildPreviewKind!==kind){clearBuildPreview();const before=placedStructures.length;const obj=buildStructureMesh(kind,0,-1000,0,false);buildPreview=obj.group;placedStructures.splice(before,1);const oi=solidObstacles.indexOf(obj.obstacle);if(oi>=0)solidObstacles.splice(oi,1);buildPreviewKind=kind;buildPreview.traverse(o=>{if(o.isMesh&&o.material){const old=Array.isArray(o.material)?o.material:[o.material];o.material=old.map(m=>{const n=m.clone();n.transparent=true;n.opacity=.42;n.depthWrite=false;return n;});}});buildPreviewRing=new THREE.Mesh(new THREE.RingGeometry(.8,1.12,32),new THREE.MeshBasicMaterial({color:0x54f078,transparent:true,opacity:.85,side:THREE.DoubleSide,depthWrite:false}));buildPreviewRing.rotation.x=-Math.PI/2;buildPreviewRing.position.y=.035;scene.add(buildPreviewRing);buildGuideLine=new THREE.Mesh(new THREE.BoxGeometry(kind==='wall'?3.0:2.5,.035,.075),new THREE.MeshBasicMaterial({color:0x31e8ff,transparent:true,opacity:.95,depthTest:false,depthWrite:false}));buildGuideLine.position.y=.065;buildGuideLine.renderOrder=998;scene.add(buildGuideLine);}
  const place=getBuildPlacement(),x=place.x,z=place.z,yaw=place.yaw;
  const overlapsPlaced=placedStructures.some(o=>{const dx=x-o.x,dz=z-o.z;const limit=(kind==='wall'?1.25:1.05)+(o.kind==='wall'?1.25:1.05);return dx*dx+dz*dz<limit*limit;});
- const valid=!blockedAt(x,z,kind==='wall'?.28:.42)&&!overlapsPlaced;buildPreview.position.set(x,0,z);buildPreview.rotation.y=yaw;buildPreview.visible=true;buildPreviewRing.position.set(x,.035,z);buildPreviewRing.material.color.setHex(valid?0x54f078:0xff4d4d);buildPreviewRing.visible=true;buildGuideLine.position.set(x,.065,z);buildGuideLine.rotation.y=yaw;buildGuideLine.material.color.setHex(valid?0x31e8ff:0xff4d4d);buildGuideLine.visible=true;buildPreview.traverse(o=>{if(o.isMesh&&o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.color)m.color.setHex(valid?0xffffff:0xff7777);}});
+ const valid=!blockedAt(x,z,['wall','turret'].includes(kind)?.28:.42)&&!overlapsPlaced;buildPreview.position.set(x,0,z);buildPreview.rotation.y=yaw;buildPreview.visible=true;buildPreviewRing.position.set(x,.035,z);buildPreviewRing.material.color.setHex(valid?0x54f078:0xff4d4d);buildPreviewRing.visible=true;buildGuideLine.position.set(x,.065,z);buildGuideLine.rotation.y=yaw;buildGuideLine.material.color.setHex(valid?0x31e8ff:0xff4d4d);buildGuideLine.visible=true;buildPreview.traverse(o=>{if(o.isMesh&&o.material){for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m.color)m.color.setHex(valid?0xffffff:0xff7777);}});
 }
-function dismantleNearestStructure(){const o=placedStructures.filter(q=>distanceXZ(player.pos,q.group.position)<4.2).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];if(!o){message('Keine platzierte Basis-Struktur in der Nähe.',1.5);return;}const ids={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'};inventory[ids[o.kind]]=(inventory[ids[o.kind]]||0)+1;scene.remove(o.group);const i=solidObstacles.indexOf(o.obstacle);if(i>=0)solidObstacles.splice(i,1);const j=placedStructures.indexOf(o);if(j>=0)placedStructures.splice(j,1);message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor'})[o.kind]+' abgebaut und zurück ins Inventar gelegt.',2);updateInventory();saveProgress();}
+function dismantleNearestStructure(){const o=placedStructures.filter(q=>distanceXZ(player.pos,q.group.position)<4.2).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];if(!o){message('Keine platzierte Basis-Struktur in der Nähe.',1.5);return;}const ids={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate',turret:'craftedTurret',chair:'craftedChair',table:'craftedTable',bed:'craftedBed',lamp:'craftedLamp'};inventory[ids[o.kind]]=(inventory[ids[o.kind]]||0)+1;scene.remove(o.group);const i=solidObstacles.indexOf(o.obstacle);if(i>=0)solidObstacles.splice(i,1);const j=placedStructures.indexOf(o);if(j>=0)placedStructures.splice(j,1);message(({fence:'Zaun',wall:'Mauer',ironGate:'Eisentor',gardenGate:'Gartentor',turret:'Geschütz',chair:'Stuhl',table:'Tisch',bed:'Bett',lamp:'Lampe'})[o.kind]+' abgebaut und zurück ins Inventar gelegt.',2);updateInventory();saveProgress();}
 function blockedAt(x,z,r=.42){return solidObstacles.some(o=>o.active!==false&&x+r>o.x-o.hx&&x-r<o.x+o.hx&&z+r>o.z-o.hz&&z-r<o.z+o.hz)}
 
 // Buildings
@@ -553,7 +571,14 @@ for(const [cx,cz] of [[-62,-62],[66,62]]){
  addObstacle(cx,cz,3.2,2.3);
 }
 // Alte zufällig verteilte Hügel entfernt; Hügel gibt es nur noch in der vorgesehenen Hügellandschaft.
-// Spawn area intentionally kept clear: removed the old barrier wall, crate row and sandbags.
+// entrance and barrier
+addObstacle(-1,-14,5,.32);
+cube(scene,-1,1.4,-14,10,2.8,.5,mat(0x4a554e));
+cube(scene,-1,2.95,-14,10,.25,.65,metal);
+for(let x=-5;x<=3;x+=2) cube(scene,x,1.25,-13.65,.16,2.5,.18,metal);
+for(let x=-7;x<=7;x+=2.3) {addObstacle(x,-22,.7,.7);cube(scene,x,.65,-22,1.2,1.3,1.2,crateMat); cube(scene,x,.66,-22,1.23,.12,1.23,wood)}
+// sandbags
+for(let i=0;i<8;i++){addObstacle(-7+i*1.05,-8,.5,.38);const s=cube(scene,-7+i*1.05,.38,-8,.95,.65,.62,mat(0x8a826d));s.rotation.y=(i%2)*.1}
 // Neue Landschaftsbereiche: Wald, Blumenwiese, Hügellandschaft und Vorort.
 // Vier klar unterscheidbare Landschaftsbereiche: dichter Nadelwald, Blumenwiese und sanfte Hügel.
 groundPatch(-235,105,155,190,mat(0x344b35,1),-.035);
@@ -561,11 +586,9 @@ groundPatch(-5,245,190,105,mat(0x789052,1),-.03);
 groundPatch(225,115,165,190,mat(0x687b4c,1),-.025);
 // Gentle rolling hills: each visible mound also has a matching walkable surface.
 const hillShapes=[];
-// Fixed local PRNG: hill placement stays identical between sessions/reloads.
-let hillSeed=742901;function hillRand(){hillSeed=(hillSeed*1664525+1013904223)>>>0;return hillSeed/4294967296;}
 for(let i=0;i<13;i++){
- const x=160+(i%4)*35+(hillRand()-.5)*15,z=45+Math.floor(i/4)*43+(hillRand()-.5)*16;
- const rx=28+hillRand()*16, ry=2.4+hillRand()*2.2, rz=25+hillRand()*17;
+ const x=160+(i%4)*35+(Math.random()-.5)*15,z=45+Math.floor(i/4)*43+(Math.random()-.5)*16;
+ const rx=28+Math.random()*16, ry=2.4+Math.random()*2.2, rz=25+Math.random()*17;
  const mound=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),mat(i%3===0?0x718354:0x66794a,1));
  mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
  hillShapes.push({x,z,rx,ry,rz,base:-.35});
@@ -575,7 +598,7 @@ for(let i=0;i<13;i++){
 for(let i=0;i<34;i++){
  let x,z,tries=0;
  do{
-  x=-340+hillRand()*680; z=-340+hillRand()*680; tries++;
+  x=-340+Math.random()*680; z=-340+Math.random()*680; tries++;
   // Keine Hügel in Häusern, Gärten, der Vorortstraße oder den Militärlagern.
   const inSuburb = x>78 && x<282 && z>-238 && z<-132;
   const nearHouseOrGarden = suburbPositions.some(h=>Math.abs(x-h.x)<19 && Math.abs(z-h.z)<23);
@@ -584,7 +607,7 @@ for(let i=0;i<34;i++){
   const nearFactories = (x>-355 && x<-235 && z>220 && z<330);
   var blockedHillArea = ((Math.abs(x)<17 && z>-65 && z<65) || (x>125 && z<-115) || (Math.abs(x)<18 && z>190 && z<300) || inSuburb || nearHouseOrGarden || nearCamp || nearAirport || nearFactories);
  }while(tries<120 && blockedHillArea);
- const rx=13+hillRand()*18, rz=13+hillRand()*20, ry=.8+hillRand()*1.35;
+ const rx=13+Math.random()*18, rz=13+Math.random()*20, ry=.8+Math.random()*1.35;
  const mound=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),mat(i%4===0?0x718354:(i%3===0?0x6d8050:0x66794a),1));
  mound.position.set(x,-.35,z);mound.scale.set(rx,ry,rz);mound.receiveShadow=true;scene.add(mound);
  hillShapes.push({x,z,rx,ry,rz,base:-.35});
@@ -612,10 +635,6 @@ for(let i=0;i<115;i++){
 // Richer flower meadow with small stems, several blossom colors and scattered shrubs.
 for(let i=0;i<240;i++){
  const x=-90+Math.random()*180,z=200+Math.random()*90;
- // Keep meadow plants out of both rivers and their muddy banks.
- const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));
- const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));
- if(mainD<12.5||branchD<12.5){i--;continue;}
  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=Math.random()*Math.PI;scene.add(g);
  const stemMat=mat(0x47723c,1), blossomMat=mat([0xf3d75b,0xf4f0e7,0xd98eb8,0x9ca9f0,0xe7a35b][Math.floor(Math.random()*5)],.85);
  cube(g,0,.18,0,.035,.36,.035,stemMat,false);
@@ -628,56 +647,14 @@ for(let i=0;i<240;i++){
 function onRoad(x,z){
  return Math.abs(x)<5.2 || Math.abs(x+48)<4.2 || Math.abs(x-48)<4.2 || Math.abs(z-38)<5.2 || Math.abs(z+52)<4.8;
 }
-const harvestableTrees=[];
-function clearForTree(x,z){
- // Keep airport runway/apron, railway corridor, both rivers and muddy banks clear of trees.
- if(x>250&&x<360&&z>-365&&z<-220)return false;
- if(x>350&&x<368&&z>-270&&z<270)return false;
- const mainRiverZ=205+18*Math.sin(x/68)+5*Math.sin(x/27);
- const branchRiverX=-170+13*Math.sin(z/34)+4*Math.sin(z/13);
- if(Math.abs(z-mainRiverZ)<15.5)return false;
- if(Math.abs(x-branchRiverX)<15.5)return false;
- return true;
-}
-function tree(x,z,s=1,planted=false){
- if(!clearForTree(x,z))return null;
+function tree(x,z,s=1){
  const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);scene.add(g);
- addObstacle(x,z,.48*s,.48*s);
- const tall=5.0+Math.random()*4.0;cube(g,0,tall*.30,0,.48,.6*tall,.48,bark,false);
- const c1=cube(g,0,tall*.64,0,2.8+Math.random()*1.2,2.6+Math.random()*1.3,2.8+Math.random()*1.2,leaf,false);
- const c2=cube(g,.1,tall*.82,.05,2.0+Math.random(),2.0+Math.random(),2.0+Math.random(),leaf2,false);
- const c3=cube(g,-.05,tall*.96,0,1.25,1.5,1.25,leaf,false);
- c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;harvestableTrees.push({x,z,group:g,harvested:false,plantedAt:planted?performance.now():0,plantedScale:s});
-}
-// Flächendeckender Nadelwald: fast die ganze Karte, mit freien Bereichen für Bauernhof,
-// Wohnstraße, Bahnhof, Flughafen, Fabriken, Hauptwege, Flüsse und einzelne Lichtungen.
-function protectedForestArea(x,z){
- const near=(cx,cz,rx,rz)=>Math.abs(x-cx)<rx&&Math.abs(z-cz)<rz;
- if(near(0,115,43,48))return true; // Bauernhof, Scheune, Felder und Garten
- if(x>72&&x<292&&z>-245&&z<-125)return true; // Einfamilienhaus-Siedlung und Zufahrtsstraße
- if(x>323&&x<397&&z>-48&&z<112)return true; // Bahnhof, Bahnsteig und Zug
- if(x>248&&x<365&&z>-375&&z<-205)return true; // Flughafen und Startbahn
- if(x>-360&&x<-232&&z>220&&z<335)return true; // Fabrikhallen
- if(Math.abs(x)<8||Math.abs(x-48)<6||Math.abs(x+48)<6)return true; // zentrale Straßen
- if(Math.abs(z-38)<7||Math.abs(z+52)<7)return true;
- if(Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)))<14)return true; // Fluss
- if(Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)))<14)return true;
- // Lichtungen und Camps bleiben begehbar.
- for(const [cx,cz,rx,rz] of [[0,-8,19,17],[-62,-62,13,12],[66,62,13,12],[-250,-220,35,35],[275,-245,35,35],[270,260,35,35]])if(near(cx,cz,rx,rz))return true;
- for(const h of suburbPositions)if(near(h.x,h.z,18,22))return true;
- return false;
-}
-let forestSeed=906211;function forestRand(){forestSeed=(forestSeed*1664525+1013904223)>>>0;return forestSeed/4294967296;}
-for(let i=0,placed=0;i<5600&&placed<1500;i++){
- const x=-378+forestRand()*756,z=-378+forestRand()*756;
- if(protectedForestArea(x,z))continue;
- // Einige kleine Lichtungen zufällig über den Wald verteilen.
- let clearing=false;for(let k=0;k<9;k++){const cx=-340+forestRand()*680,cz=-340+forestRand()*680;if(Math.hypot((x-cx)*.9,z-cz)<(k%3===0?13:8)){clearing=true;break;}}
- if(clearing)continue;
- let tooClose=false;for(const t of harvestableTrees){if(Math.abs(t.x-x)<3.2&&Math.abs(t.z-z)<3.2){tooClose=true;break;}}
- if(tooClose)continue;
- const scale=.95+forestRand()*2.25;
- tree(x,z,scale);placed++;
+ addObstacle(x,z,.42*s,.42*s);
+ cube(g,0,1.4,0,.48,2.8,.48,bark,false);
+ const c1=cube(g,0,3.0,0,2.6,2.2,2.6,leaf,false);
+ const c2=cube(g,.1,4.1,.05,1.9,1.8,1.9,leaf2,false);
+ const c3=cube(g,-.05,4.9,0,1.15,1.35,1.15,leaf,false);
+ c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;
 }
 // Alte, über die gesamte Karte verteilte Vegetation entfernt; die neuen Biome besitzen eigene Vegetation.
 // rubble / boxes
@@ -691,44 +668,11 @@ for(let i=0;i<22;i++){
 // v3.0: Straßenlaternen entfernt, um die Renderlast zu senken.
 // Forest clusters at the expanded edges, leaving corridors between them.
 for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-310]]){
- for(let i=0;i<62;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&clearForTree(x,z)&&mainD>12.5&&branchD>12.5)tree(x,z,.95+Math.random()*1.9)}
+ for(let i=0;i<34;i++){const a=Math.random()*Math.PI*2,r=12+Math.random()*45,x=center[0]+Math.cos(a)*r,z=center[1]+Math.sin(a)*r;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z))tree(x,z,.8+Math.random()*1.25)}
 }
-// Dichtere Waldgebiete mit großen, unterschiedlich hohen Nadelbäumen.
-for(const center of [[-310,-110],[305,95],[-275,285],[250,-320],[-90,-300]]){
- for(let i=0;i<42;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&clearForTree(x,z))tree(x,z,1.25+Math.random()*1.75);}
-}
-const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
-// Abbaubare Fels- und Metalladern für die Spitzhacke.
-const mineNodes=[];
-for(const [x,z,kind] of [[170,60,'stone'],[205,82,'stone'],[235,38,'metal'],[255,70,'stone'],[-235,175,'metal'],[-260,205,'stone'],[300,245,'metal'],[-310,-170,'stone'],[120,-260,'metal'],[85,275,'stone']]){
- const y=Math.max(0,hillSurfaceY(x,z));const g=new THREE.Group();g.position.set(x,y,z);scene.add(g);
- if(kind==='stone'){for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.55+Math.random()*.35,0),mat(0x777b78,.95));m.position.set((Math.random()-.5)*1.1,.35+Math.random()*.25,(Math.random()-.5)*.9);m.scale.y=.8;g.add(m);}}
- else {for(let j=0;j<4;j++){const m=new THREE.Mesh(new THREE.DodecahedronGeometry(.45+Math.random()*.3,0),mat(0x626f6d,.8,.55));m.position.set((Math.random()-.5)*1.1,.3+Math.random()*.3,(Math.random()-.5)*.9);g.add(m);const ore=new THREE.Mesh(new THREE.BoxGeometry(.18,.12,.12),mat(0x9b7651,.65,.4));ore.position.copy(m.position).add(new THREE.Vector3(.12,.12,.12));g.add(ore);}}
- mineNodes.push({x,z,kind,group:g,remaining:kind==='stone'?4:3});
-}
-// Unterirdischer Schutzbunker mit betonierter Zugangsrutsche, schwerer Tür und sichtbarem Innenraum.
-{
- const bx=-245,bz=35;const concrete=mat(0x555d5c,.98),dark=mat(0x252c2b,.95),steel=mat(0x394342,.75,.45),lamp=mat(0xc8dca2,.4);
- // recessed-looking concrete bunker shell and raised earth berm
- const berm=new THREE.Mesh(new THREE.CylinderGeometry(13,15,1.7,12),mat(0x4b6140,1));berm.position.set(bx,.35,bz);berm.scale.z=.78;scene.add(berm);
- const shell=new THREE.Group();shell.position.set(bx,0,bz);scene.add(shell);
- farmCube(shell,0,1.25,0,10,2.5,8,concrete);farmCube(shell,0,2.55,0,10.4,.35,8.4,dark);
- farmCube(shell,0,.12,0,9.5,.24,7.5,mat(0x343b39,.98));
- // access stairwell and sloped steel hatch at ground level
- const entry=new THREE.Group();entry.position.set(bx,0,bz-5.2);scene.add(entry);
- farmCube(entry,0,.55,0,4.2,1.1,3.8,concrete);farmCube(entry,0,.95,-1.35,2.5,.12,1.0,steel);
- for(let i=0;i<6;i++)farmCube(entry,0,.8-i*.16,-.6-i*.42,2.3,.12,.42,mat(0x606866,.9));
- const hatch=farmCube(entry,0,1.22,-2.0,2.6,.16,.12,steel);hatch.rotation.x=-.15;
- // inside light, bunks, storage lockers and a table make it read as an actual bunker
- for(const x of [-3.7,3.7]){farmCube(shell,x,1.9,-2.5,.7,1.1,1.4,steel);farmCube(shell,x,2.5,-2.5,.72,.08,1.42,dark);}
- for(const z of [-2.5,2.5]){const light=cube(shell,0,2.25,z,1.4,.08,.18,lamp,false);}
- farmCube(shell,-1.8,.65,1.7,2.2,.8,1.0,farmWoodLight);farmCube(shell,1.6,.65,1.7,2.0,.8,1.0,farmWoodLight);
- addObstacle(bx-5,bz, .25,4);addObstacle(bx+5,bz,.25,4);addObstacle(bx,bz+4,5,.25);
-}
-
 // Wide, colorful wildflower meadows in several clearings.
 for(const center of [[-225,30],[225,-25],[-35,245],[155,275],[-270,-80]]){
- for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const mainD=Math.abs(z-(205+18*Math.sin(x/68)+5*Math.sin(x/27)));const branchD=Math.abs(x-(-170+13*Math.sin(z/34)+4*Math.sin(z/13)));if(mainD<12.5||branchD<12.5)continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
+ for(let i=0;i<90;i++){const x=center[0]+(Math.random()-.5)*54,z=center[1]+(Math.random()-.5)*42;if(onRoad(x,z))continue;const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cube(g,0,.17,0,.045,.34,.045,mat(0x4b843b),false);const colors=[0xffffff,0xf6f1dc,0xf2d55b,0xe4b7ef];const bloom=cube(g,0,.36,0,.19,.13,.19,mat(colors[Math.floor(Math.random()*colors.length)]),false);bloom.rotation.y=Math.random()*1.5;}
 }
 // Zusätzliche natürliche Büsche und Sträucher in den neuen Landschaftsbereichen.
 for(let i=0;i<44;i++){
@@ -771,141 +715,9 @@ function spawnCars(){
  const spots=[];
  for(let z=-230;z<=230;z+=38)if(Math.abs(z-12)>35)spots.push({x:(Math.random()<.5?-48:48)+(Math.random()-.5)*1.5,z,rot:0});
  for(let x=-220;x<=220;x+=42)if(Math.abs(x)>28)spots.push({x,z:Math.random()<.5?38:-52,rot:Math.PI/2});
- for(let i=0;i<4;i++){const spot=spots.splice(Math.floor(Math.random()*spots.length),1)[0];if(spot){const car=buildCar(spot.x,spot.z,spot.rot);cars.push(car)}}
+ for(let i=0;i<9;i++){const spot=spots.splice(Math.floor(Math.random()*spots.length),1)[0];if(spot){const car=buildCar(spot.x,spot.z,spot.rot);cars.push(car)}}
 }
 spawnCars();
-// Bauernhof: Fachwerk-Bauernhaus, Scheune, fahrbarer Traktor, Windmühle, Weizenfeld und Nutzgarten.
-const farmCenter={x:0,z:115};
-function farmCube(parent,x,y,z,w,h,d,material){return cube(parent,x,y,z,w,h,d,material,true)}
-// farmhouse: large two-storey timber-frame house with steep gabled roof
-{
- const g=new THREE.Group();g.position.set(farmCenter.x,0,farmCenter.z+13);scene.add(g);
- // Build the shell from separate wall sections instead of one solid box: the front doorway must be a real opening.
- farmCube(g,-7.38,2.9,0,.24,5.8,11,farmCream);farmCube(g,7.38,2.9,0,.24,5.8,11,farmCream);
- farmCube(g,0,2.9,5.38,14.8,5.8,.24,farmCream);
- farmCube(g,-4.25,2.9,-5.38,6.5,5.8,.24,farmCream);farmCube(g,4.25,2.9,-5.38,6.5,5.8,.24,farmCream);
- farmCube(g,0,4.1,-5.38,2.1,3.4,.24,farmCream);
- for(const y of [.18,5.65]){farmCube(g,0,y,-5.55,15,.2,.22,farmWood);farmCube(g,0,y,5.55,15,.2,.22,farmWood);farmCube(g,-7.55,y,0,.22,.2,11,farmWood);farmCube(g,7.55,y,0,.22,.2,11,farmWood)}
- for(const x of [-6.9,-4.6,-2.3,2.3,4.6,6.9]){farmCube(g,x,2.9,-5.62,.18,5.55,.18,farmWood);farmCube(g,x,2.9,5.62,.18,5.55,.18,farmWood)}
- for(const z of [-4.1,-1.8,.5,2.8,4.8]){farmCube(g,-7.62,2.9,z,.18,5.55,.18,farmWood);farmCube(g,7.62,2.9,z,.18,5.55,.18,farmWood)}
- // upper-storey windows
- for(const x of [-4.5,0,4.5]){farmCube(g,x,4.55,-5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,4.55,5.72,1.05,1.0,.12,mat(0x6b9aa2,.35));farmCube(g,x,4.55,-5.82,.09,1.05,.07,farmWood);farmCube(g,x,4.55,5.82,.09,1.05,.07,farmWood)}
- // triangular gables and steep roof planes
- const tri1=new THREE.Mesh(new THREE.BufferGeometry(),farmWood); // timber gable silhouette
- const shape=new THREE.Shape();shape.moveTo(-7.5,0);shape.lineTo(7.5,0);shape.lineTo(0,3.55);shape.closePath();const geo=new THREE.ShapeGeometry(shape);const gableMat=farmCream.clone();gableMat.side=THREE.DoubleSide;const front=new THREE.Mesh(geo,gableMat);front.position.set(0,5.8, -5.57);front.castShadow=true;g.add(front);const back=front.clone();back.position.z=5.57;back.rotation.y=Math.PI;g.add(back);
- for(const z of [-5.8,5.8]){farmCube(g,0,7.25,z,.2,3.0,.2,farmWood);}
- const roofL=new THREE.Mesh(new THREE.BoxGeometry(8.7,.28,12.2),farmRoof);roofL.position.set(-3.75,7.0,0);roofL.rotation.z=.56;roofL.castShadow=true;g.add(roofL);const roofR=roofL.clone();roofR.position.x=3.85;roofR.position.y=7.0;roofR.rotation.z=-.56;g.add(roofR);
- // front door and porch
- // Entry porch and an operable front door; keep the doorway clear so the player can enter.
- farmCube(g,0,.16,-7.0,3.4,.28,2.5,farmWood);
- const farmDoorPivot=new THREE.Group();farmDoorPivot.position.set(-.7,0,-5.82);g.add(farmDoorPivot);
- farmCube(farmDoorPivot,.7,1.15,0,1.35,2.3,.13,farmWood);farmCube(farmDoorPivot,.7,1.15,-.08,1.12,2.08,.06,farmWoodLight);
- const farmDoorObstacle=addObstacle(farmCenter.x,farmCenter.z+13-5.55, .72,.38);
- houseDoors.push({pivot:farmDoorPivot,open:false,obstacle:farmDoorObstacle,x:farmCenter.x,z:farmCenter.z+13-5.55,doorW:1.4,breachProgress:0,breached:false});
- // Solid perimeter walls stop entry through the timber walls, but leave the front doorway open.
- addObstacle(farmCenter.x,farmCenter.z+13-5.55,7.9,.22);
- solidObstacles[solidObstacles.length-1].active=false;
- addObstacle(farmCenter.x,farmCenter.z+13+5.55,7.9,.28);
- addObstacle(farmCenter.x-7.55,farmCenter.z+13,.28,5.6);addObstacle(farmCenter.x+7.55,farmCenter.z+13,.28,5.6);
- // The front wall collision is split around the door opening.
- addObstacle(farmCenter.x-4.2,farmCenter.z+13-5.55,3.3,.3);addObstacle(farmCenter.x+4.2,farmCenter.z+13-5.55,3.3,.3);
- // Interior floor and simple furniture so the farmhouse is explorable.
- farmCube(g,0,.1,0,14.6,.14,10.6,mat(0x806b50,.98));
- farmCube(g,-3,.55,1.2,2.2,.8,1.4,farmWood);farmCube(g,2,.48,-1.0,2.0,.65,1.2,farmWoodLight);
- farmCube(g,4,.42,2.8,1.4,.55,2.2,farmDark);farmCube(g,4,.75,2.65,1.3,.16,1.9,mat(0x9b9b89));
- // Wide staircase climbs from the ground floor toward the second floor along the Z axis.
- const stairX=-5.15;
- for(let i=0;i<14;i++){const t=(i+.5)/14;farmCube(g,stairX, .22+t*3.85, 3.9-t*7.5, 1.65,.24,.72,farmWoodLight)}
- stairZones.push({x:farmCenter.x+stairX,zStart:farmCenter.z+13+3.9,zEnd:farmCenter.z+13-3.6,w:1.55,height:3.85,baseY:1.7,topY:5.55,houseX:farmCenter.x,houseZ:farmCenter.z+13,halfW:7.2,halfD:5.3,level:0});
- // Upstairs floor; leave a stairwell opening so the player can actually reach the landing.
- farmCube(g,1.0,3.98,0,12.5,.16,10.5,mat(0x806b50,.98)); farmCube(g,-5.3,3.98,-1.6,3.7,.16,7.2,mat(0x806b50,.98));
- // Register the upper floor with the movement/landing system so the player cannot fall through it.
- buildingFloors.push({x:farmCenter.x,z:farmCenter.z+13,w:14.1,d:10.1,y:3.98,level:1});
- // Upstairs furniture: bed, wardrobe and bedside table with matching collision footprints.
- farmCube(g,2.2,4.62,-2.8,2.35,1.12,1.35,farmWoodLight);farmCube(g,2.2,5.22,-2.8,2.28,.14,1.28,mat(0x9aaba8,.98));
- farmCube(g,2.2,4.72,-3.25,2.2,.32,.52,mat(0x6f8790,.98));addObstacle(farmCenter.x+2.2,farmCenter.z+13-2.8,1.25,.78);
- farmCube(g,5.4,4.72,1.0,1.25,1.35,.85,farmWood);farmCube(g,4.0,4.35,-4.0,.8,.7,.7,farmWoodLight);
- addObstacle(farmCenter.x+5.4,farmCenter.z+13+1.0,.75,.55);addObstacle(farmCenter.x+4.0,farmCenter.z+13-4.0,.5,.45);
- // Keep the stairwell clear and leave a landing around the stair exit.
- // The exterior wall collisions above keep the player inside the building.
-}
-// barn with wide sliding doors and loft vent
-{
- const x=farmCenter.x-17,z=farmCenter.z+1,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- // Open-front barn shell: split the front facade around the sliding gate so no red wall remains behind it.
- const barnWall=mat(0x8b3028,.96);
- farmCube(g,-6.88,1.8,0,.24,3.6,10,barnWall);farmCube(g,6.88,1.8,0,.24,3.6,10,barnWall);
- farmCube(g,0,1.8,4.88,13.8,3.6,.24,barnWall);
- farmCube(g,-4.7,1.8,-4.88,4.4,3.6,.24,barnWall);farmCube(g,4.7,1.8,-4.88,4.4,3.6,.24,barnWall);
- farmCube(g,0,3.25,-4.88,4.9,.7,.24,barnWall);
- for(const xx of [-6.8,-4.8,-2.8,0,2.8,4.8,6.8])farmCube(g,xx,1.8,-5.08,.18,3.2,.18,farmWoodLight);
- for(const y of [.22,3.48])farmCube(g,0,y,-5.12,14,.18,.18,farmWoodLight);
- // Solid triangular gable infill above the barn walls, closing the roof-end hole.
- {const gs=new THREE.Shape();gs.moveTo(-6.8,0);gs.lineTo(6.8,0);gs.lineTo(0,2.0);gs.closePath();const gg=new THREE.ShapeGeometry(gs);const gm=barnWall.clone();gm.side=THREE.DoubleSide;const gw=new THREE.Mesh(gg,gm);gw.position.set(0,3.6,-4.78);g.add(gw);const gw2=gw.clone();gw2.position.z=4.78;gw2.rotation.y=Math.PI;g.add(gw2);}
- // Clear the entire central doorway: the animated sliding panels below are the ONLY doors.
- // Raised, correctly oriented gable roof with a taller ridge above the barn walls.
- const rl=new THREE.Mesh(new THREE.BoxGeometry(8.2,.38,11.7),farmRoof);rl.position.set(-3.05,4.45,0);rl.rotation.z=.48;g.add(rl);const rr=rl.clone();rr.position.x=3.05;rr.position.y=4.45;rr.rotation.z=-.48;g.add(rr);
- farmCube(g,0,4.0,0,1.5,.35,1.4,farmWoodLight);
- // Leave the front opening free of a solid building-sized collider. Side and rear walls remain solid.
- addObstacle(x-7.0,z,.28,5.1);addObstacle(x+7.0,z,.28,5.1);addObstacle(x,z+5.0,6.9,.28);
- // Two sliding barn doors can be opened with AKTION from close range.
- const barnDoorPivot=new THREE.Group();barnDoorPivot.position.set(0,0,-5.12);g.add(barnDoorPivot);
- const barnDoorLeft=new THREE.Group();barnDoorPivot.add(barnDoorLeft);farmCube(barnDoorLeft,-1.18,1.55,0,2.32,3.0,.16,mat(0x7e3026));for(let yy=.25;yy<3;yy+=.62)farmCube(barnDoorLeft,-1.18,yy,.1,2.2,.08,.08,farmWoodLight);
- const barnDoorRight=new THREE.Group();barnDoorPivot.add(barnDoorRight);farmCube(barnDoorRight,1.18,1.55,0,2.32,3.0,.16,mat(0x7e3026));for(let yy=.25;yy<3;yy+=.62)farmCube(barnDoorRight,1.18,yy,.1,2.2,.08,.08,farmWoodLight);
- const barnDoorObstacle=addObstacle(x,z-5.1,2.45,.4);
- houseDoors.push({pivot:barnDoorPivot,open:false,obstacle:barnDoorObstacle,x,z:z-5.1,doorW:4.8,breachProgress:0,breached:false,barnSliding:true});
-}
-// Windmill tower and a single rotating four-sail rotor
-let farmWindmillRotor=null;
-{
- const x=farmCenter.x+20,z=farmCenter.z-2,g=new THREE.Group();g.position.set(x,0,z);scene.add(g);
- const tower=new THREE.Mesh(new THREE.CylinderGeometry(1.35,2.15,10,8),mat(0xd7c9a8,.95));tower.position.y=5;g.add(tower);addObstacle(x,z,2.05,2.05);
- const cap=new THREE.Mesh(new THREE.ConeGeometry(2.1,2.0,8),farmRoof);cap.position.y=10.6;g.add(cap);
- farmCube(g,0,1.0,1.72,1.0,1.8,.12,farmDark);
- farmWindmillRotor=new THREE.Group();farmWindmillRotor.position.set(0,8.7,-1.85);g.add(farmWindmillRotor);
- const hub=new THREE.Mesh(new THREE.CylinderGeometry(.32,.32,.55,12),farmWood);hub.rotation.x=Math.PI/2;farmWindmillRotor.add(hub);
- for(let i=0;i<4;i++){const sail=new THREE.Group();sail.rotation.z=i*Math.PI/2;farmWindmillRotor.add(sail);const beam=farmCube(sail,0,2.15,0,.22,4.35,.18,farmWood);const canvas=farmCube(sail,0,2.15,.12,.92,3.25,.08,mat(0xe9e1cc,.9));canvas.rotation.z=-.12;}
-}
-// Wheat field, with rows of golden stalks and a narrow dirt track
-{
- const x=farmCenter.x+2,z=farmCenter.z-24;farmCube(scene,x,.035,z,31,.06,17,soilMat);
- for(let row=0;row<12;row++)for(let col=0;col<27;col++){
-  const xx=x-14.5+col*1.1,zz=z-7.4+row*1.25;
-  const stalk=new THREE.Group();stalk.position.set(xx,0,zz);scene.add(stalk);
-  const stem=farmCube(stalk,0,.48,0,.055,.96,.055,(row+col)%3?wheatMatA:wheatMatB);stem.rotation.z=((col%3)-1)*.07;
-  const head=farmCube(stalk,.02,.95,0,.12,.32,.12,wheatMatB);head.rotation.z=-.18;
- }
-}
-// Kitchen garden: raised beds, planted rows, compost and a little fruit tree
-{
- const x=farmCenter.x-18,z=farmCenter.z+19;farmCube(scene,x,.025,z,21,.05,13,mat(0x6e7b45,1));
- for(let b=0;b<4;b++){
-  const bx=x-7.2+b*4.8,bz=z-2.2;
-  farmCube(scene,bx,.28,bz,3.8,.48,3.0,farmWoodLight);farmCube(scene,bx,.53,bz,3.45,.12,2.65,soilMat);
-  for(let r=0;r<3;r++)for(let c=0;c<5;c++){
-   const plant=new THREE.Group();plant.position.set(bx-1.25+c*.62,.6,bz-.8+r*.78);scene.add(plant);
-   const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.05,.42,5),leafMat);stem.position.y=.2;plant.add(stem);
-   for(let k=0;k<3;k++){const leaf=new THREE.Mesh(new THREE.SphereGeometry(.18,6,5),mat(k%2?0x47723a:0x5c8b45,1));leaf.position.set((k-1)*.14,.34,(k%2)*.12);leaf.scale.set(1,.45,.65);plant.add(leaf)}
-  }
- }
- // low garden fence and compost bin
- for(let i=0;i<14;i++){farmCube(scene,x-10+i*1.5,.42,z+6.5,.09,.84,.1,farmWoodLight)}farmCube(scene,x, .35,z+6.5,21,.12,.12,farmWood);
- farmCube(scene,x+12,.55,z+2,1.5,1.1,1.5,farmWood);farmCube(scene,x+12,1.12,z+2,1.4,.12,1.4,leafMat);
- // fruit tree
- const treeX=x-14.0,treeZ=z-2.0;const trunk=farmCube(scene,treeX,1.6,treeZ,.45,3.2,.45,farmWood);for(let i=0;i<5;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(1.2,1),leafMat);crown.position.set(treeX+Math.cos(i*1.25)*.65,3.3+(i%2)*.4,treeZ+Math.sin(i*1.25)*.6);scene.add(crown)}
-}
-// Old green farm tractor. It shares the existing vehicle controls, repair, collision and save system.
-{
- const x=farmCenter.x-29.5,z=farmCenter.z-2.0,g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(1.5);scene.add(g);
- const green=mat(0x47733b,.55,.25),greenDark=mat(0x2f512b,.7,.2),tire=mat(0x171a17,1),rim=mat(0x858b76,.5,.4),seat=mat(0x342820,.9);
- farmCube(g,0,.95,-.1,1.75,.95,2.35,green);farmCube(g,0,1.72,-.15,1.15,.78,1.25,greenDark);farmCube(g,0,2.1,-.15,1.0,.09,1.05,green);
- farmCube(g,0,1.35,1.22,1.45,.22,.65,green);farmCube(g,0,1.85,.9,.9,.12,.12,greenDark);farmCube(g,0,1.6,.1,.6,.7,.6,seat);
- for(const side of [-1,1])for(const zz of [-.85,.9]){const rad=zz<0?.58:.38;const wheel=new THREE.Mesh(new THREE.CylinderGeometry(rad,rad,.28,14),tire);wheel.rotation.z=Math.PI/2;wheel.position.set(side*(zz<0?1.0:.86),rad,zz);g.add(wheel);const r=new THREE.Mesh(new THREE.CylinderGeometry(rad*.55,rad*.55,.3,10),rim);r.rotation.z=Math.PI/2;r.position.copy(wheel.position);g.add(r);for(let t=0;t<10;t++){const lug=farmCube(g,side*(zz<0?1.15:1.01),rad,zz,.08,.1,rad*.18,greenDark);lug.rotation.y=t*Math.PI/5}}
- farmCube(g,0,1.1,-1.34,1.2,.28,.12,greenDark);farmCube(g,-.55,.72,-1.45,.14,.7,.14,farmMetal);farmCube(g,.55,.72,-1.45,.14,.7,.14,farmMetal);
- // Bright roof beacon and exhaust make the tractor easy to spot from a distance.
- farmCube(g,0,2.22,-.55,.22,.18,.22,mat(0xffc52f,.45));farmCube(g,.52,2.18,-.45,.12,.62,.12,farmMetal);
- const tractor={group:g,x,z,rot:0,hp:140,maxHp:140,fuel:100,maxFuel:100,driveFuelTimer:0,repaired:true,bricks:100+Math.floor(Math.random()*401),metal:300+Math.floor(Math.random()*301),planks:50+Math.floor(Math.random()*51),destroyed:false,isTractor:true};cars.push(tractor);
-}
 // Drei Militärlager mit je einem fahrbaren Panzer, vielen Zombies und Loot.
 const tanks=[]; const militaryCamps=[]; let activeTank=null;
 function makeTank(x,z,rot=0){
@@ -915,7 +727,7 @@ function makeTank(x,z,rot=0){
  // Track housings + visible road wheels
  for(const side of [-1,1]){cube(g,side*1.68,.66,0,.38,.82,4.35,dark);for(let j=0;j<5;j++){const w=new THREE.Mesh(new THREE.CylinderGeometry(.27,.27,.16,12),metal);w.rotation.z=Math.PI/2;w.position.set(side*1.89,.48,-1.55+j*.77);g.add(w)}}
  const turret=new THREE.Group();turret.position.set(0,1.8,-.2);g.add(turret);cube(turret,0,.02,0,1.45,.58,1.55,olive);cube(turret,0,.05,-1.25,.18,.2,2.65,metal);
- const tank={group:g,turret,x,z,rot,hp:1400,maxHp:1400,rockets:4,maxRockets:4,driveFuelTimer:0,collisionLatched:false,lastCrush:new Map()};tanks.push(tank);return tank;
+ const tank={group:g,turret,x,z,rot,hp:1400,maxHp:1400,rockets:4,maxRockets:4,fuel:100,maxFuel:100,driveFuelTimer:0,collisionLatched:false,lastCrush:new Map()};tanks.push(tank);return tank;
 }
 function makeCamp(cx,cz,index){
  const group=new THREE.Group();group.position.set(cx,0,cz);scene.add(group);
@@ -924,7 +736,7 @@ function makeCamp(cx,cz,index){
  for(const [tx,tz] of [[-12,-12],[12,-12],[-12,12],[12,12]]){const tent=cube(group,tx,1.2,tz,6,2.4,5,mat(0x4b5846,.98));cube(group,tx,2.45,tz,6.3,.25,5.3,mat(0x343f32,.95));}
  for(let i=0;i<7;i++){const bx=(i%4)*4-6,bz=(Math.floor(i/4))*4-2;const crate=cube(group,bx,.55,bz,1.5,1.1,1.4,mat(i%2?0x66513a:0x81704b,.9));crate.userData.militaryLoot=true;addObstacle(cx+bx,cz+bz,.9,.85);}
  // Panzer außerhalb der Umzäunung auf freier Fläche spawnen, nicht zwischen Kisten/Zelten.
- const tank=index===0?makeTank(cx+29,cz+3,index*.65):null;if(tank)tank.campIndex=index;
+ const tank=makeTank(cx+29,cz+3,index*.65);tank.campIndex=index;
  militaryCamps.push({group,x:cx,z:cz,tank,index});
  // A very dense horde guarding each camp.
  for(let i=0;i<18;i++){const a=Math.random()*Math.PI*2,r=10+Math.random()*25;makeZombie(cx+Math.cos(a)*r,cz+Math.sin(a)*r,Math.random()<.18)}
@@ -952,17 +764,17 @@ function fireTankRocket(){
  const t0=performance.now(),travelMs=Math.max(180,Math.min(1100,start.distanceTo(end)*9));const anim=()=>{if(!orb.parent)return;const t=Math.min(1,(performance.now()-t0)/travelMs);orb.position.copy(start).lerp(end,t);if(t>=1){scene.remove(orb,trail);orb.geometry.dispose();orb.material.dispose();trail.geometry.dispose();trail.material.dispose();detonateExplosive(end,{damage:260,kind:'rocket'},0xff7624)}else requestAnimationFrame(anim)};requestAnimationFrame(anim);message('🚀 Rakete auf das Fadenkreuz abgefeuert! Raketen übrig: '+activeTank.rockets,1.4);saveProgress();
 }
 $('tankRocketBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fireTankRocket()});
-function enterTank(t){activeTank=t;player.inTank=true;player.inCar=false;activeCar=null;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.yaw=t.group.rotation.y;player.vy=0;camera.position.copy(player.pos);$('tankRocketBtn').style.display='block';$('fuelWrap').style.display='none';message('Panzer übernommen! WASD fahren · R / RAKETE FEUERN · E aussteigen',3);updateHUD()}
-function exitTank(){if(!activeTank)return;const t=activeTank;player.pos.set(t.group.position.x+Math.sin(player.yaw)*3.2,1.7,t.group.position.z+Math.cos(player.yaw)*3.2);activeTank=null;player.inTank=false;$('tankRocketBtn').style.display='none';message('Du bist aus dem Panzer ausgestiegen.',1.5);updateHUD()}
-function updateTankDriving(dt){if(!activeTank)return;const t=activeTank;const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*1.05*dt;const speed=throttle>=0?10:5;const nx=Math.max(-378,Math.min(378,t.group.position.x-Math.sin(player.yaw)*throttle*speed*dt));const nz=Math.max(-378,Math.min(378,t.group.position.z-Math.cos(player.yaw)*throttle*speed*dt));let moved=false;if(Math.abs(throttle)>.001){/* Panzer nutzt Achsen-Kollisionen getrennt, damit eine Kiste oder Ecke ihn nicht komplett festsetzt. */if(!blockedAt(nx,t.group.position.z,1.15)){t.group.position.x=nx;moved=true;}if(!blockedAt(t.group.position.x,nz,1.15)){t.group.position.z=nz;moved=true;}if(moved){t.x=t.group.position.x;t.z=t.group.position.z;t.collisionLatched=false;}else if(!t.collisionLatched){t.collisionLatched=true;t.hp=Math.max(0,t.hp-8);if(t.hp<=0&&!t.destroyed){t.destroyed=true;setWreckAppearance(t.group,'tank');if(activeTank===t)exitTank();message('💥 Panzer zerstört! Er sieht jetzt wie ein Wrack aus.',2.5);saveProgress()}else message('Panzer blockiert/beschädigt: '+t.hp+'/'+t.maxHp,1.2)}}t.group.rotation.y=player.yaw;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+function enterTank(t){activeTank=t;player.inTank=true;player.inCar=false;activeCar=null;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.yaw=t.group.rotation.y;player.vy=0;camera.position.copy(player.pos);$('tankRocketBtn').style.display='block';$('fuelWrap').style.display='block';message('Panzer übernommen! WASD fahren · R / RAKETE FEUERN · E aussteigen · Benzin '+Math.ceil(t.fuel)+'/100',3);updateHUD()}
+function exitTank(){if(!activeTank)return;const t=activeTank;player.pos.set(t.group.position.x+Math.sin(player.yaw)*3.2,1.7,t.group.position.z+Math.cos(player.yaw)*3.2);activeTank=null;player.inTank=false;$('tankRocketBtn').style.display='none';$('fuelWrap').style.display='none';message('Du bist aus dem Panzer ausgestiegen.',1.5);updateHUD()}
+function updateTankDriving(dt){if(!activeTank)return;const t=activeTank;let throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;if(t.fuel<=0&&Math.abs(throttle)>.01){throttle=0;if(!t.emptyFuelNotified){message('Panzer-Tank leer! Steige aus und benutze einen Benzinkanister neben dem Panzer.',2.5);t.emptyFuelNotified=true;}}if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*1.05*dt;const speed=throttle>=0?10:5;const nx=Math.max(-378,Math.min(378,t.group.position.x-Math.sin(player.yaw)*throttle*speed*dt));const nz=Math.max(-378,Math.min(378,t.group.position.z-Math.cos(player.yaw)*throttle*speed*dt));let moved=false;if(Math.abs(throttle)>.001){t.driveFuelTimer+=dt;if(t.driveFuelTimer>=2.2){const used=Math.floor(t.driveFuelTimer/2.2);t.fuel=Math.max(0,t.fuel-used);t.driveFuelTimer-=used*2.2;}/* Panzer nutzt Achsen-Kollisionen getrennt, damit eine Kiste oder Ecke ihn nicht komplett festsetzt. */if(!blockedAt(nx,t.group.position.z,1.15)){t.group.position.x=nx;moved=true;}if(!blockedAt(t.group.position.x,nz,1.15)){t.group.position.z=nz;moved=true;}if(moved){t.x=t.group.position.x;t.z=t.group.position.z;t.collisionLatched=false;}else if(!t.collisionLatched){t.collisionLatched=true;t.hp=Math.max(0,t.hp-8);if(t.hp<=0&&!t.destroyed){t.destroyed=true;setWreckAppearance(t.group,'tank');if(activeTank===t)exitTank();message('💥 Panzer zerstört! Er sieht jetzt wie ein Wrack aus.',2.5);saveProgress()}else message('Panzer blockiert/beschädigt: '+t.hp+'/'+t.maxHp,1.2)}}t.group.rotation.y=player.yaw;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');$('fuelWrap').style.display='block';$('fuelLabel').textContent='⛽ Benzin: '+Math.ceil(t.fuel)+' / 100';$('fuelBar').style.width=Math.max(0,t.fuel)+'%';
  // Crush zombies on contact with a short cooldown per zombie.
  for(const z of zombies){if(Math.abs(throttle)<.25||z.dead||distanceXZ(z.group.position,t.group.position)>3.2)continue;const now=performance.now(),last=t.lastCrush.get(z)||0;if(now-last<850)continue;t.lastCrush.set(z,now);z.hp=0;z.dead=true;scene.remove(z.group);dropZombieLoot(z.group.position);message('Panzer hat einen Zombie überfahren!',1.1);}
 }
 function repairCar(car){
  if(inventory.bricks<car.bricks||inventory.metalScrap<car.metal||inventory.planks<car.planks){message('Für die Reparatur brauchst du: '+car.bricks+' Ziegelsteine, '+car.metal+' Metall und '+car.planks+' Holzbretter.',3.5);return false}
- inventory.bricks-=car.bricks;inventory.metalScrap-=car.metal;inventory.planks-=car.planks;car.hp=500;car.destroyed=false;car.repaired=true;car.fuel=1+Math.floor(Math.random()*50);car.emptyFuelNotified=false;car.group.visible=true;
+ inventory.bricks-=car.bricks;inventory.metalScrap-=car.metal;inventory.planks-=car.planks;car.hp=500;car.destroyed=false;if(!car.repaired)car.fuel=Math.floor(Math.random()*51);car.repaired=true;car.group.visible=true;
  restoreWreckAppearance(car.group);
- message('Auto repariert! 500/500 Herzen. Kosten: '+car.bricks+' Ziegel · '+car.metal+' Metall · '+car.planks+' Bretter.',3.2);updateInventory();saveProgress();return true;
+ message('Auto repariert! 500/500 Herzen · Benzin: '+Math.ceil(car.fuel)+'/100. Kosten: '+car.bricks+' Ziegel · '+car.metal+' Metall · '+car.planks+' Bretter.',3.2);updateInventory();saveProgress();return true;
 }
 function enterCar(car){
  if(!car.repaired||car.destroyed||car.hp<=0){message('Dieses Auto muss erst repariert werden. Stelle dich daneben und tippe auf AKTION.',2.8);return}
@@ -1017,8 +829,10 @@ function updateHUD(){
   $('waterBar').parentElement.previousElementSibling.style.display='';$('waterBar').parentElement.style.display='';
  }
  $('allyLabel').textContent='Verbündete: '+allies.filter(a=>!a.dead).length;
+ $('soldierToggle').textContent=soldiersEnabled?'🪖 SOLDATEN: AN':'🪖 SOLDATEN: AUS';
+ $('soldierToggle').style.opacity=soldiersEnabled?'1':'.72';
  $('hungerBar').style.width=Math.max(0,player.hunger)+'%';$('waterBar').style.width=Math.max(0,player.water)+'%';
- $('objective').textContent='Aufgabe: Erkunde die Welt und überlebe.';
+ $('objective').textContent=soldierRecruited?'Aufgabe: Überlebe und halte die Zombies auf!':`Aufgabe: Finde Versorgungskisten (${suppliesFound}/3), hilf dem Soldaten oder erkunde die Landschaft und suche Versorgungskisten nach Loot.`;
 }
 function makePerson(isZombie=false){
  const g=new THREE.Group();
@@ -1066,7 +880,7 @@ for(let i=0;i<28;i++){
 // Keine Boss-Zombies werden erzeugt.
 // Einige Häuser sind nicht sicher: Zombies im Inneren und verlassene Leichen.
 for(const [x,z] of [[180,-164],[220,-206],[260,-164]])makeZombie(x,z);
-makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2); // Nur das erste Militärlager erhält einen fahrbaren Panzer.
+makeCamp(-250,-220,0);makeCamp(275,-245,1);makeCamp(270,260,2);
 
 // Erweiterter Kartenrand: Bahnhof, zweigleisige Strecke und ein nicht fahrbarer Zug.
 const trainWagons=[];let playerInsideTrain=null;let flyableJet=null,activeJet=false,jetLiftInput=0;let jetFuel=100,jetHealth=500,jetFuelTimer=0,jetRunDistance=0,jetAirborne=false,jetWasMoving=false,jetFalling=false,jetFallVelocity=0;
@@ -1078,7 +892,7 @@ const jetFlightControls=document.createElement('div');jetFlightControls.id='jetF
 $('jetUpBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=1},{passive:false});$('jetUpBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetDownBtn').addEventListener('touchstart',e=>{e.preventDefault();jetLiftInput=-1},{passive:false});$('jetDownBtn').addEventListener('touchend',e=>{e.preventDefault();jetLiftInput=0},{passive:false});$('jetUpBtn').addEventListener('mousedown',()=>jetLiftInput=1);$('jetUpBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetDownBtn').addEventListener('mousedown',()=>jetLiftInput=-1);$('jetDownBtn').addEventListener('mouseup',()=>jetLiftInput=0);$('jetExitBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();exitJet();});
 function buildRailwayAndStation(){
  const railMat=mat(0x4b4f4b,.9), sleeperMat=mat(0x493a2d,.98), ballastMat=mat(0x66675f,1), stationWall=mat(0xb4b1a2,.92), stationTrim=mat(0x343b37,.8), trainBody=mat(0x344c43,.55,.25), trainRoof=mat(0x29322e,.7,.2), windowMat=mat(0x1b3033,.25,.1);
- const trackX=355, zStart=-260,zEnd=260;
+ const trackX=355, zStart=-100,zEnd=150;
  // Schotterbett und zwei durchgehende Schienen mit Schwellen.
  for(const tx of [trackX,trackX+8]){
   cube(scene,tx,.025,(zStart+zEnd)/2,4.2,.06,zEnd-zStart,ballastMat,false);
@@ -1129,30 +943,6 @@ function buildRailwayAndStation(){
 }
 buildRailwayAndStation();
 
-// Curved rivers: overlapping angled segments follow a winding path instead of straight rectangles.
-const riverWaterMat=new THREE.MeshStandardMaterial({color:0x286c89,roughness:.25,metalness:.12,transparent:true,opacity:.84});
-const riverBedMat=mat(0x4e5c4e,1);
-const riverHalfWidth=9, riverZ=205;
-const mainRiverPath=[];
-for(let x=-300;x<=300;x+=12) mainRiverPath.push({x,z:205+18*Math.sin(x/68)+5*Math.sin(x/27)});
-const branchRiverPath=[];
-for(let z=-100;z<=180;z+=10) branchRiverPath.push({x:-170+13*Math.sin(z/34)+4*Math.sin(z/13),z});
-function buildCurvedRiver(path,width){
- for(let i=0;i<path.length-1;i++){
-  const a=path[i],b=path[i+1],dx=b.x-a.x,dz=b.z-a.z,len=Math.hypot(dx,dz),ang=Math.atan2(-dx,dz),mx=(a.x+b.x)/2,mz=(a.z+b.z)/2;
-  const bed=cube(scene,mx,-.22,mz,len+2,.28,width*2,riverBedMat,false);bed.rotation.y=ang;
-  const water=new THREE.Mesh(new THREE.PlaneGeometry(len+2,width*2),riverWaterMat);water.rotation.set(-Math.PI/2,0,ang);water.position.set(mx,.035,mz);scene.add(water);
- }
-}
-buildCurvedRiver(mainRiverPath,riverHalfWidth);
-buildCurvedRiver(branchRiverPath,riverHalfWidth);
-function distanceToRiverPath(x,z,path){let best=Infinity;for(let i=0;i<path.length-1;i++){const a=path[i],b=path[i+1],dx=b.x-a.x,dz=b.z-a.z,l2=dx*dx+dz*dz;const t=Math.max(0,Math.min(1,((x-a.x)*dx+(z-a.z)*dz)/l2));const px=a.x+t*dx,pz=a.z+t*dz;best=Math.min(best,Math.hypot(x-px,z-pz));}return best;}
-// Bridge deck and rails cross the main river at its central crossing.
-const bridgeDeck=mat(0x686d69,.9),bridgeRail=mat(0x454d4a,.85);
-cube(scene,0,.08,riverZ,10,.16,26,bridgeDeck,false);
-for(const side of [-1,1]){cube(scene,side*4.65,.75,riverZ,.28,1.35,26,bridgeRail,false);for(let z=riverZ-11;z<=riverZ+11;z+=3)cube(scene,side*4.65,1.48,z,.32,.18,.25,bridgeRail,false);}
-// No blocking obstacle across the bridge: the deck is a walkable ground-level crossing.
-
 // New industrial zone and airport. Hangars have solid side/rear walls and an open front.
 function buildIndustrialAirport(){
  const concrete=mat(0x777a78,.98), wall=mat(0x737a7d,.92), roof=mat(0x454c50,.85), trim=mat(0x252d31,.8), glass=mat(0x24383b,.25,.1), yellow=mat(0xd2b34a,.9), planeWhite=mat(0xc8ccca,.62,.18), jetGrey=mat(0x555e66,.48,.28), rubber=mat(0x17191a,.95);
@@ -1186,7 +976,7 @@ function buildIndustrialAirport(){
   for(let zz=-d/2+3;zz<d/2-2;zz+=8){cube(g,0,6.6,zz,w-.8,.22,.28,trim);}
   addObstacle(x-w/2,z,.3,d/2);addObstacle(x+w/2,z,.3,d/2);addObstacle(x,z-d/2,w/2,.3);
   if(withJet){
-   const a=new THREE.Group();a.position.set(0,0.4,-1);g.add(a);
+   const a=new THREE.Group();a.position.set(0,0.4,-1);g.add(a);flyableJet=a;
    // Low-poly jet: fuselage, pointed nose, swept wings, tail and twin stabilizers.
    cube(a,0,1.25,-2.2,1.7,1.15,13,jetGrey);
    const nose=new THREE.Mesh(new THREE.ConeGeometry(.83,3.2,8),jetGrey);nose.rotation.x=-Math.PI/2;nose.position.set(0,1.25,-10.2);a.add(nose);
@@ -1199,39 +989,20 @@ function buildIndustrialAirport(){
  }
  hangar(280,-290,34,38,true);
  hangar(330,-290,34,38,false);
- // Das große Passagier-/Transportflugzeug ist ebenfalls steuerbar.
- const plane=new THREE.Group();plane.position.set(305,.25,-250);plane.rotation.y=Math.PI;scene.add(plane);flyableJet=plane;
+ // A separate passenger/cargo aircraft parked on the runway; purely decorative and not flyable.
+ const plane=new THREE.Group();plane.position.set(305,.25,-250);plane.rotation.y=Math.PI;scene.add(plane);
  cube(plane,0,2.2,0,2.2,1.8,24,planeWhite);
  const nose=new THREE.Mesh(new THREE.ConeGeometry(1.05,5,10),planeWhite);nose.rotation.x=-Math.PI/2;nose.position.set(0,2.2,-14);plane.add(nose);
  cube(plane,0,2.7,3.3,2,.55,5.8,glass);
  cube(plane,0,1.9,0,31,.42,6.4,planeWhite);
  cube(plane,0,2.5,9.4,11,.3,3.2,planeWhite);cube(plane,0,3.8,10.2,.45,3.1,2.4,planeWhite);
  for(const x of [-2.2,2.2]){const engine=cube(plane,x,1.25,1.2,1.6,1.2,4.5,jetGrey);const wh=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.25,10),rubber);wh.rotation.z=Math.PI/2;wh.position.set(x*.65,.55,2.5);plane.add(wh);}
- // Keine feste Kollisionsbox am großen Flugzeug: Einsteigen und Starten muss möglich bleiben.
+ // Block airport service buildings/aircraft footprints as solid obstacles without making the aircraft walkable.
+ addObstacle(305,-250,16,13); // runway aircraft collision footprint
 }
 buildIndustrialAirport();
-// Sichtbarkeits-Schutz: Das große Flugzeug bleibt ein echtes, deckend gerendertes 3D-Modell.
-function repairFlyableJetVisibility(){
- if(!flyableJet)return;
- if(flyableJet.parent!==scene)scene.attach(flyableJet);
- flyableJet.visible=true;
- flyableJet.traverse(o=>{
-  o.visible=true;
-  if(o.isMesh){
-   o.frustumCulled=false;
-   if(o.material){
-    const mats=Array.isArray(o.material)?o.material:[o.material];
-    for(const m of mats){m.transparent=false;m.opacity=1;m.depthWrite=true;m.needsUpdate=true;}
-   }
-  }
- });
- // Recover from a corrupted/invalid saved transform without moving a normally parked aircraft.
- if(!Number.isFinite(flyableJet.position.x)||!Number.isFinite(flyableJet.position.y)||!Number.isFinite(flyableJet.position.z)||Math.abs(flyableJet.position.x)>800||Math.abs(flyableJet.position.z)>800){
-  flyableJet.position.set(305,.45,-250);flyableJet.rotation.set(0,Math.PI,0);jetFalling=false;jetAirborne=false;
- }
-}
-repairFlyableJetVisibility();
-
+// The flyable fighter must stand outside the hangar, on the open runway.
+if(flyableJet){scene.attach(flyableJet);flyableJet.position.set(305,0.45,-276);flyableJet.rotation.set(0,0,0);flyableJet.visible=true;flyableJet.traverse(o=>{o.visible=true;if(o.isMesh){o.frustumCulled=false;if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){m.transparent=false;m.opacity=1;m.depthWrite=true;m.needsUpdate=true;}}}});}
 
 // Stylisierte, nicht-grafische Leichen: zufällig fehlt ein Arm oder die untere Körperhälfte.
 // Blutspuren sind flache dunkle Flecken auf dem Boden, ohne explizite Innereien.
@@ -1262,7 +1033,7 @@ function makeHouseCorpse(x,z,rot){
 for(const [x,z,rot] of [[100,-164,.35],[140,-206,1.1],[180,-206,-.55],[260,-206,2.0]])makeHouseCorpse(x-2.0,z+(z===-164?1.4:-1.4),rot);
 
 // Lootkisten und Versorgungspakete
-const inventory = { axe:1, pickaxe:1, treeSaplings:0, cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, medicine:0, food:0, water:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, armorPieces:[], weapons:{Blaster:1} };
+const inventory = { medicine:0, food:0, water:0, cola:0, fanta:0, sprite:0, apple:0, potato:0, beanCan:0, soupCan:0, meat:0, vegetables:0, gasCanister:0, lantern:0, nightVision:0, grenades:0, glider:0, rockets:0, ammo:18, arrows:0, specialAmmo:36, bricks:0, planks:0, metalScrap:0, craftedFence:0, craftedWall:0, craftedIronGate:0, craftedGardenGate:0, craftedTurret:0, craftedChair:0, craftedTable:0, craftedBed:0, craftedLamp:0, armorPieces:[], weapons:{Blaster:1} };
 let gliderEquipped=false, gliderVisual=null;
 let gliderBoostTime=0,gliderBoostCooldown=0;
 const armorSets=[{name:'Ranger',rarity:'common',color:'#66785d',reduce:.04},{name:'Waldläufer',rarity:'uncommon',color:'#3f9b62',reduce:.08},{name:'Taktisch',rarity:'rare',color:'#428ad6',reduce:.13},{name:'Schatten',rarity:'epic',color:'#9b57d6',reduce:.18},{name:'Titan',rarity:'legendary',color:'#d6a43d',reduce:.24},{name:'Aegis',rarity:'mythic',color:'#e85fce',reduce:.30},{name:'Kosmischer Wächter',rarity:'ultra',color:'#49f2f0',reduce:.36}];
@@ -1286,7 +1057,7 @@ const lanternBeam=new THREE.SpotLight(0xffdca0,0,38,Math.PI/4,0.35,1.0);lanternB
 function rebuildLantern(){while(lanternProp.children.length)lanternProp.remove(lanternProp.children[0]);lanternProp.visible=lanternEquipped;if(!lanternEquipped){lanternGlow.intensity=0;lanternBeam.intensity=0;return;}cube(lanternProp,0,0,0,.16,.23,.12,mat(0x343b3a,.45,.35));cube(lanternProp,0,.02,-.067,.11,.15,.025,mat(0xffd88a,.25,.1));cube(lanternProp,0,.15,0,.18,.035,.14,mat(0x202522));cube(lanternProp,0,-.15,0,.12,.035,.1,mat(0x202522));lanternGlow.intensity=7.5;lanternBeam.intensity=75;}
 
 const weaponStats = {
- Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42},
+ Blaster:{damage:50,cooldown:.28,mag:12,icon:'🔫',range:42}, Minigun:{damage:24,cooldown:.065,mag:120,icon:'🟨',range:68,price:18000},
  Sturmgewehr:{damage:38,cooldown:.16,mag:24,icon:'🟩',range:58},
  Schrotblaster:{damage:80,cooldown:.72,mag:6,icon:'💥',range:22},
  Präzisionsgewehr:{damage:100,cooldown:.85,mag:5,icon:'🎯',range:85},
@@ -1348,10 +1119,14 @@ function rebuildHandProp(){
    // Small 3D ration/apple
    const apple=new THREE.Mesh(new THREE.SphereGeometry(.105,12,10),mat(0xc52f35));apple.scale.set(1,.94,.92);apple.position.set(0,.025,-.035);apple.castShadow=true;handProp.add(apple);
    cube(handProp,0,.12,-.035,.035,.075,.035,mat(0x64864a));cube(handProp,.035,.14,-.035,.07,.025,.035,mat(0x6e9a43));
- }else if(id==='water'){
-   const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.065,.075,.23,12),mat(0x328fca,.22,.22));bottle.position.set(0,.015,-.035);handProp.add(bottle);
-   const neck=new THREE.Mesh(new THREE.CylinderGeometry(.028,.035,.06,10),mat(0x9bc6d4));neck.position.set(0,.16,-.035);handProp.add(neck);
-   cube(handProp,0,.2,-.035,.065,.035,.065,mat(0xd8d5bd));cube(handProp,0,.015,.04,.08,.12,.012,mat(0x9de3ef,.2,.1));
+ }else if(['water','cola','fanta','sprite'].includes(id)){
+   const colors={water:0x328fca,cola:0x49301f,fanta:0xf08b24,sprite:0x7bcf64};const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.065,.075,.23,12),mat(colors[id],.22,.22));bottle.position.set(0,.015,-.035);bottle.castShadow=true;handProp.add(bottle);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.028,.035,.06,10),mat(0x9bc6d4));neck.position.set(0,.16,-.035);handProp.add(neck);cube(handProp,0,.2,-.035,.065,.035,.065,mat(0xd8d5bd));cube(handProp,0,.015,-.111,.085,.09,.012,mat(id==='water'?0xb7e7ef:id==='cola'?0xd3c2a4:id==='fanta'?0xffcf51:0xd7f0a5));
+ }else if(['apple','potato','beanCan','soupCan','meat','vegetables'].includes(id)){
+   if(id==='apple'){const a=new THREE.Mesh(new THREE.SphereGeometry(.105,12,10),mat(0xc52f35));a.position.set(0,.025,-.035);handProp.add(a);cube(handProp,0,.12,-.035,.025,.065,.025,mat(0x64864a));}
+   else if(id==='potato'){const a=new THREE.Mesh(new THREE.SphereGeometry(.11,10,8),mat(0xb58b51));a.scale.set(1.25,.75,.8);a.position.set(0,.025,-.035);handProp.add(a);}
+   else if(id==='beanCan'||id==='soupCan'){const c=new THREE.Mesh(new THREE.CylinderGeometry(.075,.075,.19,12),mat(id==='beanCan'?0x4f6d42:0x9e4337));c.position.set(0,.025,-.035);handProp.add(c);const lid=new THREE.Mesh(new THREE.CylinderGeometry(.078,.078,.018,12),mat(0xb9b9a7));lid.position.set(0,.125,-.035);handProp.add(lid);cube(handProp,0,.025,-.112,.08,.07,.012,mat(id==='beanCan'?0xd5c69a:0xe2c7a0));}
+   else if(id==='meat'){const a=new THREE.Mesh(new THREE.SphereGeometry(.105,10,8),mat(0xa7433b));a.scale.set(1.25,.7,.9);a.position.set(0,.025,-.035);handProp.add(a);}
+   else {for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.SphereGeometry(.07,8,7),mat([0x548747,0x76a953,0x8b9c42][i]));v.position.set((i-1)*.07,.025+(i%2)*.05,-.035);v.scale.set(.8,1.25,.8);handProp.add(v);}}
  }else if(id==='lantern'){
    // Show a small placeholder in the main hand; the actual lantern is toggled separately.
    cube(handProp,0,.02,-.03,.16,.23,.12,mat(0x343b3a,.45,.35));cube(handProp,0,.02,-.097,.11,.15,.025,mat(0xffd88a,.25,.1));cube(handProp,0,.15,-.03,.18,.035,.14,mat(0x202522));cube(handProp,0,-.13,-.03,.12,.035,.1,mat(0x202522));
@@ -1396,6 +1171,7 @@ function rebuildHandProp(){
    if(!isPistol&&!isShock)cube(dynamicGun,0,-.19,-.03,.09,.22,.13,mat(0x202622,.5,.4));
    if(isSniper){cube(dynamicGun,0,.13,-.14,.1,.09,.35,mat(0x202522));cube(dynamicGun,0,.2,-.14,.15,.06,.12,mat(0x111511));}
    if(isRocket){const tube=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,.78,12),mat(0x344b3b,.55,.35));tube.rotation.x=Math.PI/2;tube.position.set(0,.08,-.27);dynamicGun.add(tube);cube(dynamicGun,0,.18,-.12,.22,.07,.48,mat(0x202723));}
+   if(w==='Minigun'){cube(dynamicGun,0,-.045,.19,.23,.19,.32,mat(0x252b2a,.45,.65));cube(dynamicGun,0,.12,-.08,.22,.055,.26,mat(0x59635f,.35,.72));for(let k=0;k<6;k++){const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.025,.025,.72,8),mat(0x171c1c,.35,.8));barrel.rotation.x=Math.PI/2;barrel.position.set(Math.cos(k*Math.PI/3)*.075,.02,-.49+Math.sin(k*Math.PI/3)*.075);dynamicGun.add(barrel);}const hub=new THREE.Mesh(new THREE.CylinderGeometry(.085,.085,.12,12),mat(0x9da8a1,.3,.8));hub.rotation.x=Math.PI/2;hub.position.set(0,.02,-.83);dynamicGun.add(hub);cube(dynamicGun,0,-.17,.12,.12,.2,.14,mat(0x343a37,.5,.55));cube(dynamicGun,-.11,.08,-.15,.035,.035,.34,mat(0xc4a85b,.35,.65));}
    if(isGrenade){const tube=new THREE.Mesh(new THREE.CylinderGeometry(.075,.11,.48,10),mat(0x515d50,.55,.35));tube.rotation.x=Math.PI/2;tube.position.set(0,.03,-.25);dynamicGun.add(tube);cube(dynamicGun,0,-.09,.12,.12,.2,.16,mat(0x493e31));}
    if(isShot){cube(dynamicGun,-.105,.01,-.05,.07,.07,.55,mat(0x6d4932));}
    if(w==='Armbrust'){cube(dynamicGun,0,.07,-.12,.42,.07,.08,mat(0x6d4932,.5,.2));cube(dynamicGun,0,.10,-.12,.06,.10,.5,mat(0x252b28));cube(dynamicGun,0,.15,-.12,.035,.035,.65,mat(0x9ba69d,.4,.5));cube(dynamicGun,0,-.02,.08,.1,.20,.14,mat(0x60432e));}
@@ -1419,7 +1195,7 @@ const lootNames = {
  water: 'Trinkwasser',
  ammo: 'Ausrüstungsvorräte'
 };
-// Hintergrundmusik und Dauerdrohnen entfernt; nur einzelne Spieleffekte bleiben aktiv.
+// Starte/entsperre WebAudio bereits bei der ersten Nutzerinteraktion, damit Schüsse nicht verspätet klingen.
 function unlockGameAudio(){try{const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();}catch(e){}}
 window.addEventListener('pointerdown',unlockGameAudio,{once:true,passive:true});
 window.addEventListener('touchstart',unlockGameAudio,{once:true,passive:true});
@@ -1435,6 +1211,13 @@ function playTone(freq=540,duration=.09,type='sine',volume=.045){
     gain.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+duration);
     osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+duration);
   }catch(e){}
+}
+let scaryMusicStarted=false,scaryMusicTimer=null,scaryMusicGain=null;
+function startScaryBackgroundMusic(){
+ try{if(scaryMusicStarted)return;const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;const ctx=playTone.ctx||(playTone.ctx=new Ctx());if(ctx.state==='suspended')ctx.resume();scaryMusicStarted=true;const master=ctx.createGain();master.gain.value=.0001;master.connect(ctx.destination);master.gain.setTargetAtTime(.035,ctx.currentTime,1.2);scaryMusicGain=master;
+  const drone1=ctx.createOscillator(),drone2=ctx.createOscillator(),low=ctx.createOscillator();const g1=ctx.createGain(),g2=ctx.createGain(),gl=ctx.createGain();drone1.type='sine';drone1.frequency.value=55;drone2.type='triangle';drone2.frequency.value=82.41;low.type='sine';low.frequency.value=36.7;g1.gain.value=.27;g2.gain.value=.10;gl.gain.value=.34;drone1.connect(g1);g1.connect(master);drone2.connect(g2);g2.connect(master);low.connect(gl);gl.connect(master);drone1.start();drone2.start();low.start();
+  const notes=[110,130.81,98,146.83,110,82.41,123.47,92.5];let i=0;const playNote=()=>{if(!scaryMusicStarted)return;const now=ctx.currentTime,o=ctx.createOscillator(),g=ctx.createGain(),filter=ctx.createBiquadFilter();o.type='triangle';o.frequency.value=notes[i++%notes.length];filter.type='lowpass';filter.frequency.value=420;g.gain.setValueAtTime(.0001,now);g.gain.exponentialRampToValueAtTime(.13,now+.22);g.gain.exponentialRampToValueAtTime(.0001,now+2.5);o.connect(filter);filter.connect(g);g.connect(master);o.start(now);o.stop(now+2.6);};playNote();scaryMusicTimer=setInterval(playNote,2100);
+ }catch(e){console.warn('Hintergrundmusik konnte nicht gestartet werden',e)}
 }
 function playWeaponSound(kind='rifle'){
   // Layered synthesized game audio: short transient plus a weapon-specific tonal tail.
@@ -1475,14 +1258,10 @@ function lootToast(text){
 }
 function updateInventory(){
  const items=[
-  ['axe','🪓','Axt (Holz abbauen)',inventory.axe],
-  ['pickaxe','⛏️','Spitzhacke (Stein, Metall, Eisentore & Steinmauern)',inventory.pickaxe],
-  ['treeSaplings','🌱','Baumsetzlinge (zum Pflanzen)',inventory.treeSaplings],
   ['medicine','💊','Medizin',inventory.medicine],
   ['glider','🪂','Taktischer Gleiter',inventory.glider],
   ['food','🍎','Essen',inventory.food],
   ['water','💧','Wasser',inventory.water],
-  ['cola','🥤','Cola',inventory.cola],['fanta','🍊','Fanta',inventory.fanta],['sprite','🥤','Sprite',inventory.sprite],['apple','🍎','Apfel',inventory.apple],['potato','🥔','Kartoffel',inventory.potato],['beanCan','🥫','Bohnendose',inventory.beanCan],['soupCan','🍲','Suppendose',inventory.soupCan],['meat','🥩','Fleisch',inventory.meat],['vegetables','🥦','Gemüse',inventory.vegetables],
   ['gasCanister','⛽','Benzinkanister (+25)',inventory.gasCanister],
   ['lantern','🏮','Laterne',inventory.lantern+(lanternEquipped?1:0)],
   ['nightVision','🟢','Nachtsichtgerät',inventory.nightVision],
@@ -1497,13 +1276,15 @@ function updateInventory(){
   ['craftedWall','🧱','Mauer zum Platzieren',inventory.craftedWall],
   ['craftedIronGate','🚧','Eisentor zum Platzieren',inventory.craftedIronGate],
   ['craftedGardenGate','🚪','Gartentor zum Platzieren',inventory.craftedGardenGate],
+  ['craftedTurret','🎯','Geschütz zum Platzieren',inventory.craftedTurret],['craftedChair','🪑','Stuhl zum Platzieren',inventory.craftedChair],['craftedTable','🪵','Tisch zum Platzieren',inventory.craftedTable],['craftedBed','🛏️','Bett zum Platzieren',inventory.craftedBed],['craftedLamp','💡','Lampe zum Platzieren',inventory.craftedLamp],
+  ['cola','🥤','Cola',inventory.cola],['fanta','🟠','Fanta',inventory.fanta],['sprite','🥤','Sprite',inventory.sprite],['apple','🍎','Apfel',inventory.apple],['potato','🥔','Kartoffel',inventory.potato],['beanCan','🥫','Bohnendose',inventory.beanCan],['soupCan','🥫','Suppendose',inventory.soupCan],['meat','🥩','Fleisch',inventory.meat],['vegetables','🥦','Gemüse',inventory.vegetables],
   ...inventory.armorPieces.map((a,i)=>['armor:'+a.id,a.icon,a.label,1,a.rarity]),
   ['specialAmmo','🟣','Spezial-Laserzellen',inventory.specialAmmo,itemRarities.specialAmmo],
   ...Object.entries(inventory.weapons).map(([name,count])=>['weapon:'+name,weaponStats[name]?.icon||'🔫',name,count,ensureWeaponRarity(name)])
  ];
  $('inventoryLabel').innerHTML='💰 '+player.money+' · Ausgerüstet: <b>'+equippedWeapon+'</b>';updateArmorAvatar();
  $('inventoryItems').innerHTML='';
- const slots=items.filter(([id,icon,label,count])=>id==='empty'||id.startsWith('weapon:')||id.startsWith('armor:')||(Number(count)||0)>0);
+ const slots=items.slice();
  while(slots.length<20)slots.push(['empty','','',0]);
  for(const [id,icon,label,count,rarity0] of slots){
   const rarity=rarity0||(id!=='empty'?ensureItemRarity(id):null);
@@ -1517,7 +1298,7 @@ function updateInventory(){
    selectedItem=id;
    $('itemActions').style.display='flex';
    $('addHotbarBtn').style.display='block';
-   $('equipItemBtn').textContent=id.startsWith('armor:')?'RÜSTUNG ANLEGEN':id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':(['axe','pickaxe'].includes(id)?'WERKZEUG AUSRÜSTEN':id.startsWith('crafted')?'BAUTEIL AUSWÄHLEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='nightVision'?'NACHTSICHT AN/AUS':(id==='arrows'?'PFEILE AUSWÄHLEN':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND')))));
+   $('equipItemBtn').textContent=id.startsWith('armor:')?'RÜSTUNG ANLEGEN':id.startsWith('weapon:')?'WAFFE AUSRÜSTEN':id.startsWith('crafted')?'BAUTEIL AUSWÄHLEN':id==='grenades'?'GRANATEN AUSWÄHLEN':(id==='lantern'?'LATERNE BENUTZEN':(id==='nightVision'?'NACHTSICHT AN/AUS':(id==='arrows'?'PFEILE AUSWÄHLEN':(id==='specialAmmo'?'SPEZIALMUNITION':'ITEM IN DIE HAND'))));
    rebuildHandProp();updateInventory();
   });
   $('inventoryItems').appendChild(b);
@@ -1535,7 +1316,7 @@ function collectHotbarItems(){
  const list=[];
  if(equippedWeapon&&inventory.weapons[equippedWeapon])list.push({id:'weapon:'+equippedWeapon,label:equippedWeapon,icon:weaponStats[equippedWeapon]?.icon||'🔫',count:inventory.weapons[equippedWeapon]});
  for(const [name,count] of Object.entries(inventory.weapons||{}))if(name!==equippedWeapon&&count>0)list.push({id:'weapon:'+name,label:name,icon:weaponStats[name]?.icon||'🔫',count});
- const misc=[['medicine','💊','Medizin'],['gasCanister','⛽','Benzinkanister'],['grenades','💣','Granaten'],['food','🍎','Essen'],['water','💧','Wasser'],['ammo','📦','Munition'],['specialAmmo','🟣','Spezialzellen'],['arrows','🏹','Pfeile'],['nightVision','🟢','Nachtsicht'],['lantern','🏮','Laterne'],['glider','🪂','Gleiter'],['craftedFence','🪵','Zaun'],['craftedWall','🧱','Mauer'],['craftedIronGate','🚧','Eisentor'],['craftedGardenGate','🚪','Gartentor']];
+ const misc=[['medicine','💊','Medizin'],['gasCanister','⛽','Benzinkanister'],['grenades','💣','Granaten'],['food','🍎','Essen'],['water','💧','Wasser'],['ammo','📦','Munition'],['specialAmmo','🟣','Spezialzellen'],['arrows','🏹','Pfeile'],['nightVision','🟢','Nachtsicht'],['lantern','🏮','Laterne'],['glider','🪂','Gleiter'],['craftedFence','🪵','Zaun'],['craftedWall','🧱','Mauer'],['craftedIronGate','🚧','Eisentor'],['craftedGardenGate','🚪','Gartentor'],['craftedTurret','🎯','Geschütz'],['craftedChair','🪑','Stuhl'],['craftedTable','🪵','Tisch'],['craftedBed','🛏️','Bett'],['craftedLamp','💡','Lampe'],['cola','🥤','Cola'],['fanta','🟠','Fanta'],['sprite','🥤','Sprite'],['apple','🍎','Apfel'],['potato','🥔','Kartoffel'],['beanCan','🥫','Bohnendose'],['soupCan','🥫','Suppendose'],['meat','🥩','Fleisch'],['vegetables','🥦','Gemüse']];
  for(const [id,icon,label] of misc)if((inventory[id]||0)>0)list.push({id,label,icon,count:inventory[id]});
  for(const a of inventory.armorPieces||[])list.push({id:'armor:'+a.id,label:a.label,icon:a.icon||'🛡️',count:1});
  return list;
@@ -1586,11 +1367,11 @@ for(let i=0;i<14;i++){
 }
 if(!selectedItem)selectedItem='weapon:'+equippedWeapon;updateInventory();refreshHotbar();rebuildHandProp();updateWeaponCrosshair();
 // Soldier at camp
-const soldierGroup=makePerson(false);soldierGroup.position.set(2,-1000,-8);scene.add(soldierGroup);soldierGroup.visible=false;
+const soldierGroup=makePerson(false);soldierGroup.position.set(2,0,-8);scene.add(soldierGroup);
 const soldier={group:soldierGroup, recruited:false, health:100, attack:0, home:new THREE.Vector3(2,0,-8), bob:0, grade:{name:'Versorgungssoldat'}, mission:'ammo', tradeSeed:Math.random()};
 // Seltene zusätzliche Soldaten in der großen Welt
 const soldierGrades=[{name:'Rekrut',price:125,hp:80,damage:15,rate:2.2},{name:'Gefreiter',price:300,hp:110,damage:22,rate:2.5},{name:'Sergeant',price:600,hp:150,damage:30,rate:2.8},{name:'Leutnant',price:1100,hp:200,damage:38,rate:3.1},{name:'Elite-Soldat',price:2000,hp:280,damage:48,rate:3.5}];
-const extraSoldiers=[]; // Soldaten und Soldatenhandel sind in dieser Version entfernt.
+const extraSoldiers=[]; for(let i=0;i<8;i++){if(Math.random()<.78){const x=(Math.random()-.5)*230,z=(Math.random()-.5)*230;const g=makePerson(false);g.position.set(x,0,z);scene.add(g);const grade=soldierGrades[Math.floor(Math.random()*soldierGrades.length)];extraSoldiers.push({group:g,recruited:false,dead:false,home:new THREE.Vector3(x,0,z),grade,mission:['food','ammo','medicine','water','money','weapon'][Math.floor(Math.random()*6)],tradeSeed:Math.random()});}}
 function distanceXZ(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
 function nearInteractable(){
  let best=null,bd=3.2;
@@ -1652,7 +1433,7 @@ function sellOneInventoryItem(id,label){
 function renderSellItems(){
  const list=$('sellItemsList');if(!list)return;list.innerHTML='';
  const items=[['medicine','💊','Medizin',inventory.medicine],
-  ['glider','🪂','Taktischer Gleiter',inventory.glider],['food','🍎','Essen',inventory.food],['water','💧','Wasser',inventory.water],['cola','🥤','Cola',inventory.cola],['fanta','🍊','Fanta',inventory.fanta],['sprite','🥤','Sprite',inventory.sprite],['apple','🍎','Apfel',inventory.apple],['potato','🥔','Kartoffel',inventory.potato],['beanCan','🥫','Bohnendose',inventory.beanCan],['soupCan','🍲','Suppendose',inventory.soupCan],['meat','🥩','Fleisch',inventory.meat],['vegetables','🥦','Gemüse',inventory.vegetables],
+  ['glider','🪂','Taktischer Gleiter',inventory.glider],['food','🍎','Essen',inventory.food],['water','💧','Wasser',inventory.water],
   ['gasCanister','⛽','Benzinkanister (+25)',inventory.gasCanister],['lantern','🏮','Laterne',inventory.lantern],['nightVision','🟢','Nachtsichtgerät',inventory.nightVision],['grenades','💣','Granate',inventory.grenades],['rockets','🚀','Panzer-Raketen',inventory.rockets],['ammo','📦','Munition',inventory.ammo],['arrows','🏹','Pfeile',inventory.arrows],['specialAmmo','🟣','Spezial-Laserzellen',inventory.specialAmmo],...Object.entries(inventory.weapons).map(([n,c])=>['weapon:'+n,weaponStats[n]?.icon||'🔫',n,c]),...inventory.armorPieces.map(a=>['armor:'+a.id,a.icon||'🛡️',a.label,1])].filter(x=>x[3]>0);
  if(!items.length){list.innerHTML='<p class="small">Du hast gerade nichts zum Verkaufen.</p>';return}
  for(const [id,icon,label,count] of items){const price=itemSellValue(id,label);const b=document.createElement('button');b.type='button';b.style.cssText='text-align:left;min-height:58px;background:#34453a;border:1px solid #879a72;padding:8px';b.innerHTML=`<b>${icon} ${label}</b><div style="font-size:12px;margin-top:4px">Im Inventar: ${count} · Verkauf: ${price} 💰 / Stück</div>`;b.addEventListener('click',()=>{if(sellOneInventoryItem(id,label)){message(label+' verkauft für '+price+' 💰',2);$('tradeSubtitle').textContent='Verkauft! Dein Geld: '+player.money+' 💰';}});list.appendChild(b)}
@@ -1683,8 +1464,8 @@ function exitJet(){
  // Capture whether the aircraft was actually airborne before leaving the controls.
  const wasAirborne=jetAirborne||player.pos.y>2.5;
  activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
- if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;repairFlyableJetVisibility();}
- const leftInAir=wasAirborne||(flyableJet&&flyableJet.position.y>0.55);jetFalling=!!(leftInAir&&flyableJet&&jetHealth>0);jetFallVelocity=jetFalling?4.5:0;jetAirborne=false;if(jetFalling)saveProgress();
+ if(flyableJet){flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;}
+ const leftInAir=wasAirborne||(flyableJet&&flyableJet.position.y>0.55);jetFalling=!!(leftInAir&&flyableJet&&jetHealth>0);jetFallVelocity=jetFalling?4.5:0;jetAirborne=jetFalling; if(jetFalling)saveProgress();
  // Set the player beside the aircraft instead of inside its collision volume.
  const sideX=Math.cos(player.yaw)*3.4,sideZ=-Math.sin(player.yaw)*3.4;
  let ex=player.pos.x+sideX,ez=player.pos.z+sideZ;
@@ -1694,34 +1475,18 @@ function exitJet(){
  if(leftInAir){player.vy=-1;message('Du bist aus dem Jet gesprungen! Du fällst jetzt herunter – der Jet stürzt ebenfalls ab.',2.2)}else{player.pos.y=1.7;player.onGround=true;message('Du bist aus dem Jet ausgestiegen.');}
  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();
 }
-function mineNearbyResource(){
- const isAxe=selectedItem==='axe'&&inventory.axe>0,isPick=selectedItem==='pickaxe'&&inventory.pickaxe>0;
- if(!isAxe&&!isPick)return false;
- let bestTree=null,bd=3.6;for(const t of harvestableTrees){if(t.harvested)continue;const d=distanceXZ(player.pos,t);if(d<bd){bd=d;bestTree=t;}}
- let bestNode=null,nd=3.8;for(const n of mineNodes){if(n.remaining<=0)continue;const d=distanceXZ(player.pos,n);if(d<nd){nd=d;bestNode=n;}}
- if(isAxe&&bestTree){bestTree.harvested=true;scene.remove(bestTree.group);const obs=solidObstacles.find(o=>Math.hypot(o.x-bestTree.x,o.z-bestTree.z)<.8);if(obs)obs.active=false;inventory.planks+=12+Math.floor(Math.random()*14);inventory.treeSaplings+=1+Math.floor(Math.random()*2);message('🪓 Baum gefällt: Bretter und Setzlinge gesammelt! Pflanze einen Setzling mit der Aktionstaste.');updateInventory();saveProgress();return true;}
- // Axt baut Holzzäune und Gartentore ab; Spitzhacke baut Eisentore und Steinmauern ab.
- const targetKinds=isAxe?['fence','gardenGate']:['ironGate','wall'];
- const structure=placedStructures.filter(o=>targetKinds.includes(o.kind)&&distanceXZ(player.pos,o.group.position)<4.0).sort((a,b)=>distanceXZ(player.pos,a.group.position)-distanceXZ(player.pos,b.group.position))[0];
- if(structure){scene.remove(structure.group);const oi=solidObstacles.indexOf(structure.obstacle);if(oi>=0)solidObstacles.splice(oi,1);const si=placedStructures.indexOf(structure);if(si>=0)placedStructures.splice(si,1);const recovered={fence:'craftedFence',wall:'craftedWall',ironGate:'craftedIronGate',gardenGate:'craftedGardenGate'}[structure.kind];inventory[recovered]=(inventory[recovered]||0)+1;message((isAxe?'🪓 Holzstruktur':'⛏️ Stein/Eisen-Struktur')+' abgebaut und ins Inventar zurückgelegt!');updateInventory();saveProgress();return true;}
- if(isAxe&&inventory.treeSaplings>0){const x=player.pos.x-Math.sin(player.yaw)*2.2,z=player.pos.z-Math.cos(player.yaw)*2.2;if(!blockedAt(x,z,.65)&&!onRoad(x,z)){inventory.treeSaplings--;tree(x,z,.35,true);message('🌱 Setzling gepflanzt! Der Baum wächst in den nächsten 30 Sekunden.');updateInventory();saveProgress();return true;}}
- if(isPick&&bestNode){if(bestNode.kind==='stone'){inventory.bricks+=8+Math.floor(Math.random()*10);message('⛏️ Stein abgebaut: Stein/Ziegel erhalten.');}else{inventory.metalScrap+=10+Math.floor(Math.random()*16);message('⛏️ Erzader abgebaut: Metall erhalten.');}bestNode.remaining--;if(bestNode.remaining<=0){scene.remove(bestNode.group);message('Ader vollständig abgebaut.');}else bestNode.group.scale.multiplyScalar(.82);updateInventory();saveProgress();return true;}
- if((isAxe&&!bestTree)||(isPick&&!bestNode)){message(isAxe?(inventory.treeSaplings>0?'Kein Baum in Reichweite. Tippe auf AKTION, um einen Setzling zu pflanzen.':'Keine Bäume oder abbaubaren Holzzäune in Reichweite.'):'Kein Stein, Metall, Eisentor oder Steinmauer in Reichweite.');return true;}
- return false;
-}
 function interact(){
  if(!started)return;
  if(activeJet){exitJet();return}
  if(player.inTank){exitTank();return}
  if(player.inCar){exitCar();return}
- if(mineNearbyResource())return;
  if(placeSelectedStructure())return;
  const nearbyPlacedGate=placedStructures.find(o=>['ironGate','gardenGate'].includes(o.kind)&&distanceXZ(player.pos,o.group.position)<3.8);if(nearbyPlacedGate){togglePlacedGate(nearbyPlacedGate);return}
- if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(jetHealth<=0){if(inventory.metalScrap<100){message('🔧 Jet zerstört! Du brauchst 100 Metall zur Reparatur. Du hast '+inventory.metalScrap+'.',3);return}inventory.metalScrap-=100;jetHealth=500;jetFuel=Math.max(jetFuel,25);jetFalling=false;jetFallVelocity=0;jetAirborne=false;jetRunDistance=0;restoreWreckAppearance(flyableJet);flyableJet.position.y=0.45;updateInventory();updateJetStatus();message('🔧 Jet repariert! 500 Leben, 100 Metall verbraucht.');saveProgress();return}if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Flugzeug bereit! Erst mit W auf der Startbahn beschleunigen (50 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
+ if(flyableJet&&!activeJet){const jetWorld=new THREE.Vector3();flyableJet.getWorldPosition(jetWorld);if(distanceXZ(player.pos,jetWorld)<8&&Math.abs(player.pos.y-jetWorld.y)<5){if(jetHealth<=0){if(inventory.metalScrap<100){message('🔧 Jet zerstört! Du brauchst 100 Metall zur Reparatur. Du hast '+inventory.metalScrap+'.',3);return}inventory.metalScrap-=100;jetHealth=500;jetFuel=Math.floor(Math.random()*51);jetFalling=false;jetFallVelocity=0;jetAirborne=false;jetRunDistance=0;restoreWreckAppearance(flyableJet);flyableJet.position.y=0.45;updateInventory();updateJetStatus();message('🔧 Jet repariert! 500 Leben · Benzin: '+jetFuel+'/100 · 100 Metall verbraucht.');saveProgress();return}if(selectedItem==='gasCanister'&&inventory.gasCanister>0&&jetFuel<100){inventory.gasCanister--;jetFuel=Math.min(100,jetFuel+25);message('⛽ Jet nachgetankt: '+jetFuel+'/100.');updateInventory();updateJetStatus();saveProgress();return}scene.attach(flyableJet);activeJet=true;jetFuelTimer=0;jetRunDistance=0;jetAirborne=false;jetWasMoving=false;player.pos.set(flyableJet.position.x,flyableJet.position.y+2.0,flyableJet.position.z);player.yaw=flyableJet.rotation.y;player.vy=0;player.onGround=false;jetFlightControls.style.display='flex';jetStatus.style.display='block';updateJetStatus();message('✈️ Jet bereit! Erst mit W auf der Startbahn beschleunigen (18 m), dann mit Leertaste/▲ abheben. ⛽ Verbrauch: 1 alle 5 Sekunden.',5);return}}
  if(playerInsideTrain){playerInsideTrain=null;player.pos.set(355,1.7,48);camera.position.copy(player.pos);message('Du steigst aus dem Zug.');return}
  const nearbyWagon=trainWagons.find(w=>Math.abs(player.pos.z-w.z)<6.3&&Math.abs(player.pos.x-w.x)<3.4);if(nearbyWagon){playerInsideTrain=nearbyWagon;player.pos.set(nearbyWagon.x,1.7,nearbyWagon.z);camera.position.copy(player.pos);message('Du bist im Waggon. Der Zug ist nicht fahrbar.');return}
- let nearestTank=null,tankDist=5.2;for(const t of tanks){const d=distanceXZ(player.pos,t.group.position);if(d<tankDist){nearestTank=t;tankDist=d}}if(nearestTank){if(nearestTank.hp<=0||nearestTank.destroyed){if(inventory.metalScrap<100){message('Panzer zerstört! Du brauchst 100 Metall zur Reparatur.',2.5);return}inventory.metalScrap-=100;nearestTank.hp=nearestTank.maxHp;nearestTank.destroyed=false;restoreWreckAppearance(nearestTank.group);updateInventory();saveProgress();message('Panzer mit 100 Metall repariert!',2);return}enterTank(nearestTank);return}
- const lootCrate=militaryLootCrates.find(c=>!c.opened&&distanceXZ(player.pos,c.group.position)<3.2);if(lootCrate){lootCrate.opened=true;lootCrate.group.visible=false;const rocketCount=3+Math.floor(Math.random()*5);inventory.rockets+=rocketCount;const grenadeCount=1+Math.floor(Math.random()*3);inventory.grenades+=grenadeCount;inventory.medicine+=2+Math.floor(Math.random()*4);inventory.ammo+=45+Math.floor(Math.random()*81);inventory.specialAmmo+=12+Math.floor(Math.random()*25);inventory.food+=2;inventory.water+=2;for(const id of ['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables'])inventory[id]+=(Math.random()<.55?1:0);inventory.metalScrap+=80+Math.floor(Math.random()*121);player.money+=150+Math.floor(Math.random()*451);const weaponPool=['Schrotflinte','Sturmgewehr','Scharfschützengewehr','Raketenwerfer'];const foundWeapon=weaponPool[Math.floor(Math.random()*weaponPool.length)];if(Math.random()<.8)inventory.weapons[foundWeapon]=(inventory.weapons[foundWeapon]||0)+1;message('Militärkiste: Waffe '+(inventory.weapons[foundWeapon]?'· '+foundWeapon+' · ':'')+'+'+grenadeCount+' Granaten, +'+rocketCount+' Raketen, Munition und Vorräte!',3);updateInventory();updateHUD();saveProgress();return}
+ let nearestTank=null,tankDist=5.2;for(const t of tanks){const d=distanceXZ(player.pos,t.group.position);if(d<tankDist){nearestTank=t;tankDist=d}}if(nearestTank&&selectedItem==='gasCanister'&&inventory.gasCanister>0&&nearestTank.fuel<100&&nearestTank.hp>0&&!nearestTank.destroyed){inventory.gasCanister--;nearestTank.fuel=Math.min(100,nearestTank.fuel+25);message('⛽ Panzer nachgetankt: '+nearestTank.fuel+'/100.');updateInventory();saveProgress();return}if(nearestTank){if(nearestTank.hp<=0||nearestTank.destroyed){if(inventory.metalScrap<100){message('Panzer zerstört! Du brauchst 100 Metall zur Reparatur.',2.5);return}inventory.metalScrap-=100;nearestTank.hp=nearestTank.maxHp;nearestTank.fuel=Math.floor(Math.random()*51);nearestTank.driveFuelTimer=0;nearestTank.emptyFuelNotified=false;nearestTank.destroyed=false;restoreWreckAppearance(nearestTank.group);updateInventory();saveProgress();message('Panzer repariert! 1400 Leben · Benzin: '+nearestTank.fuel+'/100 · 100 Metall verbraucht.',2.5);return}enterTank(nearestTank);return}
+ const lootCrate=militaryLootCrates.find(c=>!c.opened&&distanceXZ(player.pos,c.group.position)<3.2);if(lootCrate){lootCrate.opened=true;lootCrate.group.visible=false;const rocketCount=3+Math.floor(Math.random()*5);inventory.rockets+=rocketCount;const grenadeCount=1+Math.floor(Math.random()*3);inventory.grenades+=grenadeCount;inventory.medicine+=2+Math.floor(Math.random()*4);inventory.ammo+=45+Math.floor(Math.random()*81);inventory.specialAmmo+=12+Math.floor(Math.random()*25);inventory.food+=2;inventory.water+=2;inventory.cola+=Math.floor(Math.random()*3);inventory.fanta+=Math.floor(Math.random()*2);inventory.sprite+=Math.floor(Math.random()*2);inventory.apple+=1+Math.floor(Math.random()*3);inventory.beanCan+=Math.floor(Math.random()*2);inventory.soupCan+=Math.floor(Math.random()*2);inventory.meat+=Math.floor(Math.random()*2);inventory.metalScrap+=80+Math.floor(Math.random()*121);player.money+=150+Math.floor(Math.random()*451);const weaponPool=['Schrotflinte','Sturmgewehr','Scharfschützengewehr','Raketenwerfer'];const foundWeapon=weaponPool[Math.floor(Math.random()*weaponPool.length)];if(Math.random()<.8)inventory.weapons[foundWeapon]=(inventory.weapons[foundWeapon]||0)+1;message('Militärkiste: Waffe '+(inventory.weapons[foundWeapon]?'· '+foundWeapon+' · ':'')+'+'+grenadeCount+' Granaten, +'+rocketCount+' Raketen, Munition und Vorräte!',3);updateInventory();updateHUD();saveProgress();return}
  let closestCar=null,carDistance=3.4;
  for(const car of cars){const d=distanceXZ(player.pos,car.group.position);if(d<carDistance){closestCar=car;carDistance=d}}
  if(closestCar){
@@ -1745,11 +1510,12 @@ function interact(){
  if(near&&near.type==='gardenGate'){const g=near.obj;g.open=!g.open;g.pivot.rotation.y=g.open?Math.PI/2:0;g.obstacle.active=!g.open;message(g.open?'Gartentor geöffnet.':'Gartentor geschlossen.',1.6);saveProgress();return}
  if(near&&near.type==='sleepBed'){const bed=near.obj;const fade=$('sleepFade');fade.textContent='GUTE NACHT …';fade.classList.add('active');setTimeout(()=>{worldTime=1/6+.015;updateDayNight(0);player.hunger=Math.max(0,player.hunger-2);player.water=Math.max(0,player.water-2);player.pos.set(bed.x,bed.y+0.25,bed.z);player.vy=0;player.onGround=true;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');fade.textContent='GUTEN MORGEN';saveProgress();setTimeout(()=>{fade.classList.remove('active');message('Guten Morgen! Du bist auf dem Bett aufgewacht.',2.8);},900)},2900);return}
  if(near&&near.type==='door'){const d=near.obj;player.noise=5;d.open=!d.open;d.pivot.rotation.y=d.open?-Math.PI/2:0;d.obstacle.active=!d.open;message(d.open?'Tür geöffnet.':'Tür geschlossen. Zombies können nicht hinein!',1.5);saveProgress();return}
- if(!near){const consumables={cola:['Cola',34,'water'],fanta:['Fanta',32,'water'],sprite:['Sprite',36,'water'],apple:['Apfel',14,'hunger'],potato:['Kartoffel',20,'hunger'],beanCan:['Bohnendose',38,'hunger'],soupCan:['Suppendose',32,'hunger'],meat:['Fleisch',30,'hunger'],vegetables:['Gemüse',22,'hunger']};if(consumables[selectedItem]&&inventory[selectedItem]>0){const [label,amount,kind]=consumables[selectedItem];inventory[selectedItem]--;if(kind==='water')player.water=Math.min(100,player.water+amount);else player.hunger=Math.min(100,player.hunger+amount);message(label+(kind==='water'?' getrunken.':' gegessen.'));updateInventory();updateHUD();saveProgress();return}if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}if(selectedItem==='food'&&inventory.food>0){inventory.food--;player.hunger=Math.min(100,player.hunger+35);message('Essen benutzt.');updateInventory();return}if(selectedItem==='water'&&inventory.water>0){inventory.water--;player.water=Math.min(100,player.water+40);message('Wasser getrunken.');updateInventory();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
+ if(!near){if(selectedItem==='medicine'&&inventory.medicine>0){inventory.medicine--;player.infected=false;player.infectionTime=0;player.health=Math.min(100,player.health+20);message('Medizin benutzt.');updateInventory();return}const drinkValues={water:42,cola:34,fanta:32,sprite:36};if(drinkValues[selectedItem]&&inventory[selectedItem]>0){const id=selectedItem;inventory[id]--;player.water=Math.min(100,player.water+drinkValues[id]);message(({water:'Wasser getrunken',cola:'Cola getrunken',fanta:'Fanta getrunken',sprite:'Sprite getrunken'})[id]+' · Wasser +'+drinkValues[id]);updateInventory();updateHUD();saveProgress();return}const foodValues={food:35,apple:14,potato:20,beanCan:38,soupCan:32,meat:30,vegetables:22};if(foodValues[selectedItem]&&inventory[selectedItem]>0){const id=selectedItem;inventory[id]--;player.hunger=Math.min(100,player.hunger+foodValues[id]);message(({food:'Essen',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'})[id]+' gegessen · Hunger +'+foodValues[id]);updateInventory();updateHUD();saveProgress();return}if(selectedItem.startsWith('weapon:')){equippedWeapon=selectedItem.slice(7);message(equippedWeapon+' ausgerüstet.');updateInventory();return}message('Wähle einen Gegenstand oder gehe zu einem Soldaten.');return}
  if(near.type==='droppedItem'){const d=near.obj;d.found=true;scene.remove(d.group);if(d.item==='armorDrop'&&d.armorPiece){inventory.armorPieces.push(d.armorPiece)}else if(d.item.startsWith('weapon:')){const w=d.item.slice(7);inventory.weapons[w]=(inventory.weapons[w]||0)+d.count}else if(d.item==='ammo')inventory.ammo+=d.count;else if(d.item==='specialAmmo')inventory.specialAmmo+=d.count;else if(d.item==='rockets')inventory.rockets+=d.count;else if(d.item==='arrows')inventory.arrows+=d.count;else inventory[d.item]=(inventory[d.item]||0)+d.count;message('Du hast '+(d.item==='lantern'?'eine Laterne':d.item==='nightVision'?'ein Nachtsichtgerät':d.item==='grenades'?'Granaten':(d.label||d.item))+' aufgesammelt!',2.0);rebuildHandProp();updateInventory();saveProgress();return}
  if(near.type==='hiddenChest'){
   const chest=near.obj;chest.found=true;scene.remove(chest.group);const roll=Math.random();
-   if(roll<.27){const material=['bricks','planks','metalScrap'][Math.floor(Math.random()*3)];const n=material==='bricks'?35+Math.floor(Math.random()*66):material==='planks'?20+Math.floor(Math.random()*41):45+Math.floor(Math.random()*76);inventory[material]+=n;message('Kiste: '+(material==='bricks'?'Ziegelsteine':material==='planks'?'Holzbretter':'Metall')+' +'+n,2.4);updateInventory();saveProgress();return;}
+   if(roll<.18){const material=['bricks','planks','metalScrap'][Math.floor(Math.random()*3)];const n=material==='bricks'?35+Math.floor(Math.random()*66):material==='planks'?20+Math.floor(Math.random()*41):45+Math.floor(Math.random()*76);inventory[material]+=n;message('Kiste: '+(material==='bricks'?'Ziegelsteine':material==='planks'?'Holzbretter':'Metall')+' +'+n,2.4);updateInventory();saveProgress();return;}
+  if(roll<.38){const id=roll<.28?['cola','fanta','sprite','water'][Math.floor(Math.random()*4)]:['apple','potato','beanCan','soupCan','meat','vegetables'][Math.floor(Math.random()*6)];inventory[id]+=1+Math.floor(Math.random()*2);message('Kiste: '+({cola:'Cola',fanta:'Fanta',sprite:'Sprite',water:'Wasser',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'})[id]+' gefunden!',2.2);updateInventory();saveProgress();return;}
   if(Math.random()<.01){const a=randomArmorPiece();a.rarity='ultra';inventory.armorPieces.push(a);message('ULTRA-KISTENFUND! '+a.label+'!',3);}
   else if(Math.random()<.45){const a=randomArmorPiece();inventory.armorPieces.push(a);message(rarityDE[a.rarity]+' Rüstung gefunden: '+a.label,2.2);}
   else if(Math.random()<.24){const n=5+Math.floor(Math.random()*10);inventory.arrows+=n;message('Pfeile gefunden: +'+n);}
@@ -1774,6 +1540,7 @@ function interact(){
   else if(roll<.70){inventory.medicine++;message('Kiste geöffnet: Medizin gefunden.');}
   else if(roll<.85){inventory.food++;message('Kiste geöffnet: Nahrung gefunden.');}
   else {inventory.water++;message('Kiste geöffnet: Trinkwasser gefunden.');}
+  if(Math.random()<.34){const id=Math.random()<.48?['cola','fanta','sprite','water'][Math.floor(Math.random()*4)]:['apple','potato','beanCan','soupCan','meat','vegetables'][Math.floor(Math.random()*6)];inventory[id]+=1+Math.floor(Math.random()*2);message('Zusätzliche Vorräte: '+({cola:'Cola',fanta:'Fanta',sprite:'Sprite',water:'Wasser',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'})[id]+'!',1.8);}
   playTone(620,.12,'triangle',.06);
   message(`Kiste geplündert (${suppliesFound}/3).`,2.4);
   if(suppliesFound>=3)message('Alle Vorräte gefunden! Kehre zum Soldaten zurück.',4);
@@ -1787,7 +1554,7 @@ function interact(){
  updateHUD();
 }
 function createGroundItem(item,count,pos,label,createdAt=Date.now()){
- const g=new THREE.Group();const groundY=typeof hillSurfaceY==='function'?Math.max(0,hillSurfaceY(pos.x,pos.z)):0;g.position.set(pos.x,groundY+.08,pos.z);scene.add(g);
+ const g=new THREE.Group();g.position.set(pos.x,.08,pos.z);scene.add(g);
  const M=(c)=>mat(c,.55,.25);
  if(item==='bricks'){
     for(let i=0;i<Math.min(5,count);i++){const b=cube(g,((i%3)-1)*.16,.12+Math.floor(i/3)*.12,Math.floor(i/3)*.12,.28,.16,.22,M(0xa94e36));b.rotation.y=(i%2)*.12;}
@@ -1805,8 +1572,14 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
    const apple=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),M(0xc52f35));apple.position.y=.18;apple.scale.set(1,.92,.9);g.add(apple);cube(g,0,.33,0,.04,.09,.04,M(0x64864a));cube(g,.05,.35,0,.09,.025,.045,M(0x6e9a43));
  }else if(item==='gasCanister'){
    const canmat=M(0xb7a62e);cube(g,0,.22,0,.25,.36,.16,canmat);cube(g,0,.43,0,.13,.07,.13,M(0x33352d));cube(g,0,.47,-.015,.11,.035,.08,M(0x20231e));cube(g,0,.22,.085,.12,.12,.018,M(0xe3d9a0));
- }else if(item==='water'){
-   const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.085,.095,.3,12),M(0x328fca));bottle.position.y=.2;g.add(bottle);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,.07,10),M(0xa9d7e5));neck.position.y=.385;g.add(neck);cube(g,0,.43,0,.075,.035,.075,M(0xd8d5bd));cube(g,0,.2,.098,.09,.13,.012,M(0x9de3ef));
+ }else if(['water','cola','fanta','sprite'].includes(item)){
+   const colors={water:0x328fca,cola:0x49301f,fanta:0xf08b24,sprite:0x7bcf64};const bottle=new THREE.Mesh(new THREE.CylinderGeometry(.085,.095,.3,12),M(colors[item]));bottle.position.y=.2;g.add(bottle);const neck=new THREE.Mesh(new THREE.CylinderGeometry(.04,.05,.07,10),M(0xa9d7e5));neck.position.y=.385;g.add(neck);cube(g,0,.43,0,.075,.035,.075,M(0xd8d5bd));cube(g,0,.2,.098,.09,.13,.012,M(item==='water'?0x9de3ef:colors[item]));
+ }else if(['apple','potato','beanCan','soupCan','meat','vegetables'].includes(item)){
+   if(item==='apple'){const a=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),M(0xc52f35));a.position.y=.18;a.scale.set(1,.92,.9);g.add(a);cube(g,0,.33,0,.035,.09,.035,M(0x64864a));cube(g,.05,.35,0,.08,.025,.04,M(0x6e9a43));}
+   else if(item==='potato'){const p=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),M(0xb58b51));p.position.y=.17;p.scale.set(1.25,.75,.8);g.add(p);for(let i=0;i<3;i++)cube(g,-.07+i*.07,.2,.105,.018,.018,.012,M(0x59442e));}
+   else if(item==='beanCan'||item==='soupCan'){const c=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.3,12),M(item==='beanCan'?0x4f6d42:0x9e4337));c.position.y=.19;g.add(c);const lid=new THREE.Mesh(new THREE.CylinderGeometry(.135,.135,.025,12),M(0xb9b9a7));lid.position.y=.35;g.add(lid);cube(g,0,.2,.132,.14,.12,.012,M(item==='beanCan'?0xd5c69a:0xe2c7a0));}
+   else if(item==='meat'){const m=new THREE.Mesh(new THREE.SphereGeometry(.15,10,8),M(0xa7433b));m.position.set(0,.17,0);m.scale.set(1.25,.7,.9);g.add(m);cube(g,.08,.22,.08,.07,.06,.06,M(0xe4d7c7));}
+   else {for(let i=0;i<3;i++){const v=new THREE.Mesh(new THREE.SphereGeometry(.1,8,7),M([0x548747,0x76a953,0x8b9c42][i]));v.position.set((i-1)*.1,.17+(i%2)*.06,(i%2)*.045);v.scale.set(.8,1.25,.8);g.add(v);}}
  }else if(item==='lantern'){
    cube(g,0,.17,0,.18,.25,.13,M(0x343b3a));cube(g,0,.18,-.075,.12,.16,.02,M(0xffd88a));cube(g,0,.32,0,.2,.035,.15,M(0x202522));
  }else if(item==='nightVision'){
@@ -1825,16 +1598,16 @@ function createGroundItem(item,count,pos,label,createdAt=Date.now()){
 
 // Guaranteed pickups at the military camps make these two weapons findable without rare random drops.
 createGroundItem('weapon:Raketenwerfer',1,{x:-56,z:-54},'Raketenwerfer');
+createGroundItem('weapon:Minigun',1,{x:-60,z:-54},'Minigun · 120 Schuss Magazin');
 createGroundItem('weapon:Granatwerfer',1,{x:72,z:68},'Granatwerfer');
 createGroundItem('specialAmmo',24,{x:-54,z:-52},'Spezial-Laserzellen');
 createGroundItem('specialAmmo',24,{x:70,z:70},'Spezial-Laserzellen');
 // Benzinkanister als sichtbare 3D-Beute in mehreren Häusern und an Versorgungskisten.
-for(const pos of [{x:-10,z:-4},{x:10,z:-14},{x:36,z:-37},{x:-43,z:-27},{x:106,z:-94},{x:150,z:71},{x:174,z:-164},{x:205,z:-202}])createGroundItem('gasCanister',1,pos,'Benzinkanister (+25)');
+for(const pos of [{x:-10,z:-4},{x:106,z:-94},{x:174,z:-164}])createGroundItem('gasCanister',1,pos,'Benzinkanister (+25)');
 
 function dropZombieLoot(pos){
- if(Math.random()<.22){const ids=['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables'];const id=ids[Math.floor(Math.random()*ids.length)];const labels={cola:'Cola',fanta:'Fanta',sprite:'Sprite',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'};createGroundItem(id,1,{x:pos.x+.35,z:pos.z+.25},labels[id]);return;}
  if(Math.random()<.045){const n=1+Math.floor(Math.random()*2);createGroundItem('rockets',n,pos,'Panzer-Raketen');lootToast('Zombie-Beute: Panzer-Raketen ×'+n);saveProgress();return;}
- if(Math.random()<.055){createGroundItem('gasCanister',1,{x:pos.x+.5,z:pos.z+.4},'Benzinkanister (+25)');lootToast('Zombie-Beute: Benzinkanister +25');return;}
+ if(Math.random()<.018){createGroundItem('gasCanister',1,{x:pos.x+.5,z:pos.z+.4},'Benzinkanister (+25)');lootToast('Zombie-Beute: Benzinkanister +25');return;}
  const defeatedBoss=zombies.find(z=>z.boss&&!z.rewardGiven&&distanceXZ(z.group.position,pos)<.05);
  if(defeatedBoss){defeatedBoss.rewardGiven=true;const w=defeatedBoss.bossWeapon;createGroundItem('weapon:'+w,1,{x:pos.x+2,z:pos.z+1},w);createGroundItem('specialAmmo',30,{x:pos.x-1,z:pos.z+2},'Boss-Spezialzellen');if(Math.random()<.75){const rare=randomArmorPiece(Math.random()<.35?'epic':'legendary');const armorDrop=createGroundItem('armorDrop',1,{x:pos.x-2,z:pos.z-1},rare.label);armorDrop.armorPiece=rare;}message('BOSS BESIEGT! Einzigartiger Loot liegt in der Arena: '+w+' und Spezialbelohnungen!',4);lootToast('Boss-Loot: '+w+' + Spezialitems');updateInventory();saveProgress();return;}
  if(Math.random()<.27){
@@ -1849,10 +1622,11 @@ function dropZombieLoot(pos){
  if(Math.random()<.20){const n=2+Math.floor(Math.random()*5);createGroundItem('arrows',n,pos,'Pfeile');updateInventory();lootToast('Pfeile ×'+n);saveProgress();return;}
  if(lanternDrop){item='lantern';label='Laterne'}
  else if(grenadeDrop){item='grenades';label='Granate'}
- else if(r<.14){item='food';label='Essen'}
+ else if(r<.10){item=['apple','potato','beanCan','soupCan','meat','vegetables'][Math.floor(Math.random()*6)];label=({apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'})[item]}
+ else if(r<.16){item=['cola','fanta','sprite','water'][Math.floor(Math.random()*4)];label=({cola:'Cola',fanta:'Fanta',sprite:'Sprite',water:'Trinkwasser'})[item]}
  else if(r<.23){item='medicine';label='Medizin'}
- else if(r<.34){item='water';label='Trinkwasser'}
- else if(r<.39){const choices=Object.keys(weaponStats).filter(n=>!['Blaster','Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(n));item='weapon:'+choices[Math.floor(Math.random()*choices.length)];label=item.slice(7)}
+ else if(r<.29){item='food';label='Essen'}
+ else if(r<.34){const choices=Object.keys(weaponStats).filter(n=>!['Blaster','Kolossbrecher','Schattenlanze','Seuchenwerfer'].includes(n));item='weapon:'+choices[Math.floor(Math.random()*choices.length)];label=item.slice(7)}
  else if(r<.62){item='money';n=5+Math.floor(Math.random()*16);player.money+=n;label='Geld';}
  else {item='ammo';n=5+Math.floor(Math.random()*10);label='Munition'}
  if(item!=='money')createGroundItem(item,n,pos,label);
@@ -1891,12 +1665,6 @@ function detonateThrownGrenade(pos){const stats={damage:85,kind:'grenade'};deton
 function detonateExplosive(pos,wstats,color){
  const radius=wstats.kind==='rocket'?17:10;
  for(const z of zombies){if(z.dead)continue;const dist=distanceXZ(z.group.position,pos);if(dist<radius){z.hp-=Math.max(0,Math.round(wstats.damage*(1-dist/radius)));if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group)}}}
- // Explosionen verletzen jetzt auch den Spieler, abhängig von der Entfernung zum Explosionszentrum.
- // Granaten verursachen bis zu 85 Schaden direkt am Zentrum und weniger Schaden am Rand.
- if(wstats.kind==='grenade'){
-  const playerDist=Math.hypot(player.pos.x-pos.x,player.pos.z-pos.z);
-  if(playerDist<radius){const damage=Math.max(0,Math.round(85*(1-playerDist/radius)));if(damage>0){damagePlayer(damage);message('💥 Granate trifft dich! -'+damage+' Leben',2.0);}}
- }
  spawnBlast(pos,color,wstats.kind);if(wstats.kind==='rocket')createFireZone(pos);message(wstats.kind==='rocket'?'Rakete explodiert!':'Granate explodiert!',1.1);
 }
 function shoot(){
@@ -2002,18 +1770,7 @@ function damagePlayer(amount){
  if(player.inCar&&activeCar)return;
  const reduction=armorTypes.reduce((sum,t)=>sum+(equippedArmor[t.key]?.reduce||0),0);amount*=Math.max(.35,1-reduction);
  if(gameOver)return;player.health-=amount;updateHUD();
- if(player.health<=0){player.health=0;
-  // Beim Tod im Jet die Steuerung lösen, ohne das Flugzeug an den Spieler zu binden.
-  // So bleibt der Jet an seiner tatsächlichen Weltposition und teleportiert beim Respawn nicht mit.
-  if(activeJet&&flyableJet){
-    activeJet=false;jetLiftInput=0;jetFlightControls.style.display='none';jetStatus.style.display='none';
-    flyableJet.position.set(player.pos.x,Math.max(0.45,player.pos.y-2.0),player.pos.z);
-    flyableJet.rotation.y=player.yaw;flyableJet.rotation.z=0;
-    if(jetAirborne&&jetHealth>0){jetFalling=true;jetFallVelocity=Math.max(jetFallVelocity,1.5);jetAirborne=true;}
-    else{jetFalling=false;jetFallVelocity=0;jetAirborne=false;flyableJet.position.y=0.45;}
-    saveProgress();
-  }
-  gameOver=true;message('Du bist überwältigt. Tippe auf SPIEL NEU STARTEN.',999);showRestart()}
+ if(player.health<=0){player.health=0;gameOver=true;message('Du bist überwältigt. Tippe auf SPIEL NEU STARTEN.',999);showRestart()}
 }
 function showRestart(){
  $('startBtn').style.display='none';$('deathOptions').style.display='flex';$('startScreen').style.display='flex';
@@ -2026,26 +1783,27 @@ function revivePlayer(){
  $('startScreen').style.display='none';$('startBtn').style.display='block';$('deathOptions').style.display='none';camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateHUD();message('Du wurdest geheilt und bist zurück! Deine Items bleiben erhalten.',3);saveProgress();lastTime=performance.now();
 }
 function resetGame(){if(resettingGame)return;resettingGame=true;try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem('deadzone-survival-save-v11')}catch(e){};started=false;gameOver=false;location.replace(location.pathname+'?newgame='+Date.now())}
+$('soldierToggle').addEventListener('click',()=>{soldiersEnabled=!soldiersEnabled;for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();message(soldiersEnabled?'Soldaten aktiviert. Sie folgen dir wieder.':'Soldaten zurückgezogen. Sie kämpfen vorerst nicht mit.',2.5);saveProgress()});
 $('reviveBtn').addEventListener('click',revivePlayer);
 $('newRunBtn').addEventListener('click',resetGame);
 const SAVE_KEY='deadzone-survival-save-v18';
-function saveProgress(){if(resettingGame)return;try{const data={worldTime,weather:currentWeather,weatherTimer,doors:houseDoors.map(d=>d.open),gates:gardenGates.map(g=>g.open),placedStructures:placedStructures.map(o=>({kind:o.kind,x:o.x,z:o.z,rot:o.rot,open:o.open})),cars:cars.map(c=>({x:c.group.position.x,z:c.group.position.z,rot:c.group.rotation.y,hp:c.hp,fuel:c.fuel,bricks:c.bricks,metal:c.metal,planks:c.planks,destroyed:c.destroyed,repaired:!!c.repaired})),tanks:tanks.map(t=>({x:t.group.position.x,z:t.group.position.z,rot:t.group.rotation.y,hp:t.hp,rockets:t.rockets,destroyed:!!t.destroyed})),jet:(()=>{if(!flyableJet)return null;const p=new THREE.Vector3();flyableJet.getWorldPosition(p);return {x:p.x,y:p.y,z:p.z,rot:flyableJet.rotation.y,tilt:flyableJet.rotation.z,fuel:jetFuel,health:jetHealth,runDistance:jetRunDistance,falling:jetFalling,fallVelocity:jetFallVelocity,airborne:jetAirborne}})(),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedArmor,itemRarities,weaponRarities,lanternEquipped,nightVisionActive,gliderEquipped,equippedWeapon,ammoLoaded,selectedItem,hotbarSlots,activeHotbarIndex,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,weapon:a.weapon||null,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.filter(es=>es.recruited).map(es=>({x:es.home.x,z:es.home.z,grade:es.grade?.name||'Rekrut',offset:allies.find(a=>a.source===es)?.offset??allies.length})),soldierGrades:extraSoldiers.map(es=>es.grade?es.grade.name:null),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z,baby:!!z.baby})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt,armorPiece:d.armorPiece||null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
-function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Array.isArray(d.placedStructures)){removePlacedStructures();for(const o of d.placedStructures)if(o&&['fence','wall','ironGate','gardenGate'].includes(o.kind))buildStructureMesh(o.kind,o.x,o.z,o.rot||0,!!o.open)}if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(d.weather&&weatherNames[d.weather])setWeather(d.weather);if(Number.isFinite(d.weatherTimer))weatherTimer=d.weatherTimer;if(Array.isArray(d.cars))d.cars.forEach((saved,i)=>{const c=cars[i];if(!c||!saved)return;c.group.position.set(saved.x??c.group.position.x,0,saved.z??c.group.position.z);c.group.rotation.y=saved.rot??c.group.rotation.y;c.x=c.group.position.x;c.z=c.group.position.z;c.hp=saved.hp??500;c.fuel=saved.fuel??100;c.bricks=saved.bricks??c.bricks;c.metal=saved.metal??c.metal;c.planks=saved.planks??c.planks;c.destroyed=!!saved.destroyed;c.repaired=!!saved.repaired;c.group.visible=true;if(c.destroyed||c.hp<=0)setWreckAppearance(c.group,'car');});if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;if(door.barnSliding){if(door.pivot.children[0])door.pivot.children[0].position.x=door.open?-2.35:0;if(door.pivot.children[1])door.pivot.children[1].position.x=door.open?2.35:0}else door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(Array.isArray(d.gates))d.gates.forEach((open,i)=>{const gate=gardenGates[i];if(gate){gate.open=!!open;gate.pivot.rotation.y=gate.open?Math.PI/2:0;gate.obstacle.active=!gate.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.equippedArmor)for(const t of armorTypes)equippedArmor[t.key]=d.equippedArmor[t.key]||null;if(d.itemRarities)Object.assign(itemRarities,d.itemRarities);if(d.weaponRarities)Object.assign(weaponRarities,d.weaponRarities);if(Array.isArray(d.tanks))d.tanks.forEach((sv,i)=>{const t=tanks[i];if(t&&sv){t.group.position.set(sv.x??t.x,0,sv.z??t.z);t.group.rotation.y=sv.rot??t.rot;t.x=t.group.position.x;t.z=t.group.position.z;t.hp=sv.hp??t.hp;t.rockets=sv.rockets??t.rockets;t.destroyed=!!sv.destroyed||t.hp<=0;if(t.destroyed)setWreckAppearance(t.group,'tank')}});if(d.jet&&flyableJet){scene.attach(flyableJet);flyableJet.position.set(d.jet.x??flyableJet.position.x,d.jet.y??flyableJet.position.y,d.jet.z??flyableJet.position.z);flyableJet.rotation.y=d.jet.rot??flyableJet.rotation.y;flyableJet.rotation.z=d.jet.tilt??0;jetFuel=Math.max(0,Math.min(100,d.jet.fuel??100));jetHealth=Math.max(0,Math.min(500,d.jet.health??500));jetRunDistance=Math.max(0,d.jet.runDistance??0);jetAirborne=!!d.jet.airborne;/* Ein gespeicherter Jet kann nach dem Laden niemals ohne Pilot in der Luft stehen bleiben. */jetFalling=Number(d.jet.y)>0.55||!!d.jet.falling; if(jetFalling)jetAirborne=false;jetFallVelocity=jetFalling?Math.max(4.5,Number(d.jet.fallVelocity)||4.5):0;jetFuelTimer=0;repairFlyableJetVisibility();updateJetStatus();}if(d.inventory){for(const id of ['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables'])inventory[id]=d.inventory[id]||0;inventory.rockets=d.inventory.rockets||0;inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.gasCanister=d.inventory.gasCanister||0;inventory.bricks=d.inventory.bricks||0;inventory.planks=d.inventory.planks||0;inventory.metalScrap=d.inventory.metalScrap||0;inventory.craftedFence=d.inventory.craftedFence||0;inventory.craftedWall=d.inventory.craftedWall||0;inventory.craftedIronGate=d.inventory.craftedIronGate||0;inventory.craftedGardenGate=d.inventory.craftedGardenGate||0;inventory.lantern=d.inventory.lantern||0;inventory.nightVision=d.inventory.nightVision||0;inventory.grenades=d.inventory.grenades||0;inventory.glider=d.inventory.glider||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.arrows=d.inventory.arrows??0;inventory.armorPieces=Array.isArray(d.inventory.armorPieces)?d.inventory.armorPieces:[];inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;nightVisionActive=!!d.nightVisionActive;gliderEquipped=!!d.gliderEquipped;rebuildLantern();updateNightVisionEffect();gliderEquipped=!!d.gliderEquipped;if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;if(Array.isArray(d.hotbarSlots)&&d.hotbarSlots.length===10)hotbarSlots=d.hotbarSlots;if(Number.isInteger(d.activeHotbarIndex))activeHotbarIndex=Math.max(0,Math.min(9,d.activeHotbarIndex));suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=true;soldier.recruited=false;soldier.health=0;soldier.group.visible=false;scene.remove(soldier.group);
+function saveProgress(){if(resettingGame)return;try{const data={worldTime,weather:currentWeather,weatherTimer,doors:houseDoors.map(d=>d.open),gates:gardenGates.map(g=>g.open),placedStructures:placedStructures.map(o=>({kind:o.kind,x:o.x,z:o.z,rot:o.rot,open:o.open})),cars:cars.map(c=>({x:c.group.position.x,z:c.group.position.z,rot:c.group.rotation.y,hp:c.hp,fuel:c.fuel,bricks:c.bricks,metal:c.metal,planks:c.planks,destroyed:c.destroyed,repaired:!!c.repaired})),tanks:tanks.map(t=>({x:t.group.position.x,z:t.group.position.z,rot:t.group.rotation.y,hp:t.hp,rockets:t.rockets,fuel:t.fuel,destroyed:!!t.destroyed})),jet:(()=>{if(!flyableJet)return null;const p=new THREE.Vector3();flyableJet.getWorldPosition(p);return {x:p.x,y:p.y,z:p.z,rot:flyableJet.rotation.y,tilt:flyableJet.rotation.z,fuel:jetFuel,health:jetHealth,runDistance:jetRunDistance,falling:jetFalling,fallVelocity:jetFallVelocity,airborne:jetAirborne}})(),player:{x:player.pos.x,y:player.pos.y,z:player.pos.z,yaw:player.yaw,pitch:player.pitch,health:player.health,hunger:player.hunger,water:player.water,infected:player.infected,infectionTime:player.infectionTime,money:player.money},inventory,equippedArmor,itemRarities,weaponRarities,lanternEquipped,nightVisionActive,gliderEquipped,equippedWeapon,ammoLoaded,selectedItem,hotbarSlots,activeHotbarIndex,suppliesFound,soldierRecruited,soldiersEnabled,soldierDead:!!soldier.dead,soldierHealth:soldier.health,allyStates:allies.map(a=>({hp:a.hp,dead:a.dead,offset:a.offset,weapon:a.weapon||null,extraIndex:a.source?extraSoldiers.indexOf(a.source):-1})),recruitedExtras:extraSoldiers.filter(es=>es.recruited).map(es=>({x:es.home.x,z:es.home.z,grade:es.grade?.name||'Rekrut',offset:allies.find(a=>a.source===es)?.offset??allies.length})),soldierGrades:extraSoldiers.map(es=>es.grade?es.grade.name:null),zombies:zombies.map(z=>({dead:z.dead,hp:z.hp,x:z.group.position.x,z:z.group.position.z,baby:!!z.baby})),chests:hiddenChests.map(c=>c.found),supplies:supplies.map(c=>c.found),dropped:droppedItems.filter(d=>!d.found).map(d=>({item:d.item,count:d.count,x:d.group.position.x,z:d.group.position.z,label:d.label,createdAt:d.createdAt,armorPiece:d.armorPiece||null}))};localStorage.setItem(SAVE_KEY,JSON.stringify(data));}catch(e){console.warn('Speichern fehlgeschlagen',e)}}
+function loadProgress(){try{const raw=localStorage.getItem(SAVE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Array.isArray(d.placedStructures)){removePlacedStructures();for(const o of d.placedStructures)if(o&&['fence','wall','ironGate','gardenGate','turret','chair','table','bed','lamp'].includes(o.kind))buildStructureMesh(o.kind,o.x,o.z,o.rot||0,!!o.open)}if(Number.isFinite(d.worldTime))worldTime=d.worldTime;if(d.weather&&weatherNames[d.weather])setWeather(d.weather);if(Number.isFinite(d.weatherTimer))weatherTimer=d.weatherTimer;if(Array.isArray(d.cars))d.cars.forEach((saved,i)=>{const c=cars[i];if(!c||!saved)return;c.group.position.set(saved.x??c.group.position.x,0,saved.z??c.group.position.z);c.group.rotation.y=saved.rot??c.group.rotation.y;c.x=c.group.position.x;c.z=c.group.position.z;c.hp=saved.hp??500;c.fuel=saved.fuel??100;c.bricks=saved.bricks??c.bricks;c.metal=saved.metal??c.metal;c.planks=saved.planks??c.planks;c.destroyed=!!saved.destroyed;c.repaired=!!saved.repaired;c.group.visible=true;if(c.destroyed||c.hp<=0)setWreckAppearance(c.group,'car');});if(Array.isArray(d.doors))d.doors.forEach((open,i)=>{const door=houseDoors[i];if(door){door.open=!!open;door.pivot.rotation.y=door.open?-Math.PI/2:0;door.obstacle.active=!door.open}});if(Array.isArray(d.gates))d.gates.forEach((open,i)=>{const gate=gardenGates[i];if(gate){gate.open=!!open;gate.pivot.rotation.y=gate.open?Math.PI/2:0;gate.obstacle.active=!gate.open}});if(d.player){Object.assign(player,{yaw:d.player.yaw||0,pitch:d.player.pitch||0,health:d.player.health??100,hunger:d.player.hunger??100,water:d.player.water??100,infected:!!d.player.infected,infectionTime:d.player.infectionTime||0,money:d.player.money||0});player.pos.set(d.player.x||0,d.player.y||1.7,d.player.z??12)}if(d.equippedArmor)for(const t of armorTypes)equippedArmor[t.key]=d.equippedArmor[t.key]||null;if(d.itemRarities)Object.assign(itemRarities,d.itemRarities);if(d.weaponRarities)Object.assign(weaponRarities,d.weaponRarities);if(Array.isArray(d.tanks))d.tanks.forEach((sv,i)=>{const t=tanks[i];if(t&&sv){t.group.position.set(sv.x??t.x,0,sv.z??t.z);t.group.rotation.y=sv.rot??t.rot;t.x=t.group.position.x;t.z=t.group.position.z;t.hp=sv.hp??t.hp;t.rockets=sv.rockets??t.rockets;t.fuel=sv.fuel??t.fuel;t.destroyed=!!sv.destroyed||t.hp<=0;if(t.destroyed)setWreckAppearance(t.group,'tank')}});if(d.jet&&flyableJet){scene.attach(flyableJet);const savedJetX=d.jet.x??flyableJet.position.x,savedJetY=d.jet.y??flyableJet.position.y,savedJetZ=d.jet.z??flyableJet.position.z;const oldHangarSpawn=Math.abs(savedJetX-280)<18&&savedJetZ>-315&&savedJetZ<-265;flyableJet.position.set(oldHangarSpawn?305:savedJetX,oldHangarSpawn?0.45:savedJetY,oldHangarSpawn?-276:savedJetZ);flyableJet.rotation.y=oldHangarSpawn?0:(d.jet.rot??flyableJet.rotation.y);flyableJet.visible=true;flyableJet.traverse(o=>{o.visible=true;if(o.isMesh){o.frustumCulled=false;if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];for(const m of ms){m.transparent=false;m.opacity=1;m.depthWrite=true;m.needsUpdate=true;}}}});flyableJet.rotation.z=d.jet.tilt??0;jetFuel=Math.max(0,Math.min(100,d.jet.fuel??100));jetHealth=Math.max(0,Math.min(500,d.jet.health??500));jetRunDistance=Math.max(0,d.jet.runDistance??0);jetAirborne=!!d.jet.airborne;jetFalling=!!d.jet.falling||(Number(d.jet.y)>0.55&&!d.jet.airborne);jetFallVelocity=jetFalling?Math.max(1.5,Number(d.jet.fallVelocity)||1.5):0;jetFuelTimer=0;updateJetStatus();}if(d.inventory){inventory.rockets=d.inventory.rockets||0;inventory.medicine=d.inventory.medicine||0;inventory.food=d.inventory.food||0;inventory.water=d.inventory.water||0;inventory.gasCanister=d.inventory.gasCanister||0;inventory.bricks=d.inventory.bricks||0;inventory.planks=d.inventory.planks||0;inventory.metalScrap=d.inventory.metalScrap||0;inventory.craftedFence=d.inventory.craftedFence||0;inventory.craftedWall=d.inventory.craftedWall||0;inventory.craftedIronGate=d.inventory.craftedIronGate||0;inventory.craftedGardenGate=d.inventory.craftedGardenGate||0;for(const k of ['cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables','craftedTurret','craftedChair','craftedTable','craftedBed','craftedLamp'])inventory[k]=d.inventory[k]||0;inventory.lantern=d.inventory.lantern||0;inventory.nightVision=d.inventory.nightVision||0;inventory.grenades=d.inventory.grenades||0;inventory.glider=d.inventory.glider||0;inventory.ammo=d.inventory.ammo??18;inventory.specialAmmo=d.inventory.specialAmmo??36;inventory.arrows=d.inventory.arrows??0;inventory.armorPieces=Array.isArray(d.inventory.armorPieces)?d.inventory.armorPieces:[];inventory.weapons=d.inventory.weapons||{Blaster:1}}lanternEquipped=!!d.lanternEquipped;nightVisionActive=!!d.nightVisionActive;gliderEquipped=!!d.gliderEquipped;rebuildLantern();updateNightVisionEffect();gliderEquipped=!!d.gliderEquipped;if(d.equippedWeapon&&weaponStats[d.equippedWeapon])equippedWeapon=d.equippedWeapon;ammoLoaded=d.ammoLoaded??12;if(d.selectedItem)selectedItem=d.selectedItem;if(Array.isArray(d.hotbarSlots)&&d.hotbarSlots.length===10)hotbarSlots=d.hotbarSlots;if(Number.isInteger(d.activeHotbarIndex))activeHotbarIndex=Math.max(0,Math.min(9,d.activeHotbarIndex));suppliesFound=d.suppliesFound||0;soldierRecruited=!!d.soldierRecruited;soldiersEnabled=d.soldiersEnabled!==false;soldier.dead=!!d.soldierDead;soldier.health=d.soldierHealth??100;if(soldier.dead)scene.remove(soldier.group);
  if(soldierRecruited&&!soldier.recruited&&!soldier.dead){soldier.recruited=true;allies.push({group:soldier.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:soldier})}
  if(Array.isArray(d.soldierGrades))d.soldierGrades.forEach((name,i)=>{const es=extraSoldiers[i];const grade=soldierGrades.find(g=>g.name===name);if(es&&grade)es.grade=grade});if(Array.isArray(d.recruitedExtras))for(const saved of d.recruitedExtras){if(typeof saved==='number'){const es=extraSoldiers[saved];if(es&&!es.recruited){es.recruited=true;allies.push({group:es.group,hp:100,speed:3.6,attack:0,dead:false,offset:allies.length,source:es,grade:es.grade?.name})}continue}if(!saved||!Number.isFinite(saved.x)||!Number.isFinite(saved.z))continue;let es=extraSoldiers.find(q=>Math.hypot(q.home.x-saved.x,q.home.z-saved.z)<.5);if(!es){const group=makePerson(false);group.position.set(saved.x,0,saved.z);scene.add(group);const grade=soldierGrades.find(g=>g.name===saved.grade)||soldierGrades[0];es={group,recruited:false,dead:false,home:new THREE.Vector3(saved.x,0,saved.z),grade,mission:'ammo',tradeSeed:Math.random()};extraSoldiers.push(es)}const grade=soldierGrades.find(g=>g.name===saved.grade);if(grade)es.grade=grade;if(!es.recruited){es.recruited=true;allies.push({group:es.group,hp:es.grade?.hp||100,maxHp:es.grade?.hp||100,speed:3.6,damage:es.grade?.damage||25,followRate:es.grade?.rate||2.5,attack:0,dead:false,offset:Number.isFinite(saved.offset)?saved.offset:allies.length,source:es,grade:es.grade?.name})}}
  if(Array.isArray(d.allyStates))for(const st of d.allyStates){const a=allies.find(q=>q.offset===st.offset);if(a){a.hp=st.hp??100;if(st.weapon){a.weapon=st.weapon;a.damage=Math.max(12,Math.round((weaponStats[st.weapon]?.damage||45)*.42));a.weaponRate=weaponStats[st.weapon]?.cooldown||.5}if(st.dead){a.dead=true;scene.remove(a.group)}}}for(const a of allies)if(!a.dead)a.group.visible=soldiersEnabled;updateHUD();
  if(Array.isArray(d.zombies))d.zombies.forEach((z,i)=>{const obj=zombies[i];if(!obj)return;if(obj.boss){const site=bossSites.find(q=>q.name===obj.bossName);obj.dead=false;obj.rewardGiven=false;obj.hp=obj.maxHp;obj.group.visible=true;if(site)obj.group.position.set(site.x,0,site.z);return;}if(!!z.baby!==!!obj.baby){scene.remove(obj.group);const idx=zombies.indexOf(obj);const replacement=makeZombie(z.x,z.z,!!z.baby);replacement.hp=z.hp;replacement.dead=!!z.dead;if(replacement.dead)scene.remove(replacement.group);zombies[idx]=replacement;return;}obj.hp=z.hp;if(z.dead){obj.dead=true;scene.remove(obj.group)}else obj.group.position.set(z.x,0,z.z)});if(Array.isArray(d.chests))d.chests.forEach((f,i)=>{if(f&&hiddenChests[i]){hiddenChests[i].found=true;scene.remove(hiddenChests[i].group)}});if(Array.isArray(d.supplies))d.supplies.forEach((f,i)=>{if(f&&supplies[i]){supplies[i].found=true;supplies[i].group.visible=false}});for(const q of d.dropped||[]){if(Date.now()-(q.createdAt||Date.now())<120000){const ground=createGroundItem(q.item,q.count,{x:q.x,z:q.z},q.label,q.createdAt||Date.now());if(q.armorPiece)ground.armorPiece=q.armorPiece}}camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');updateInventory();updateArmorAvatar();rebuildHandProp();rebuildLantern();updateHUD();message('Gespeicherter Fortschritt geladen.',2.5)}catch(e){console.warn('Spielstand konnte nicht geladen werden',e)}}
 window.addEventListener('pagehide',saveProgress);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveProgress()});setInterval(()=>{if(started&&!gameOver)saveProgress()},5000);
 
-$('tradeOpenBtn').style.display='none';$('tradeModal').style.display='none';
 window.addEventListener('deadzone-start',()=>{
  if(gameOver){resetGame();return}
- started=true;$('startBtn').style.display='block';$('deathOptions').style.display='none';$('startScreen').style.display='none';lastTime=performance.now();
+ started=true;$('startBtn').style.display='block';$('deathOptions').style.display='none';$('startScreen').style.display='none';$('spawnTeleportBtn').style.display='block';lastTime=performance.now();
  if(matchMedia('(pointer:fine)').matches && renderer.domElement.requestPointerLock){try{renderer.domElement.requestPointerLock()}catch(e){}}
- message('Erkunde die Welt und überlebe.',3);
+ message('Finde die 3 Versorgungskisten. Der Soldat wartet im Lager.',4);
 });
 window.__deadzoneReady=true; if(window.__deadzoneStartPending){window.__deadzoneStartPending=false;window.dispatchEvent(new Event('deadzone-start'));}
-$('startBtn').addEventListener('click',()=>{if(gameOver){resetGame();return}window.dispatchEvent(new Event('deadzone-start'))});
+$('spawnTeleportBtn').addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();if(!started||gameOver){message('Starte zuerst das Spiel.',2);return;}try{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();if(activeCar)exitCar();player.inCar=false;carInterior.visible=false;player.pos.set(0,1.7,12);player.yaw=0;player.pitch=0;player.vy=0;player.onGround=true;player.noise=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');mobileMove={x:0,y:0};sprinting=false;shotHeld=false;draggingLook=false;for(const k of Object.keys(keys))keys[k]=false;updateHUD();saveProgress();message('Du wurdest zum Spawn teleportiert!',2.5);}catch(err){console.error('Spawn-Teleport fehlgeschlagen:',err);message('Teleport hat nicht geklappt. Bitte erneut versuchen.',3);}});
+$('startBtn').addEventListener('click',()=>{startScaryBackgroundMusic();if(gameOver){resetGame();return}window.dispatchEvent(new Event('deadzone-start'))});
 document.addEventListener('pointerlockchange',()=>{pointerLocked=document.pointerLockElement===renderer.domElement});
 document.addEventListener('mousemove',e=>{
  if(!started||gameOver)return;
@@ -2068,7 +1826,7 @@ $('fireBtn').addEventListener('pointerup',()=>shotHeld=false);
 $('fireBtn').addEventListener('pointercancel',()=>shotHeld=false);
 $('interact').addEventListener('click',interact);
 $('actionBtn').addEventListener('click',interact);
-
+$('dismantleBtn').addEventListener('click',dismantleNearestStructure);
 const gliderBoostBtn=$('gliderBoostBtn');
 function boostGlider(){if(!started||gameOver||!gliderEquipped||player.onGround||player.pos.y<=4.2||gliderBoostCooldown>0)return;gliderBoostTime=1.65;gliderBoostCooldown=2.4;player.vy=Math.max(player.vy,-.18);message('🪂 BOOST! Mehr Geschwindigkeit!',1.1);}
 if(gliderBoostBtn){gliderBoostBtn.addEventListener('click',boostGlider);gliderBoostBtn.addEventListener('pointerup',e=>{e.preventDefault();boostGlider()});}
@@ -2114,11 +1872,11 @@ $('scrapItemBtn').addEventListener('click',()=>{
  else return;
  selectedItem='weapon:'+(equippedWeapon||'Blaster');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress();message(label+' verschrottet.');
 });
-$('equipItemBtn').addEventListener('click',()=>{if(selectedItem.startsWith('armor:')){const idx=inventory.armorPieces.findIndex(a=>'armor:'+a.id===selectedItem);if(idx>=0){const a=inventory.armorPieces.splice(idx,1)[0];const old=equippedArmor[a.type];if(old)inventory.armorPieces.push(old);equippedArmor[a.type]=a;message(a.label+' angelegt! Rüstung schützt dich jetzt.',1.8);updateArmorAvatar();}}else if(selectedItem==='nightVision'&&inventory.nightVision>0){nightVisionActive=!nightVisionActive;updateNightVisionEffect();message(nightVisionActive?'Nachtsichtgerät eingeschaltet.':'Nachtsichtgerät ausgeschaltet.')}else if(selectedItem==='glider'&&inventory.glider>0){gliderEquipped=!gliderEquipped;message(gliderEquipped?'Taktischer Gleiter ausgerüstet! Springe von einem hohen Dach und gleite.':'Gleiter abgelegt.',2);updateInventory();}else if(selectedItem==='lantern'&&inventory.lantern>0){inventory.lantern--;lanternEquipped=true;rebuildLantern();message('Laterne eingeschaltet.')}else if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','medicine','ammo','arrows','specialAmmo','grenades'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',medicine:'Medizin',gasCanister:'Benzinkanister',ammo:'Munition',arrows:'Pfeile',specialAmmo:'Spezial-Laserzellen',grenades:'Granaten'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
+$('equipItemBtn').addEventListener('click',()=>{if(selectedItem.startsWith('armor:')){const idx=inventory.armorPieces.findIndex(a=>'armor:'+a.id===selectedItem);if(idx>=0){const a=inventory.armorPieces.splice(idx,1)[0];const old=equippedArmor[a.type];if(old)inventory.armorPieces.push(old);equippedArmor[a.type]=a;message(a.label+' angelegt! Rüstung schützt dich jetzt.',1.8);updateArmorAvatar();}}else if(selectedItem==='nightVision'&&inventory.nightVision>0){nightVisionActive=!nightVisionActive;updateNightVisionEffect();message(nightVisionActive?'Nachtsichtgerät eingeschaltet.':'Nachtsichtgerät ausgeschaltet.')}else if(selectedItem==='glider'&&inventory.glider>0){gliderEquipped=!gliderEquipped;message(gliderEquipped?'Taktischer Gleiter ausgerüstet! Springe von einem hohen Dach und gleite.':'Gleiter abgelegt.',2);updateInventory();}else if(selectedItem==='lantern'&&inventory.lantern>0){inventory.lantern--;lanternEquipped=true;rebuildLantern();message('Laterne eingeschaltet.')}else if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(inventory.weapons[w]>0){equippedWeapon=w;setSniperZoom(false);updateWeaponCrosshair();ammoLoaded=Math.min(ammoLoaded||weaponStats[w].mag,weaponStats[w].mag);message(w+' ausgerüstet.')}}else if(['food','water','cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables','medicine','ammo','arrows','specialAmmo','grenades'].includes(selectedItem)){rebuildHandProp();message('Ausgewählt: '+({food:'Essen',water:'Trinkwasser',cola:'Cola',fanta:'Fanta',sprite:'Sprite',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse',medicine:'Medizin',gasCanister:'Benzinkanister',ammo:'Munition',arrows:'Pfeile',specialAmmo:'Spezial-Laserzellen',grenades:'Granaten'}[selectedItem])+'. Tippe auf AKTION, um es zu benutzen.')}rebuildHandProp();updateInventory();$('itemActions').style.display='none';saveProgress()});
 function nearestAllyForWeapon(maxDistance=5){let best=null,bd=maxDistance;for(const a of allies){if(a.dead)continue;const d=distanceXZ(player.pos,a.group.position);if(d<bd){best=a;bd=d}}return best;}
 function refreshGiveWeaponButton(){const b=$('giveWeaponBtn');if(!b)return;const isWeapon=selectedItem.startsWith('weapon:')&&!!inventory.weapons[selectedItem.slice(7)];b.style.display=isWeapon&&!!nearestAllyForWeapon(5)?'block':'none';}
 $('giveWeaponBtn').addEventListener('click',()=>{if(!selectedItem.startsWith('weapon:'))return;const w=selectedItem.slice(7),ally=nearestAllyForWeapon(5);if(!ally){message('Stelle dich neben einen angeheuerten Soldaten.');return}if(!inventory.weapons[w]||inventory.weapons[w]<=0){message('Diese Waffe hast du nicht mehr.');return}inventory.weapons[w]--;if(inventory.weapons[w]<=0)delete inventory.weapons[w];ally.weapon=w;ally.damage=Math.max(12,Math.round((weaponStats[w]?.damage||45)*.42));ally.weaponRate=Math.max(.22,weaponStats[w]?.cooldown||.5);ally.attack=0;message(`${w} an ${ally.grade||'Soldat'} gegeben! Er benutzt die Waffe im Kampf.`,3);if(equippedWeapon===w&&!inventory.weapons[w]){equippedWeapon=inventory.weapons.Blaster?'Blaster':Object.keys(inventory.weapons)[0]||'Blaster';if(!inventory.weapons[equippedWeapon])inventory.weapons[equippedWeapon]=1;selectedItem='weapon:'+equippedWeapon;updateWeaponCrosshair()}$('itemActions').style.display='none';updateInventory();saveProgress();});
-$('dropItemBtn').addEventListener('click',()=>{let label=selectedItem,count=1;if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(!inventory.weapons[w])return;inventory.weapons[w]--;label=w;createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},w);if(equippedWeapon===w){equippedWeapon='Blaster';selectedItem='weapon:Blaster'}}else if(selectedItem==='ammo'||selectedItem==='specialAmmo'){if(inventory[selectedItem]<=0)return;inventory[selectedItem]=Math.max(0,inventory[selectedItem]-5);count=5;label=selectedItem==='specialAmmo'?'Spezial-Laserzellen':'Munition';createGroundItem(selectedItem,count,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else if(['food','water','medicine','gasCanister','lantern','nightVision','grenades'].includes(selectedItem)){if(inventory[selectedItem]<=0)return;inventory[selectedItem]--;label=selectedItem==='food'?'Essen':selectedItem==='water'?'Trinkwasser':selectedItem==='lantern'?'Laterne':selectedItem==='nightVision'?'Nachtsichtgerät':selectedItem==='grenades'?'Granaten':'Medizin';if(selectedItem==='lantern'&&lanternEquipped){lanternEquipped=false;rebuildLantern()}if(selectedItem==='nightVision'&&nightVisionActive){nightVisionActive=false;updateNightVisionEffect()}createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else return;message(label+' fallengelassen.');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress()});
+$('dropItemBtn').addEventListener('click',()=>{let label=selectedItem,count=1;if(selectedItem.startsWith('weapon:')){const w=selectedItem.slice(7);if(!inventory.weapons[w])return;inventory.weapons[w]--;label=w;createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},w);if(equippedWeapon===w){equippedWeapon='Blaster';selectedItem='weapon:Blaster'}}else if(selectedItem==='ammo'||selectedItem==='specialAmmo'){if(inventory[selectedItem]<=0)return;inventory[selectedItem]=Math.max(0,inventory[selectedItem]-5);count=5;label=selectedItem==='specialAmmo'?'Spezial-Laserzellen':'Munition';createGroundItem(selectedItem,count,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else if(['food','water','cola','fanta','sprite','apple','potato','beanCan','soupCan','meat','vegetables','medicine','gasCanister','lantern','nightVision','grenades'].includes(selectedItem)){if(inventory[selectedItem]<=0)return;inventory[selectedItem]--;label=({food:'Essen',water:'Trinkwasser',cola:'Cola',fanta:'Fanta',sprite:'Sprite',apple:'Apfel',potato:'Kartoffel',beanCan:'Bohnendose',soupCan:'Suppendose',meat:'Fleisch',vegetables:'Gemüse'})[selectedItem]|| (selectedItem==='lantern'?'Laterne':selectedItem==='nightVision'?'Nachtsichtgerät':selectedItem==='grenades'?'Granaten':'Medizin');if(selectedItem==='lantern'&&lanternEquipped){lanternEquipped=false;rebuildLantern()}if(selectedItem==='nightVision'&&nightVisionActive){nightVisionActive=false;updateNightVisionEffect()}createGroundItem(selectedItem,1,{x:player.pos.x-Math.sin(player.yaw)*1.5,z:player.pos.z-Math.cos(player.yaw)*1.5},label)}else return;message(label+' fallengelassen.');$('itemActions').style.display='none';rebuildHandProp();updateInventory();saveProgress()});
 loadProgress();
 if(!hotbarSlots.some(Boolean)){const defaults=collectHotbarItems().slice(0,10);defaults.forEach((it,i)=>hotbarSlots[i]=it.id);refreshHotbar();}
 const clock=new THREE.Clock();
@@ -2168,71 +1926,9 @@ function updateZombieDoorBreaches(dt){
   }
  }
 }
-const mapModal=$('mapModal'),worldMapCanvas=$('worldMapCanvas'),worldMapCtx=worldMapCanvas.getContext('2d');
-function closeWorldMap(){mapModal.style.display='none';mapModal.setAttribute('aria-hidden','true');document.body.style.touchAction='';}
-mapModal.setAttribute('aria-hidden','true');
-$('mapOpenBtn').addEventListener('click',()=>{if(document.pointerLockElement&&document.exitPointerLock)document.exitPointerLock();mapModal.style.display='flex';mapModal.setAttribute('aria-hidden','false');document.body.style.touchAction='none';drawWorldMap();});
-$('mapCloseBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();closeWorldMap();});
-mapModal.addEventListener('click',e=>{if(e.target===mapModal)closeWorldMap();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&mapModal.style.display==='flex'){e.preventDefault();closeWorldMap();}});
-function drawWorldMap(){
- if(!worldMapCtx)return;
- const c=worldMapCtx,w=c.canvas.width,h=c.canvas.height,scale=w/800;
- const sx=x=>(x+400)*scale, sz=z=>(z+400)*scale;
- c.clearRect(0,0,w,h);
- // Schematic terrain map with natural-looking woodland, fields, river, roads, rail and airport.
- c.fillStyle='#a7b28a';c.fillRect(0,0,w,h);
- // Fields and meadows
- for(const [x,z,rx,rz,col] of [[-315,-310,72,48,'#b8b987'],[-180,275,85,65,'#b6bc8b'],[245,210,90,65,'#b9b78a'],[-210,30,65,55,'#9eae7c'],[125,-205,75,48,'#b8bd91']]){c.fillStyle=col;c.beginPath();c.ellipse(sx(x),sz(z),rx*scale,rz*scale,0,0,Math.PI*2);c.fill();}
- // Woods: irregular clusters rather than square blocks
- let seed=9421;const rand=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
- for(const [cx,cz,rx,rz] of [[-305,-115,88,120],[300,80,78,105],[-280,285,86,62],[210,-300,92,65],[-95,-310,85,55],[285,-230,72,65],[-365,90,42,100],[45,310,90,50]]){
-   for(let i=0;i<125;i++){const x=cx+(rand()*2-1)*rx,z=cz+(rand()*2-1)*rz;if((x-cx)**2/rx**2+(z-cz)**2/rz**2>1)continue;c.fillStyle=['#36563a','#416642','#4b7046','#2e4d35'][Math.floor(rand()*4)];c.beginPath();c.arc(sx(x),sz(z),(1.8+rand()*3.2)*scale,0,Math.PI*2);c.fill();}
- }
- // River with banks and winding course
- c.strokeStyle='#71835c';c.lineWidth=19*scale;c.lineCap='round';c.beginPath();for(let x=-410;x<=410;x+=3){const z=205+18*Math.sin(x/68)+5*Math.sin(x/27);if(x===-410)c.moveTo(sx(x),sz(z));else c.lineTo(sx(x),sz(z));}c.stroke();
- c.strokeStyle='#5596b8';c.lineWidth=13*scale;c.beginPath();for(let x=-410;x<=410;x+=3){const z=205+18*Math.sin(x/68)+5*Math.sin(x/27);if(x===-410)c.moveTo(sx(x),sz(z));else c.lineTo(sx(x),sz(z));}c.stroke();
- // Road network, with casing and asphalt
- const road=(pts,width=8)=>{c.lineCap='round';c.lineJoin='round';c.strokeStyle='#d3cfb7';c.lineWidth=(width+3)*scale;c.beginPath();pts.forEach((p,i)=>i?c.lineTo(sx(p[0]),sz(p[1])):c.moveTo(sx(p[0]),sz(p[1])));c.stroke();c.strokeStyle='#656a65';c.lineWidth=width*scale;c.stroke();};
- road([[-390,20],[-250,15],[-120,35],[10,5],[150,18],[280,5],[390,25]],9);
- road([[-240,-390],[-230,-260],[-190,-150],[-150,-40],[-120,80],[-110,220],[-80,390]],7);
- road([[60,-390],[65,-270],[80,-150],[95,-35],[140,70],[190,190],[230,390]],7);
- road([[210,-60],[275,-45],[330,-5],[390,35]],6);
- // Railway tracks and sleepers
- c.strokeStyle='#514f49';c.lineWidth=5*scale;c.beginPath();c.moveTo(sx(355),sz(-260));c.lineTo(sx(355),sz(330));c.moveTo(sx(365),sz(-260));c.lineTo(sx(365),sz(330));c.stroke();
- c.strokeStyle='#b2a99a';c.lineWidth=1.5*scale;c.beginPath();for(let z=-260;z<=330;z+=9){c.moveTo(sx(351),sz(z));c.lineTo(sx(369),sz(z));}c.stroke();
- // Airport apron/runway
- c.fillStyle='#777d7b';c.beginPath();c.roundRect(sx(255),sz(-385),42*scale,205*scale,3*scale);c.fill();
- c.fillStyle='#e9e6d2';c.fillRect(sx(275),sz(-375),2*scale,185*scale);for(let z=-355;z<-200;z+=22)c.fillRect(sx(273),sz(z),6*scale,9*scale);
- c.fillStyle='#c2b99d';c.fillRect(sx(220),sz(-210),110*scale,28*scale);
- // Houses and station icons
- for(const [x,z] of [[-175,5],[-160,20],[-145,34],[-130,45],[-115,60],[-100,75],[-85,90],[-70,105]]){c.fillStyle='#d7d1bd';c.fillRect(sx(x)-3*scale,sz(z)-3*scale,7*scale,7*scale);c.fillStyle='#a35d4d';c.fillRect(sx(x)-3*scale,sz(z)-4.5*scale,7*scale,2*scale);}
- c.fillStyle='#d4d6d0';c.fillRect(sx(355)-8*scale,sz(75)-10*scale,17*scale,18*scale);c.fillStyle='#a4b4c0';c.fillRect(sx(355)-5*scale,sz(75)-7*scale,11*scale,12*scale);
- // Dynamic vehicle markers use actual 3D world positions, not guessed map coordinates.
- const dot=(x,z,color,r)=>{c.beginPath();c.fillStyle=color;c.arc(sx(x),sz(z),r,0,Math.PI*2);c.fill();c.strokeStyle='#172019';c.lineWidth=2;c.stroke();};
- for(const car of cars)if(car.group&&car.group.visible)dot(car.group.position.x,car.group.position.z,'#f1dfaa',4.5);
- for(const t of tanks)if(t.group&&t.group.visible)dot(t.group.position.x,t.group.position.z,'#54e36b',6);
- // Jet-Marker immer zuletzt und kontrastreich zeichnen. Position direkt aus dem echten 3D-Objekt lesen.
- if(player&&player.pos){const px=Math.max(12,Math.min(w-38,sx(player.pos.x))),pz=Math.max(18,Math.min(h-14,sz(player.pos.z)));c.beginPath();c.arc(px,pz,10,0,Math.PI*2);c.fillStyle='#eafaff';c.fill();c.strokeStyle='#087fc4';c.lineWidth=4;c.stroke();c.beginPath();c.arc(px,pz,4,0,Math.PI*2);c.fillStyle='#00aaff';c.fill();c.font='bold 16px sans-serif';c.lineWidth=3;c.strokeStyle='#102018';c.strokeText('DU',px+13,pz-9);c.fillStyle='#fff';c.fillText('DU',px+13,pz-9);}
- if(flyableJet){
-   const jp=new THREE.Vector3();flyableJet.getWorldPosition(jp);
-   const jx=Math.max(18,Math.min(w-18,sx(jp.x))),jz=Math.max(18,Math.min(h-18,sz(jp.z)));
-   c.save();c.translate(jx,jz);
-   c.beginPath();c.arc(0,0,15,0,Math.PI*2);c.fillStyle='#fff4d4';c.fill();c.strokeStyle='#d65b00';c.lineWidth=4;c.stroke();
-   c.beginPath();c.moveTo(0,-12);c.lineTo(9,9);c.lineTo(0,5);c.lineTo(-9,9);c.closePath();c.fillStyle='#ff8c19';c.fill();c.strokeStyle='#44230b';c.lineWidth=1.5;c.stroke();c.restore();
-   const labelX=Math.max(4,Math.min(w-76,jx+18)),labelY=Math.max(20,Math.min(h-6,jz-12));
-   c.font='bold 16px sans-serif';const label='✈ JET';const tw=c.measureText(label).width;
-   c.fillStyle='#17231a';c.fillRect(labelX-4,labelY-16,tw+9,22);c.fillStyle='#fff4d4';c.fillText(label,labelX,labelY);
- }
- c.fillStyle='#17231a';c.font='bold 14px sans-serif';c.fillText('N',w-24,20);c.fillStyle='#dce5d4';c.beginPath();c.moveTo(w-20,26);c.lineTo(w-27,42);c.lineTo(w-13,42);c.closePath();c.fill();
-}
 function animate(){
- repairFlyableJetVisibility();
  requestAnimationFrame(animate);
- if(mapModal&&mapModal.style.display==='flex')drawWorldMap();
  const dt=Math.min(clock.getDelta(),.04);
- if(farmWindmillRotor)farmWindmillRotor.rotation.z+=dt*.62;
- for(const t of harvestableTrees){if(t.plantedAt&&!t.harvested){const age=(performance.now()-t.plantedAt)/30000;const size=t.plantedScale+(Math.max(0,Math.min(1,age))*.75);t.group.scale.setScalar(size);if(age>=1)t.plantedAt=0;}}
  if(started&&!gameOver){updateDayNight(dt);updateWeather(dt);updateZombieDoorBreaches(dt);updateBuildPreview();}else if(buildPreview||buildPreviewRing){if(buildPreview)buildPreview.visible=false;if(buildPreviewRing)buildPreviewRing.visible=false;}
  for(let i=shotVisuals.length-1;i>=0;i--){const v=shotVisuals[i];v.life-=dt;if(v.knifeReturn){v.age=(v.age||0)+dt;const t=Math.min(1,v.age/.8);v.obj.position.lerpVectors(v.start,v.end,t);v.obj.rotation.z+=dt*10;v.obj.rotation.x+=dt*4;}if(v.life<=0){scene.remove(v.obj);if(v.groupShot){v.obj.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material.dispose();}})}else{if(v.geo&&v.geo.dispose)v.geo.dispose();if(v.material&&v.material.dispose)v.material.dispose()}shotVisuals.splice(i,1)}else if(v.groupShot){v.obj.traverse(o=>{if(o.material&&o.material.opacity!==undefined){o.material.transparent=true;o.material.opacity=Math.max(0,v.life*5)}})}else if(v.material&&v.material.opacity!==undefined)v.material.opacity=Math.max(0,v.life*5)}
  for(let i=energyProjectiles.length-1;i>=0;i--){const q=energyProjectiles[i];q.age+=dt;q.life-=dt;const t=Math.min(1,q.age/.32);q.orb.position.copy(q.origin).lerp(q.end,t);q.glow.position.copy(q.orb.position);q.glow.scale.setScalar(1+Math.sin(q.age*75)*.22);q.trailGeo.setFromPoints([q.orb.position.clone().addScaledVector(q.dir,-1.25),q.orb.position.clone()]);q.material.opacity=Math.max(0,q.life*3.8);q.glow.material.opacity=Math.max(0,q.life*.95);q.trailMat.opacity=Math.max(0,q.life*3.1);if(q.life<=0){if(q.kind==='rocket'&&q.impactStats){detonateExplosive(q.end,q.impactStats,q.impactColor||0xffd36a)}scene.remove(q.orb,q.glow,q.trail);q.geo.dispose();q.material.dispose();q.glow.geometry.dispose();q.glow.material.dispose();q.trailGeo.dispose();q.trailMat.dispose();energyProjectiles.splice(i,1)}}
@@ -2269,6 +1965,8 @@ function animate(){
     do{const a=Math.random()*Math.PI*2,r=32+Math.random()*38;sx=player.pos.x+Math.cos(a)*r;sz=player.pos.z+Math.sin(a)*r;tries++}while((blockedAt(sx,sz)||Math.hypot(sx-player.pos.x,sz-player.pos.z)<28)&&tries<20);
     sx=Math.max(-378,Math.min(378,sx));sz=Math.max(-378,Math.min(378,sz));makeZombie(sx,sz,Math.random()<0.16);
   }
+  // Craftable turrets automatically track and shoot nearby living zombies.
+  for(const t of placedStructures){if(t.kind!=='turret')continue;t.fireTimer=(t.fireTimer||0)-dt;let target=null,bd=15;for(const z of zombies){if(z.dead)continue;const d=distanceXZ(t.group.position,z.group.position);if(d<bd){target=z;bd=d}}if(target){const dx=target.group.position.x-t.group.position.x,dz=target.group.position.z-t.group.position.z;t.group.userData.turretHead.rotation.y=Math.atan2(-dx,-dz);if(t.fireTimer<=0){t.fireTimer=.95;target.hp-=22;playTone(190,.055,'square',.018);const beam=new THREE.Mesh(new THREE.CylinderGeometry(.025,.045,Math.max(.1,bd),6),new THREE.MeshBasicMaterial({color:0xffb34a,transparent:true,opacity:.82}));beam.position.set((t.x+target.group.position.x)/2,.95,(t.z+target.group.position.z)/2);beam.rotation.z=Math.PI/2;beam.rotation.y=Math.atan2(target.group.position.x-t.x,target.group.position.z-t.z);scene.add(beam);shotVisuals.push({obj:beam,life:.12,geo:beam.geometry,material:beam.material});if(target.hp<=0){target.dead=true;dropZombieLoot(target.group.position);scene.remove(target.group)}}}}
   if(player.infected){player.infectionTime-=dt;if(player.infectionTime<=0){damagePlayer(8*dt);message('Infektion verschlimmert sich! Medizin nötig!',1);}}
   // Leitern automatisch starten, sobald der Spieler beim Laufen gegen eine Leiter kommt.
   if(!climbingLadder){
@@ -2297,7 +1995,7 @@ function animate(){
    // If we're currently on a stair or upper floor, keep the feet supported instead of
    // applying gravity every frame and snapping the camera into a stair tread.
    let supportedY=null;
-   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-.45,zMax=Math.max(st.zStart,st.zEnd)+.45;if(Math.abs(player.pos.x-st.x)<st.w*.82&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);const lo=Math.min(st.baseY,st.topY)-.9,hi=Math.max(st.baseY,st.topY)+.9;if(player.pos.y>=lo&&player.pos.y<=hi){supportedY=y;break}}}
+   for(const st of stairZones){const zMin=Math.min(st.zStart,st.zEnd)-1.25,zMax=Math.max(st.zStart,st.zEnd)+1.25;if(Math.abs(player.pos.x-st.x)<st.w*.78&&player.pos.z>=zMin&&player.pos.z<=zMax&&Math.abs(player.pos.x-st.houseX)<st.halfW+.2&&Math.abs(player.pos.z-st.houseZ)<st.halfD+.2){const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));const y=st.baseY+t*(st.topY-st.baseY);if(Math.abs(y-player.pos.y)<.62){supportedY=y;break}}}
    if(supportedY===null){for(const f of buildingFloors){const eyeY=f.y+1.7;if(Math.abs(player.pos.x-f.x)<f.w/2-.4&&Math.abs(player.pos.z-f.z)<f.d/2-.4&&player.pos.y>=eyeY-1.35&&player.pos.y<=eyeY+.8){supportedY=eyeY;break}}}
    if(supportedY!==null&&!activelyGliding){player.pos.y=supportedY;player.vy=0;player.onGround=true;}
    else {player.vy-=(activelyGliding?1.25:15)*dt;if(activelyGliding)player.vy=Math.max(player.vy,gliderBoostTime>0?-0.65:-1.35);player.pos.y+=player.vy*dt;}
@@ -2307,40 +2005,19 @@ function animate(){
    if(roofY!==null&&player.vy<0){player.pos.y=roofY;player.vy=0;player.onGround=true;}
    else if(player.pos.y<=1.7){player.pos.y=1.7;player.vy=0;player.onGround=true;}
   }
-  // Movement input must be initialized before the water/swimming override uses it.
-  let forward=climbingLadder?0:(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
-  let side=climbingLadder?0:(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
-  const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
-  // Final water-state override AFTER gravity/terrain: the player must swim, not walk on the river bed.
-  if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
-    const riverDistance=Math.min(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath),distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath));
-    const onBridge=Math.abs(player.pos.x)<5.0&&Math.abs(player.pos.z-riverZ)<13.0;
-    if(riverDistance<riverHalfWidth-0.15&&!onBridge){
-      const diving=!!(keys.ControlLeft||keys.ControlRight);
-      player.onGround=false;player.vy=0;
-      const targetY=diving?0.35:1.25;
-      player.pos.y+= (targetY-player.pos.y)*Math.min(1,dt*7);
-      if(forward!==0||side!==0){
-        const swimSpeed=player.speed*(diving?.42:.78);
-        const sx=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*swimSpeed*dt;
-        const sz=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*swimSpeed*dt;
-        const nx=player.pos.x+sx,nz=player.pos.z+sz;
-        const nd=Math.min(distanceToRiverPath(nx,nz,mainRiverPath),distanceToRiverPath(nx,nz,branchRiverPath));
-        if(nd<riverHalfWidth-0.2){player.pos.x=nx;player.pos.z=nz;}
-      }
-    }
-  }
   // Jet bleibt nach einem Sprung in der Luft nicht schweben: Er fällt auch weiter, wenn niemand darin sitzt.
   if(jetFalling&&flyableJet&&!activeJet){
-    // Verlassene/geladene Jets fallen immer mit Schwerkraft; Nase kippt beim Absturz nach unten.
-    jetFallVelocity=Math.min(70,Math.max(4.5,jetFallVelocity)+18*dt);
-    flyableJet.rotation.x=Math.max(-0.7,flyableJet.rotation.x-0.55*dt);
+    // Persisted or abandoned aircraft always resume falling; apply gravity every frame.
+    jetFallVelocity=Math.min(55,Math.max(1.5,jetFallVelocity)+9.8*dt);
     flyableJet.position.y-=jetFallVelocity*dt;
-    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-18);jetAirborne=false;jetRunDistance=0;flyableJet.rotation.x=0;flyableJet.rotation.z=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
+    if(flyableJet.position.y<=0.45){flyableJet.position.y=0.45;jetFalling=false;jetFallVelocity=0;jetHealth=Math.max(0,jetHealth-55);jetAirborne=false;jetRunDistance=0;flyableJet.rotation.x=0;flyableJet.rotation.z=0;message(jetHealth>0?'💥 Der verlassene Jet ist abgestürzt und beschädigt!':'💥 Der Jet ist beim Absturz zerstört worden!',2.5);updateJetStatus();saveProgress();}
   }
   if(flashTime>0){flashTime-=dt;if(flashTime<=0){muzzle.visible=false;flashLight.intensity=0}}
   if(shotHeld&&fireCooldown<=0)shoot();
-  // PC or mobile movement, relative to camera direction; forward/side are set above for swimming too.
+  // PC or mobile movement, relative to camera direction
+  let forward=climbingLadder?0:(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
+  let side=climbingLadder?0:(keys.KeyD?1:0)-(keys.KeyA?1:0)+mobileMove.x;
+  const len=Math.hypot(forward,side);if(len>1){forward/=len;side/=len}
   const sprint=(sprinting||keys.ShiftLeft||keys.ShiftRight)&&!sneaking;
   if(activeJet&&flyableJet){
     const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;
@@ -2365,18 +2042,10 @@ function animate(){
     if(jetAirborne){
       jetFuelTimer+=dt;
       while(jetFuelTimer>=5&&jetFuel>0){jetFuel--;jetFuelTimer-=5;}
-      // Keep the vertical speed in this scope so landing checks cannot throw a ReferenceError.
-      let vertical=lift>0?12:lift<0?-8:-2.2;
-      if(jetFuel<=0){player.vy-=9.8*dt;vertical=player.vy;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
-      else {player.vy=vertical;player.pos.y+=vertical*dt;}
-      if(player.pos.y<=2.4){
-        const landingSpeed=Number.isFinite(vertical)?Math.abs(vertical):2.2;
-        player.pos.y=2.4;player.vy=0;jetAirborne=false;jetFalling=false;jetFallVelocity=0;
-        const landingDamage=landingSpeed<=3?0:landingSpeed<=8?1:Math.min(18,Math.round((landingSpeed-7)*1.5));
-        jetHealth=Math.max(0,(Number.isFinite(jetHealth)?jetHealth:500)-landingDamage);jetRunDistance=0;jetFuelTimer=0;
-        message(landingDamage===0?'✈️ Saubere Landung! Kein Schaden am Jet.':landingDamage<=5?'✈️ Sanfte Landung! Jet kaum beschädigt.':'💥 Harte Landung! Jet beschädigt.');
-        if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}
-      }
+      // Fuel loss in the air causes a real fall; no hover and no infinite flight.
+      if(jetFuel<=0){player.vy-=9.8*dt;player.pos.y+=player.vy*dt;message('⛽ Tank leer! Der Jet stürzt ab!',1.4);}
+      else {const vertical=lift>0?12:lift<0?-8:-2.2;player.pos.y+=vertical*dt;}
+      if(player.pos.y<=2.4){player.pos.y=2.4;jetAirborne=false;player.vy=0;jetHealth=Math.max(0,jetHealth-35);jetRunDistance=0;jetFuelTimer=0;message(jetHealth>0?'💥 Harte Landung! Jet beschädigt. Du musst erneut auf der Startbahn beschleunigen.':'💥 Jet zerstört!');if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');activeJet=false;jetFlightControls.style.display='none';jetStatus.style.display='none';}}
     }else{player.pos.y=2.4;player.vy=0;}
     // The model's nose points along local -Z, matching camera forward and W movement.
     flyableJet.position.set(player.pos.x,player.pos.y-2.0,player.pos.z);flyableJet.rotation.order='YXZ';flyableJet.rotation.y=player.yaw;flyableJet.rotation.x=player.pitch;flyableJet.rotation.z=-((keys.KeyA?1:0)-(keys.KeyD?1:0))*.12;
@@ -2423,25 +2092,6 @@ function animate(){
     }
     player.pos.x=Math.max(-378,Math.min(378,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
   }
-  // Water movement: entering a river switches to swimming; hold Ctrl to dive, release to float.
-  if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
-    const inMainRiver=distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath)<riverHalfWidth;
-    const inBranchRiver=distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath)<riverHalfWidth;
-    const onBridge=Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2;
-    const playerSwimming=(inMainRiver||inBranchRiver)&&!onBridge;
-    if(playerSwimming){
-      player.onGround=false;player.vy=0;
-      const diving=!!(keys.ControlLeft||keys.ControlRight);
-      const swimY=diving?0.35:1.15;
-      player.pos.y+=(swimY-player.pos.y)*Math.min(1,dt*4.5);
-      if(forward!==0||side!==0){const swimSpeed=diving?player.speed*.48:player.speed*.82;const sx=(-Math.sin(player.yaw)*forward+Math.cos(player.yaw)*side)*swimSpeed*dt;const sz=(-Math.cos(player.yaw)*forward-Math.sin(player.yaw)*side)*swimSpeed*dt;const nx=player.pos.x+sx,nz=player.pos.z+sz;if(distanceToRiverPath(nx,nz,mainRiverPath)<riverHalfWidth-0.6||distanceToRiverPath(nx,nz,branchRiverPath)<riverHalfWidth-0.6){player.pos.x=nx;player.pos.z=nz;}}
-    }
-  }
-  // Water keeps the player buoyant after gravity/terrain processing too.
-  if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
-    const stillInWater=(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath)<riverHalfWidth||distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath)<riverHalfWidth)&&!(Math.abs(player.pos.x)<5.2&&Math.abs(player.pos.z-riverZ)<13.2);
-    if(stillInWater){const diving=!!(keys.ControlLeft||keys.ControlRight);player.onGround=false;player.vy=0;player.pos.y+=((diving?0.35:1.15)-player.pos.y)*Math.min(1,dt*4.5);}
-  }
   // Hills support the player instead of being ghost geometry. Grounded movement follows the mound contour.
   if(player.onGround&&!climbingLadder&&!player.inCar){const hillY=hillSurfaceY(player.pos.x,player.pos.z);if(hillY>0.04){player.pos.y=hillY+1.7;player.vy=0;}}
   // Treppen-Notfallfix: sobald der Spieler im Treppenlauf ist, folgt seine Höhe
@@ -2453,10 +2103,9 @@ function animate(){
       const t=Math.max(0,Math.min(1,(st.zStart-player.pos.z)/(st.zStart-st.zEnd)));
       const candidate=st.baseY+t*(st.topY-st.baseY);
       const d=Math.abs(candidate-player.pos.y);
-      const lo=Math.min(st.baseY,st.topY)-.9,hi=Math.max(st.baseY,st.topY)+.9;
-      // Inside the stair footprint, support the player across the full step-height range.
-      // The old narrow .62m threshold could leave the player suspended between two treads.
-      if(player.pos.y>=lo&&player.pos.y<=hi&&d<stairSupportDistance){stairSupportDistance=d;stairSupportY=candidate;}
+      // Never teleport the player vertically onto a stair from below or from a nearby floor.
+      // Only apply stair support when the player's feet are already close to that tread height.
+      if(d<.62 && d<stairSupportDistance){stairSupportDistance=d;stairSupportY=candidate;}
     }
   }
   if(stairSupportY!==null){player.pos.y=stairSupportY;player.vy=0;player.onGround=true;}
@@ -2471,7 +2120,7 @@ function animate(){
     }
     if(floorSupportY!==null && player.vy<=.25){player.pos.y=floorSupportY;player.vy=0;player.onGround=true;}
   }
-  camera.position.copy(player.pos);if(sneaking)camera.position.y-=.38;const _camRiver=Math.min(distanceToRiverPath(player.pos.x,player.pos.z,mainRiverPath),distanceToRiverPath(player.pos.x,player.pos.z,branchRiverPath));if(_camRiver<riverHalfWidth-.15)camera.position.y-=.28;camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
+  camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw-(player.weaponKick||0)*.12,0,'YXZ');
   if(dynamicGun){dynamicGun.position.z=-.35+Math.sin(performance.now()*.012)*.008;dynamicGun.rotation.x=Math.sin(performance.now()*.009)*.012;}
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
@@ -2522,22 +2171,7 @@ function animate(){
      else {p.x=z.climbingLadder.x;p.z=z.climbingLadder.z;p.y+=Math.max(1.4,z.speed)*dt;if(p.y>=z.climbingLadder.height+1.6){p.y=z.climbingLadder.height+1.6;z.climbingLadder=null;}}
     }
    }else if(z.climbingLadder){p.y=Math.max(0,p.y-Math.max(1.4,z.speed)*dt);if(p.y<=0){p.y=0;z.climbingLadder=null}}
-   if(nearest>1.35&&!z.climbingLadder){
-    const riverDist=(xx,zz)=>Math.min(distanceToRiverPath(xx,zz,mainRiverPath),distanceToRiverPath(xx,zz,branchRiverPath));
-    const inWater=riverDist(p.x,p.z)<riverHalfWidth-.25;
-    let dx=target.x-p.x,dz=target.z-p.z;
-    if(inWater){
-      // Zombies do not swim: choose the closest bank and move outward from the river centreline.
-      let bestPath=mainRiverPath,bestDist=distanceToRiverPath(p.x,p.z,mainRiverPath);const branchDist=distanceToRiverPath(p.x,p.z,branchRiverPath);if(branchDist<bestDist){bestPath=branchRiverPath;bestDist=branchDist;}
-      let near=bestPath[0],nd=Infinity;for(const pt of bestPath){const q=Math.hypot(pt.x-p.x,pt.z-p.z);if(q<nd){nd=q;near=pt;}}
-      const sideX=p.x-near.x,sideZ=p.z-near.z,sideLen=Math.hypot(sideX,sideZ)||1;dx=sideX/sideLen;dz=sideZ/sideLen;
-    }
-    const dd=Math.hypot(dx,dz)||1,nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;
-    const nextXInWater=riverDist(nx,p.z)<riverHalfWidth-.25,nextZInWater=riverDist(p.x,nz)<riverHalfWidth-.25;
-    if(!blockedAt(nx,p.z,.56)&&(inWater||!nextXInWater))p.x=nx;
-    if(!blockedAt(p.x,nz,.56)&&(inWater||!nextZInWater))p.z=nz;
-    z.group.rotation.y=Math.atan2(dx,dz);
-   }
+   if(nearest>1.35&&!z.climbingLadder){const dx=target.x-p.x,dz=target.z-p.z,dd=Math.hypot(dx,dz)||1;const nx=p.x+dx/dd*z.speed*dt,nz=p.z+dz/dd*z.speed*dt;if(!blockedAt(nx,p.z,.56))p.x=nx;if(!blockedAt(p.x,nz,.56))p.z=nz;z.group.rotation.y=Math.atan2(dx,dz);}
    else if(nearest<=1.35){z.attack-=dt;if(z.attack<=0){if(player.inCar&&activeCar&&target===activeCar.group.position){
       activeCar.hp=Math.max(0,activeCar.hp-7);
       if(activeCar.hp<=0&&!activeCar.destroyed){activeCar.destroyed=true;setWreckAppearance(activeCar.group,'car');message('🚗 Auto zerstört! Du bist geschützt. Sammle Materialien und drücke E zum Reparieren.',4);exitCar();}
@@ -2584,7 +2218,7 @@ function animate(){
   const tradeTarget=nearestTradeSoldier(6.5);
   $('tradeOpenBtn').style.display=tradeTarget?'block':'none';
   if(tradeTarget)$('tradeOpenBtn').title='Handel mit '+(tradeTarget.obj.grade?.name||'Versorgungssoldat');
-  $('actionBtn').textContent=((selectedItem==='axe'&&inventory.axe>0)?(inventory.treeSaplings>0?'🪓 HOLZ / ZAUN ABB AUEN · 🌱 SETZLING PFLANZEN':'🪓 HOLZ / ZAUN / GARTENTOR ABBAUEN'):(selectedItem==='pickaxe'&&inventory.pickaxe>0)?'⛏️ STEIN / METALL / EISENTOR / MAUER ABB AUEN':(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?(near.obj.barnSliding?'SCHEUNENTOR SCHLIESSEN':'TÜR SCHLIESSEN'):(near.obj.barnSliding?'SCHEUNENTOR ÖFFNEN':'TÜR ÖFFNEN')):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':selectedItem==='food'?'ESSEN':selectedItem==='water'?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
+  $('actionBtn').textContent=(activeJet?'JET VERLASSEN':player.inTank?'PANZER VERLASSEN':(selectedItem==='grenades'&&inventory.grenades>0)?'GRANATE WERFEN':(selectedItem==='nightVision'&&inventory.nightVision>0)?(nightVisionActive?'NACHTSICHT AUS':'NACHTSICHT AN'):(selectedItem==='glider'&&inventory.glider>0)?(gliderEquipped?'GLEITER ABLEGEN':'GLEITER AUSRÜSTEN'):(selectedItem==='lantern'&&(inventory.lantern>0||lanternEquipped))?(lanternEquipped?'LATERNE AUS':'LATERNE AN'):near?(near.type==='door'?(near.obj.open?'TÜR SCHLIESSEN':'TÜR ÖFFNEN'):near.type==='gardenGate'?(near.obj.open?'GARTENTOR SCHLIESSEN':'GARTENTOR ÖFFNEN'):near.type==='sleepBed'?'SCHLAFEN':((near.type==='supply'||near.type==='hiddenChest')?'KISTE':near.type==='droppedItem'?'AUFSAMMELN':'MISSION')):(selectedItem==='medicine'?'MEDIZIN BENUTZEN':(['food','apple','potato','beanCan','soupCan','meat','vegetables'].includes(selectedItem)?'ESSEN':(['water','cola','fanta','sprite'].includes(selectedItem)?'TRINKEN':selectedItem.startsWith('weapon:')?'AKTION':'AKTION')));
   if(messageTimer>0){messageTimer-=dt;if(messageTimer<=0)$('message').style.opacity='0'}
   updateHUD();
  }
