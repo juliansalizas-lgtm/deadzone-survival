@@ -161,12 +161,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x9ba9a0);
-scene.fog = new THREE.Fog(0x9ba9a0, 95, 470);
-const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 500);
+scene.fog = new THREE.Fog(0x9ba9a0, 65, 310);
+const camera = new THREE.PerspectiveCamera(74, innerWidth/innerHeight, .1, 340);
 camera.rotation.order = 'YXZ';
 // Die Kamera muss Teil der Szene sein, damit auch der daran befestigte Blaster gerendert wird.
 scene.add(camera);
-const renderer = new THREE.WebGLRenderer({antialias:false, powerPreference:"high-performance"});
+const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.0)); // Performance-Modus: weniger Pixel pro Frame
 renderer.setSize(innerWidth, innerHeight);
 renderer.shadowMap.enabled = false; // Echtzeit-Schatten kosten viel Leistung
@@ -955,7 +955,7 @@ function fireTankRocket(){
 $('tankRocketBtn').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();fireTankRocket()});
 function enterTank(t){activeTank=t;player.inTank=true;player.inCar=false;activeCar=null;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.yaw=t.group.rotation.y;player.vy=0;camera.position.copy(player.pos);$('tankRocketBtn').style.display='block';$('fuelWrap').style.display='none';message('Panzer übernommen! WASD fahren · R / RAKETE FEUERN · E aussteigen',3);updateHUD()}
 function exitTank(){if(!activeTank)return;const t=activeTank;player.pos.set(t.group.position.x+Math.sin(player.yaw)*3.2,1.7,t.group.position.z+Math.cos(player.yaw)*3.2);activeTank=null;player.inTank=false;$('tankRocketBtn').style.display='none';message('Du bist aus dem Panzer ausgestiegen.',1.5);updateHUD()}
-function updateTankDriving(dt){if(!activeTank)return;const t=activeTank;const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*1.05*dt;const speed=throttle>=0?10:5;const nx=Math.max(-378,Math.min(378,t.group.position.x-Math.sin(player.yaw)*throttle*speed*dt));const nz=Math.max(-378,Math.min(378,t.group.position.z-Math.cos(player.yaw)*throttle*speed*dt));let moved=false;if(Math.abs(throttle)>.001){/* Panzer nutzt Achsen-Kollisionen getrennt, damit eine Kiste oder Ecke ihn nicht komplett festsetzt. */if(!blockedAt(nx,t.group.position.z,1.15)){t.group.position.x=nx;moved=true;}if(!blockedAt(t.group.position.x,nz,1.15)){t.group.position.z=nz;moved=true;}if(moved){t.x=t.group.position.x;t.z=t.group.position.z;t.collisionLatched=false;}else if(!t.collisionLatched){t.collisionLatched=true;t.hp=Math.max(0,t.hp-8);if(t.hp<=0&&!t.destroyed){t.destroyed=true;setWreckAppearance(t.group,'tank');if(activeTank===t)exitTank();message('💥 Panzer zerstört! Er sieht jetzt wie ein Wrack aus.',2.5);saveProgress()}else message('Panzer blockiert/beschädigt: '+t.hp+'/'+t.maxHp,1.2)}}t.group.rotation.y=player.yaw;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
+function updateTankDriving(dt){if(!activeTank)return;const t=activeTank;const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0)-mobileMove.y;if(keys.KeyA||keys.KeyD||Math.abs(mobileMove.x)>.1)player.yaw+=((keys.KeyA?1:0)-(keys.KeyD?1:0)-mobileMove.x)*1.05*dt;const speed=throttle>=0?10:5;const nx=Math.max(-700,Math.min(2200,t.group.position.x-Math.sin(player.yaw)*throttle*speed*dt));const nz=Math.max(-700,Math.min(700,t.group.position.z-Math.cos(player.yaw)*throttle*speed*dt));let moved=false;if(Math.abs(throttle)>.001){/* Panzer nutzt Achsen-Kollisionen getrennt, damit eine Kiste oder Ecke ihn nicht komplett festsetzt. */if(!blockedAt(nx,t.group.position.z,1.15)){t.group.position.x=nx;moved=true;}if(!blockedAt(t.group.position.x,nz,1.15)){t.group.position.z=nz;moved=true;}if(moved){t.x=t.group.position.x;t.z=t.group.position.z;t.collisionLatched=false;}else if(!t.collisionLatched){t.collisionLatched=true;t.hp=Math.max(0,t.hp-8);if(t.hp<=0&&!t.destroyed){t.destroyed=true;setWreckAppearance(t.group,'tank');if(activeTank===t)exitTank();message('💥 Panzer zerstört! Er sieht jetzt wie ein Wrack aus.',2.5);saveProgress()}else message('Panzer blockiert/beschädigt: '+t.hp+'/'+t.maxHp,1.2)}}t.group.rotation.y=player.yaw;player.pos.set(t.group.position.x,2.2,t.group.position.z);player.vy=0;camera.position.copy(player.pos);camera.rotation.set(player.pitch,player.yaw,0,'YXZ');
  // Crush zombies on contact with a short cooldown per zombie.
  for(const z of zombies){if(Math.abs(throttle)<.25||z.dead||distanceXZ(z.group.position,t.group.position)>3.2)continue;const now=performance.now(),last=t.lastCrush.get(z)||0;if(now-last<850)continue;t.lastCrush.set(z,now);z.hp=0;z.dead=true;scene.remove(z.group);dropZombieLoot(z.group.position);message('Panzer hat einen Zombie überfahren!',1.1);}
 }
@@ -2500,12 +2500,12 @@ function animate(){
     // Taxi on the runway first; takeoff is locked until the jet has rolled 18 metres.
     const wasX=player.pos.x,wasZ=player.pos.z;
     const jetSpeed=activeHelicopterMode?(throttle>=0?30:20):(throttle>=0?36:15);
-    const nextX=Math.max(-390,Math.min(390,wasX-Math.sin(player.yaw)*throttle*jetSpeed*dt));
-    const nextZ=Math.max(-390,Math.min(390,wasZ-Math.cos(player.yaw)*throttle*jetSpeed*dt));
+    const nextX=Math.max(-700,Math.min(2200,wasX-Math.sin(player.yaw)*throttle*jetSpeed*dt));
+    const nextZ=Math.max(-700,Math.min(700,wasZ-Math.cos(player.yaw)*throttle*jetSpeed*dt));
     // Aircraft collision: the jet is wide, so test both axes and slide along obstacles.
     let jetMoved=false;
-    if(!blockedAt(nextX,wasZ,2.15)){player.pos.x=nextX;jetMoved=true;}
-    if(!blockedAt(player.pos.x,nextZ,2.15)){player.pos.z=nextZ;jetMoved=true;}
+    if(jetAirborne||!blockedAt(nextX,wasZ,2.15)){player.pos.x=nextX;jetMoved=true;}
+    if(jetAirborne||!blockedAt(player.pos.x,nextZ,2.15)){player.pos.z=nextZ;jetMoved=true;}
     if(Math.abs(throttle)>.15&&!jetMoved&&!jetAirborne&&!activeHelicopterMode){jetHealth=Math.max(0,jetHealth-2*dt);if(jetHealth<=0){setWreckAppearance(flyableJet,'jet');message('💥 Jet durch Zusammenstoß zerstört!',2);exitJet();}}
     const travelled=Math.hypot(player.pos.x-wasX,player.pos.z-wasZ);
     if(!jetAirborne&&throttle>.1)jetRunDistance+=travelled;
@@ -2540,7 +2540,7 @@ function animate(){
     if(activeCar.fuel<=0){throttle=0;if(keys.KeyW||keys.KeyS||Math.abs(mobileMove.y)>.1){if(!activeCar.emptyFuelNotified){message('Tank leer! Steige aus und fülle Benzin nach.',2.4);activeCar.emptyFuelNotified=true;}}}
     const carSpeed=throttle>=0?17:8;
     if(Math.abs(throttle)>.05){activeCar.driveFuelTimer+=dt;if(activeCar.driveFuelTimer>=2.2){const consumed=Math.floor(activeCar.driveFuelTimer/2.2);activeCar.fuel=Math.max(0,activeCar.fuel-consumed);activeCar.driveFuelTimer-=consumed*2.2;if(activeCar.fuel<=0)activeCar.emptyFuelNotified=false;saveProgress();}}
-    const oldX=player.pos.x,oldZ=player.pos.z;const tryX=Math.max(-378,Math.min(378,oldX-Math.sin(player.yaw)*throttle*carSpeed*dt));const tryZ=Math.max(-378,Math.min(378,oldZ-Math.cos(player.yaw)*throttle*carSpeed*dt));
+    const oldX=player.pos.x,oldZ=player.pos.z;const tryX=Math.max(-700,Math.min(2200,oldX-Math.sin(player.yaw)*throttle*carSpeed*dt));const tryZ=Math.max(-700,Math.min(700,oldZ-Math.cos(player.yaw)*throttle*carSpeed*dt));
     const collision= Math.abs(throttle)>.05 && (blockedAt(tryX,tryZ,1.35)||cars.some(other=>other!==activeCar&&distanceXZ({x:tryX,z:tryZ},other.group.position)<3.2));
     if(collision){
       player.pos.x=oldX;player.pos.z=oldZ;
@@ -2570,7 +2570,7 @@ function animate(){
       if(player.pos.y>2.5||!blockedAt(nextX,player.pos.z))player.pos.x=nextX;
       if(player.pos.y>2.5||!blockedAt(player.pos.x,nextZ))player.pos.z=nextZ;
     }
-    player.pos.x=Math.max(-378,Math.min(1610,player.pos.x));player.pos.z=Math.max(-378,Math.min(378,player.pos.z));
+    player.pos.x=Math.max(-700,Math.min(2200,player.pos.x));player.pos.z=Math.max(-700,Math.min(700,player.pos.z));
   }
   // Water movement: entering a river switches to swimming; hold Ctrl to dive, release to float.
   if(!activeJet&&!player.inCar&&!player.inTank&&!playerInsideTrain){
@@ -2659,7 +2659,7 @@ function animate(){
    if(z.acidTimer>0){z.acidTimer-=dt;z.acidTick=(z.acidTick||0)+dt;if(Math.random()<.22){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.55,.45+Math.random()*1.65,z.group.position.z+(Math.random()-.5)*.45,.07,.12,.07,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.45+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.acidTick>=.5){z.acidTick=0;z.hp-=10;if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.burningTimer>0){z.burningTimer-=dt;z.burnTick=(z.burnTick||0)+dt;if(z.burnTick>=.5){z.burnTick=0;z.hp-=7;for(let q=0;q<2;q++){const fp=cube(scene,z.group.position.x+(Math.random()-.5)*.4,.6+Math.random()*1.2,z.group.position.z+(Math.random()-.5)*.35,.07,.12,.07,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.35+Math.random()*.25,vx:(Math.random()-.5)*.25,vy:.65+Math.random()*.4,vz:(Math.random()-.5)*.25})}if(z.hp<=0){z.dead=true;dropZombieLoot(z.group.position);scene.remove(z.group);continue}}}
    if(z.stunned>0){z.stunned=Math.max(0,z.stunned-dt);z.group.rotation.x=Math.sin(performance.now()*.03)*.025;continue;}
-   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=!player.inCar&&sneaking&&(player.noise||0)<=0&&d>3.2;const playerDetected=d<=25&&!playerHidden;let target=playerDetected?(player.inCar&&activeCar?activeCar.group.position:player.pos):null,nearest=playerDetected?d:Infinity;
+   const p=z.group.position,d=distanceXZ(player.pos,p);const playerHidden=!player.inCar&&sneaking&&(player.noise||0)<=0&&d>3.2;const playerDetected=(d<=50||((z.alertedTimer||0)>0))&&!playerHidden; if(z.alertedTimer>0)z.alertedTimer=Math.max(0,z.alertedTimer-dt); if(d<=50&&!playerHidden){for(const other of zombies){if(other===z||other.dead||other.boss)continue;if(distanceXZ(other.group.position,p)<=20)other.alertedTimer=Math.max(other.alertedTimer||0,12);}} let target=playerDetected?(player.inCar&&activeCar?activeCar.group.position:player.pos):null,nearest=playerDetected?d:Infinity;
    let targetAlly=null; if(soldiersEnabled)for(const a of allies){if(a.dead)continue;const ad=distanceXZ(a.group.position,p);if(ad<nearest){nearest=ad;target=a.group.position;targetAlly=a}}
    if(!target)continue;
    // Zombies können einer erhöhten Beute über eine nahe Außenleiter folgen.
