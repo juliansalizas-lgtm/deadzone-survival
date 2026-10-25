@@ -939,7 +939,14 @@ function makeCamp(cx,cz,index){
 const militaryLootCrates=[];
 function fireTankRocket(){
  if(!activeTank){message('Du musst in einem Panzer sitzen.');return}
- if(activeTank.rockets<=0){message('Keine Raketen mehr! Suche Militärkisten oder Zombies ab.');return}
+ // Wenn der Panzer leer ist, lade automatisch Raketen aus dem angezeigten Vorrat nach.
+ if(activeTank.rockets<=0&&inventory.rockets>0){
+  const reloadCount=Math.min(activeTank.maxRockets||4,inventory.rockets);
+  activeTank.rockets=reloadCount;inventory.rockets-=reloadCount;
+  updateInventory();updateHUD();
+  message('🚀 Panzer nachgeladen: '+reloadCount+' Raketen. Vorrat: '+inventory.rockets,1.8);
+ }
+ if(activeTank.rockets<=0){message('Keine Raketen im Panzer oder Vorrat! Öffne Militärkisten, um Raketen zu finden.');return}
  activeTank.rockets--;updateHUD();playWeaponSound('rocket');
  // Das Ziel ist exakt die Blickrichtung des Kamerakreuzes. Verlängere den Kamerastrahl
  // und ziele auf den Boden, falls der Strahl nach unten zeigt; sonst auf einen Fernpunkt.
