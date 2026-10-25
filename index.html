@@ -595,7 +595,10 @@ function hillSurfaceY(x,z){
  for(const h of hillShapes){const dx=(x-h.x)/h.rx,dz=(z-h.z)/h.rz,q=dx*dx+dz*dz;if(q<1){const y=h.base+h.ry*Math.sqrt(1-q);if(y>surface)surface=y;}}
  return surface;
 }
-// Dense conifers in the forest region, each with a trunk and layered needle-green crowns.
+// Distance-based tree LOD: nearby trees stay detailed; distant trees simplify and eventually disappear.
+const treeLODObjects=[];
+let treeLODTimer=0;
+function registerTreeLOD(group){treeLODObjects.push(group);group.userData.treeLOD=true;group.userData.lodLevel=-1;}
 for(let i=0;i<115;i++){
  const x=-300+Math.random()*130,z=20+Math.random()*170;
  if(Math.abs(x)<15&&Math.abs(z+52)<8)continue;
@@ -609,6 +612,7 @@ for(let i=0;i<115;i++){
   const crown=new THREE.Mesh(new THREE.ConeGeometry(radius,h,8),tier===1?leaf2:leaf);crown.position.y=y; crown.castShadow=true;crown.receiveShadow=true;g.add(crown);
  }
  if(i%3===0){const shrub=new THREE.Mesh(new THREE.IcosahedronGeometry(.8+Math.random()*.5,1),mat(0x355a32,1));shrub.position.set((Math.random()-.5)*4,.6,(Math.random()-.5)*4);shrub.scale.y=.7;shrub.castShadow=true;g.add(shrub);}
+ registerTreeLOD(g);
 }
 // Richer flower meadow with small stems, several blossom colors and scattered shrubs.
 for(let i=0;i<240;i++){
@@ -648,7 +652,7 @@ function tree(x,z,s=1,planted=false){
  const c1=cube(g,0,tall*.64,0,2.8+Math.random()*1.2,2.6+Math.random()*1.3,2.8+Math.random()*1.2,leaf,false);
  const c2=cube(g,.1,tall*.82,.05,2.0+Math.random(),2.0+Math.random(),2.0+Math.random(),leaf2,false);
  const c3=cube(g,-.05,tall*.96,0,1.25,1.5,1.25,leaf,false);
- c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;harvestableTrees.push({x,z,group:g,harvested:false,plantedAt:planted?performance.now():0,plantedScale:s});
+ c1.rotation.y=.2;c2.rotation.y=.4;c3.rotation.y=.1;registerTreeLOD(g);harvestableTrees.push({x,z,group:g,harvested:false,plantedAt:planted?performance.now():0,plantedScale:s});
 }
 // Flächendeckender Nadelwald: fast die ganze Karte, mit freien Bereichen für Bauernhof,
 // Wohnstraße, Bahnhof, Flughafen, Fabriken, Hauptwege, Flüsse und einzelne Lichtungen.
@@ -2378,6 +2382,8 @@ function animate(){
   if(flyableHelicopter?.userData?.rotorBlades){for(const b of flyableHelicopter.userData.rotorBlades)b.rotation.y+=dt*(activeHelicopterMode?24:1.2);if(flyableHelicopter.userData.tailRotor)flyableHelicopter.userData.tailRotor.rotation.z+=dt*(activeHelicopterMode?18:1.0);}
  repairFlyableJetVisibility();
  requestAnimationFrame(animate);
+ // Update tree detail a few times per second rather than every frame.
+ treeLODTimer-=dt;if(treeLODTimer<=0){treeLODTimer=.3;const px=player.pos.x,pz=player.pos.z;for(const tr of treeLODObjects){const dx=tr.position.x-px,dz=tr.position.z-pz,d=Math.hypot(dx,dz);const level=d<115?0:d<205?1:d<300?2:3;if(level===tr.userData.lodLevel)continue;tr.userData.lodLevel=level;tr.visible=level<3;for(let k=0;k<tr.children.length;k++){const child=tr.children[k];child.visible=level===0||k<=(level===1?2:1);if(child.isMesh){child.castShadow=level===0;child.receiveShadow=level===0;}}}}
  if(mapModal&&mapModal.style.display==='flex')drawWorldMap();
  if(toolSwing>0){toolSwing=Math.max(0,toolSwing-dt*4.5);handProp.rotation.x=-Math.sin((1-toolSwing)*Math.PI)*.85;handProp.rotation.z=Math.sin((1-toolSwing)*Math.PI)*.18;}else{handProp.rotation.x*=.72;handProp.rotation.z*=.72;}
  if(farmWindmillRotor)farmWindmillRotor.rotation.z+=dt*.62;
