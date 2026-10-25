@@ -211,7 +211,7 @@ function cube(parent, x,y,z, sx,sy,sz, material, cast=true) {
 function groundPatch(x,z,w,d,material,y=.015){return cube(scene,x,y,z,w,.08,d,material,false)}
 groundPatch(0, -4, 820, 820, grass,-.12);
 // Große freie Grünfläche östlich der bisherigen Karte als Platz für die spätere Stadt.
-groundPatch(1015, -4, 1210, 820, grass,-.115);
+// Entfernt: grosse freie Gruenflaeche fuer die spaeter geplante Stadtmauer.
 groundPatch(0, 2, 13, 92, dirt,-.055);
 groundPatch(-4, 0, 25, 22, concrete,-.01);
 // Leichte Umwelt-Details: InstancedMesh hält die zusätzlichen Details iPad-freundlich.
