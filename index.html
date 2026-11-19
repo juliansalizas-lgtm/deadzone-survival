@@ -677,7 +677,7 @@ for(let i=0,placed=0;i<5600&&placed<1500;i++){
  const x=-378+forestRand()*756,z=-378+forestRand()*756;
  if(protectedForestArea(x,z))continue;
  // Einige kleine Lichtungen zufällig über den Wald verteilen.
- let clearing=false;for(let k=0;k<9;k++){const cx=-340+forestRand()*680,cz=-340+forestRand()*680;if(Math.hypot((x-cx)*.9,z-cz)<(k%3===0?13:8)){clearing=true;break;}}
+ let clearing=false;for(let k=0;k<14;k++){const cx=-340+forestRand()*680,cz=-340+forestRand()*680;if(Math.hypot((x-cx)*.9,z-cz)<(k%3===0?24:16)){clearing=true;break;}}
  if(clearing)continue;
  let tooClose=false;for(const t of harvestableTrees){if(Math.abs(t.x-x)<3.2&&Math.abs(t.z-z)<3.2){tooClose=true;break;}}
  if(tooClose)continue;
@@ -702,6 +702,30 @@ for(const center of [[-275,-230],[270,-250],[-300,180],[285,230],[0,300],[40,-31
 for(const center of [[-310,-110],[305,95],[-275,285],[250,-320],[-90,-300]]){
  for(let i=0;i<42;i++){const x=center[0]+(Math.random()-.5)*90,z=center[1]+(Math.random()-.5)*80;if(Math.abs(x)<378&&Math.abs(z)<378&&!onRoad(x,z)&&clearForTree(x,z))tree(x,z,1.25+Math.random()*1.75);}
 }
+// Neues Waldlager mit zwei festen Zelten und einem dauerhaft brennenden Lagerfeuer.
+const campCenter={x:-58,z:-88};
+groundPatch(campCenter.x,campCenter.z,31,25,mat(0x625642,1),-.045);
+function makeCampTent(x,z,rot=0){
+ const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;
+ const canvas=new THREE.MeshStandardMaterial({color:0x777b58,roughness:1});
+ const darkCanvas=new THREE.MeshStandardMaterial({color:0x4b503c,roughness:1});
+ const body=new THREE.Mesh(new THREE.ConeGeometry(3.15,3.15,4),canvas);body.position.y=1.58;body.rotation.y=Math.PI/4;body.castShadow=true;body.receiveShadow=true;g.add(body);
+ const flap=new THREE.Mesh(new THREE.PlaneGeometry(1.45,1.65),darkCanvas);flap.position.set(0,.88,2.03);flap.rotation.x=-.12;g.add(flap);
+ scene.add(g);addObstacle(x,z,2.35,2.25);return g;
+}
+makeCampTent(campCenter.x-7,campCenter.z-3,-.25);
+makeCampTent(campCenter.x+7,campCenter.z-3,.25);
+const campFire=new THREE.Group();campFire.position.set(campCenter.x,campCenter.z+6,0); // reset below to world x/z
+campFire.position.set(campCenter.x,0,campCenter.z+6);scene.add(campFire);
+const logMat=mat(0x493326,1),emberMat=new THREE.MeshStandardMaterial({color:0xff6a16,emissive:0xff3b08,emissiveIntensity:2});
+for(let i=0;i<4;i++){const log=new THREE.Mesh(new THREE.CylinderGeometry(.16,.2,2.2,7),logMat);log.rotation.z=Math.PI/2;log.rotation.y=i*Math.PI/2;log.position.set(0,.18,0);campFire.add(log)}
+const flameMat=new THREE.MeshBasicMaterial({color:0xff8a19,transparent:true,opacity:.94});
+const flame=new THREE.Mesh(new THREE.ConeGeometry(.62,1.75,7),flameMat);flame.position.y=1.05;campFire.add(flame);
+const flameCore=new THREE.Mesh(new THREE.ConeGeometry(.3,1.05,6),new THREE.MeshBasicMaterial({color:0xffe16a}));flameCore.position.y=.83;campFire.add(flameCore);
+const campLight=new THREE.PointLight(0xff8a35,3.2,34,2);campLight.position.set(0,2.1,0);campFire.add(campLight);
+const campGlow=new THREE.Mesh(new THREE.CircleGeometry(3.4,24),new THREE.MeshBasicMaterial({color:0xff8a35,transparent:true,opacity:.12,side:THREE.DoubleSide,depthWrite:false}));campGlow.rotation.x=-Math.PI/2;campGlow.position.y=.025;campFire.add(campGlow);
+const campRockMat=mat(0x77756a,1);for(let i=0;i<9;i++){const a=i*Math.PI*2/9,r=1.65;const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.28,0),campRockMat);rock.position.set(Math.cos(a)*r,.18,Math.sin(a)*r);campFire.add(rock)}
+const campObstacle=addObstacle(campCenter.x,campCenter.z+6,1.25,1.25);
 const farmWood=mat(0x68472d,.95),farmWoodLight=mat(0x98704a,.9),farmCream=mat(0xe3d4b3,.98),farmRoof=mat(0x713c2e,.94),farmDark=mat(0x342b23,.95),farmMetal=mat(0x4d554b,.7,.3),wheatMatA=mat(0xb99a43,1),wheatMatB=mat(0xd0b254,1),leafMat=mat(0x4c7937,1),soilMat=mat(0x59452e,1);
 // Abbaubare Fels- und Metalladern für die Spitzhacke.
 const mineNodes=[];
@@ -2120,6 +2144,8 @@ function shoot(){
   const target=zombies.find(z=>{let found=false;z.group.traverse(o=>{if(o===hits[0].object)found=true});return found});
   if(target){
    const hitMesh=hits[0].object;const isHeadshot=hitMesh===target.group.userData.head;
+   // Kleine, nicht-grafische Trefferstelle direkt am getroffenen Körperteil.
+   if(wstats.kind!=='rocket'&&hitMesh.isMesh){const localPoint=hitMesh.worldToLocal(hits[0].point.clone());const wound=new THREE.Mesh(new THREE.CircleGeometry(.105,12),new THREE.MeshBasicMaterial({color:0x713c35,transparent:true,opacity:.88,side:THREE.DoubleSide,depthWrite:false}));wound.position.copy(localPoint);const localNormal=hitMesh.worldToLocal(hits[0].point.clone().add(hits[0].face.normal.clone().multiplyScalar(.04))).sub(localPoint).normalize();wound.quaternion.setFromUnitVectors(new THREE.Vector3(0,0,1),localNormal);wound.renderOrder=5;hitMesh.add(wound);if(!target.hitWounds)target.hitWounds=[];target.hitWounds.push(wound);if(target.hitWounds.length>8){const old=target.hitWounds.shift();old.parent?.remove(old);old.geometry.dispose();old.material.dispose();}}
    if(wstats.kind!=='rocket'){const baseDamage=wstats.kind==='colossus'?(target.boss?350:target.maxHp||99999):wstats.damage;const hitDamage=baseDamage*(isHeadshot?2:1);target.hp-=hitDamage;if(isHeadshot)message('🎯 Kopftreffer! Doppelter Schaden ('+Math.round(hitDamage)+')',1.0);}target.group.rotation.z=.04;
    if(wstats.kind==='acid'){target.acidTimer=5.5;target.acidTick=0;for(let q=0;q<12;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.65,.45+Math.random()*1.7,target.group.position.z+(Math.random()-.5)*.55,.08,.13,.08,mat(Math.random()<.5?0x4cff16:0xb4ff31),false);hitParticles.push({mesh:fp,life:.4+Math.random()*.35,vx:(Math.random()-.5)*.55,vy:.45+Math.random()*.6,vz:(Math.random()-.5)*.55})}message('☣️ Säure trifft! Der Zombie wird verätzt.',1.0)}
    if(wstats.kind==='flamethrower'){target.burningTimer=3.8;target.burnTick=0;for(let q=0;q<4;q++){const fp=cube(scene,target.group.position.x+(Math.random()-.5)*.45,.55+Math.random()*1.35,target.group.position.z+(Math.random()-.5)*.4,.09,.16,.09,mat(Math.random()<.5?0xff6a12:0xffd33d),false);hitParticles.push({mesh:fp,life:.45+Math.random()*.3,vx:(Math.random()-.5)*.35,vy:.8+Math.random()*.5,vz:(Math.random()-.5)*.35})}message('🔥 Zombie brennt!',.65)}
@@ -2640,6 +2666,8 @@ function animate(){
   // Waffen-Taschenlampe: Licht und Ziel werden in Weltkoordinaten direkt vor der Kamera aktualisiert.
   camera.getWorldDirection(weaponBeamDirection);weaponBeamDirection.normalize();weaponBeam.position.copy(camera.position).add(new THREE.Vector3(0,-.12,0)).addScaledVector(weaponBeamDirection,.28);weaponBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,18);beamSpill.position.copy(camera.position).addScaledVector(weaponBeamDirection,8);beamSpill.position.y=Math.max(.12,beamSpill.position.y);
   lanternBeam.position.copy(camera.position).add(new THREE.Vector3(-.28,-.18,0));lanternBeamTarget.position.copy(camera.position).addScaledVector(weaponBeamDirection,24).add(new THREE.Vector3(0,-.28,0));lanternGlow.position.copy(camera.position).add(new THREE.Vector3(-.3,-.16,-.42));lanternBeam.visible=lanternEquipped;lanternGlow.visible=lanternEquipped;
+  // Lagerfeuer flackert sichtbar und beleuchtet die Umgebung auch nachts.
+  if(campLight){const flicker=.88+Math.sin(performance.now()*.013)*.1+Math.random()*.12;campLight.intensity=3.2*flicker;flame.scale.set(1+Math.sin(performance.now()*.017)*.09, .9+Math.random()*.2,1+Math.sin(performance.now()*.019)*.08);}
   // Subtle procedural zombie animation: uneven shamble, head sway and occasional distant groans.
   for(const z of zombies){
    if(z.dead)continue;
@@ -2690,6 +2718,8 @@ function animate(){
     const riverDist=(xx,zz)=>Math.min(distanceToRiverPath(xx,zz,mainRiverPath),distanceToRiverPath(xx,zz,branchRiverPath));
     const inWater=riverDist(p.x,p.z)<riverHalfWidth-.25;
     let dx=target.x-p.x,dz=target.z-p.z;
+    const campDx=p.x-campCenter.x,campDz=p.z-(campCenter.z+6),campDist=Math.hypot(campDx,campDz);
+    if(campDist<12){const push=(12-campDist)*2.4;dx+=campDx/(campDist||1)*push;dz+=campDz/(campDist||1)*push;}
     if(inWater){
       // Zombies do not swim: choose the closest bank and move outward from the river centreline.
       let bestPath=mainRiverPath,bestDist=distanceToRiverPath(p.x,p.z,mainRiverPath);const branchDist=distanceToRiverPath(p.x,p.z,branchRiverPath);if(branchDist<bestDist){bestPath=branchRiverPath;bestDist=branchDist;}
