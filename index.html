@@ -11,17 +11,17 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 </style>
 </head>
 <body>
-<div id="note">DEAD ZONE · GRASS GROUND TEST</div>
+<div id="note">WASD / PFEILE · MAUS ZUM UMSCHAUEN · IPAD: LINKER JOYSTICK + RECHTE SEITE ZUM UMSCHAUEN</div>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x78945d);
-scene.fog = new THREE.Fog(0x78945d, 95, 230);
+scene.fog = new THREE.Fog(0x78945d, 180, 720);
 
 const camera = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.1, 400);
-camera.position.set(0, 35, 53);
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 1.7, 15);
+camera.rotation.order = "YXZ";
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
@@ -35,7 +35,7 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(7, 7);
+grassTexture.repeat.set(35, 35);
 grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
 
 const grassMaterial = new THREE.ShaderMaterial({
@@ -78,15 +78,83 @@ const grassMaterial = new THREE.ShaderMaterial({
   `
 });
 
-const ground = new THREE.Mesh(new THREE.PlaneGeometry(220,220), grassMaterial);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(1100,1100), grassMaterial);
 ground.rotation.x = -Math.PI/2;
 ground.position.y = 0;
 scene.add(ground);
 
 const clock = new THREE.Clock();
+const keys = Object.create(null);
+let yaw = 0, pitch = 0;
+let moveX = 0, moveY = 0;
+let lastLookX = null, lastLookY = null;
+const player = { speed: 7.0 };
+
+addEventListener('keydown', e => { keys[e.code] = true; });
+addEventListener('keyup', e => { keys[e.code] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+
+renderer.domElement.addEventListener('click', () => {
+  if (matchMedia('(pointer:fine)').matches && renderer.domElement.requestPointerLock) {
+    renderer.domElement.requestPointerLock();
+  }
+});
+document.addEventListener('mousemove', e => {
+  if (document.pointerLockElement === renderer.domElement) {
+    yaw -= e.movementX * 0.0022;
+    pitch -= e.movementY * 0.0022;
+    pitch = Math.max(-1.35, Math.min(1.35, pitch));
+  }
+});
+
+// Lightweight touch controls: left thumb moves, right thumb looks around.
+const pad = document.createElement('div');
+pad.style.cssText = 'position:fixed;left:22px;bottom:28px;width:132px;height:132px;border:2px solid #ffffff88;border-radius:50%;background:#18251455;z-index:5;touch-action:none;';
+const knob = document.createElement('div');
+knob.style.cssText = 'position:absolute;left:43px;top:43px;width:42px;height:42px;border-radius:50%;background:#ffffffaa;border:1px solid #ffffff;pointer-events:none;';
+pad.appendChild(knob); document.body.appendChild(pad);
+function setPad(e) {
+  const r = pad.getBoundingClientRect();
+  const dx = e.clientX - (r.left+r.width/2), dy = e.clientY - (r.top+r.height/2);
+  const len = Math.hypot(dx,dy), scale = len > 43 ? 43/len : 1;
+  moveX = dx*scale/43; moveY = dy*scale/43;
+  knob.style.transform = `translate(${moveX*43}px,${moveY*43}px)`;
+}
+pad.addEventListener('pointerdown', e => { e.preventDefault(); pad.setPointerCapture(e.pointerId); setPad(e); });
+pad.addEventListener('pointermove', e => { if (pad.hasPointerCapture(e.pointerId)) setPad(e); });
+function resetPad(){ moveX=0; moveY=0; knob.style.transform='translate(0,0)'; }
+pad.addEventListener('pointerup', resetPad); pad.addEventListener('pointercancel', resetPad);
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'touch' && e.clientX > innerWidth*0.38) {
+    lastLookX=e.clientX; lastLookY=e.clientY;
+  }
+});
+renderer.domElement.addEventListener('pointermove', e => {
+  if (e.pointerType === 'touch' && lastLookX !== null) {
+    yaw -= (e.clientX-lastLookX)*0.004;
+    pitch -= (e.clientY-lastLookY)*0.004;
+    pitch = Math.max(-1.35, Math.min(1.35, pitch));
+    lastLookX=e.clientX; lastLookY=e.clientY;
+  }
+});
+function endLook(e){ if(e.pointerType==='touch'){lastLookX=null;lastLookY=null;} }
+renderer.domElement.addEventListener('pointerup', endLook);
+renderer.domElement.addEventListener('pointercancel', endLook);
+
 function animate(){
   requestAnimationFrame(animate);
-  grassMaterial.uniforms.uTime.value = clock.getElapsedTime();
+  const dt = Math.min(clock.getDelta(), 0.05);
+  grassMaterial.uniforms.uTime.value = clock.elapsedTime;
+  camera.rotation.set(pitch, yaw, 0, 'YXZ');
+  let forward = (keys.KeyW||keys.ArrowUp ? 1:0) - (keys.KeyS||keys.ArrowDown ? 1:0) - moveY;
+  let side = (keys.KeyD||keys.ArrowRight ? 1:0) - (keys.KeyA||keys.ArrowLeft ? 1:0) + moveX;
+  const len = Math.hypot(forward,side);
+  if (len > 1) { forward/=len; side/=len; }
+  const speed = player.speed * (keys.ShiftLeft||keys.ShiftRight ? 1.55:1);
+  camera.position.x += (Math.sin(yaw)*forward + Math.cos(yaw)*side) * speed * dt;
+  camera.position.z += (-Math.cos(yaw)*forward + Math.sin(yaw)*side) * speed * dt;
+  camera.position.y = 1.7;
   renderer.render(scene,camera);
 }
 animate();
