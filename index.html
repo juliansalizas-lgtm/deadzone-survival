@@ -35,8 +35,10 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(1000, 1000); // deutlich feineres Gras: ungefähr 1,1 m pro Fotokachel
+grassTexture.repeat.set(4000, 4000); // deutlich kleinere Halme: ungefähr 27,5 cm pro Fotokachel
 grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
+grassTexture.minFilter = THREE.LinearMipmapLinearFilter;
+grassTexture.magFilter = THREE.LinearFilter;
 
 const grassMaterial = new THREE.ShaderMaterial({
   uniforms: {
