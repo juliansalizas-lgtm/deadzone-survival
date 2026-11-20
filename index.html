@@ -17,9 +17,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x78945d);
-scene.fog = new THREE.Fog(0x78945d, 180, 720);
+scene.fog = new THREE.Fog(0x78945d, 420, 1500);
 
-const camera = new THREE.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 1200);
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 2000);
 camera.position.set(0, 1.80, 15);
 camera.rotation.order = "YXZ";
 
@@ -35,10 +35,8 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(4000, 4000); // deutlich kleinere Halme: ungefähr 27,5 cm pro Fotokachel
+grassTexture.repeat.set(2400, 2400); // feinere Halme: ca. 46 cm pro Fotokachel
 grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
-grassTexture.minFilter = THREE.LinearMipmapLinearFilter;
-grassTexture.magFilter = THREE.LinearFilter;
 
 const grassMaterial = new THREE.ShaderMaterial({
   uniforms: {
@@ -87,7 +85,7 @@ scene.add(ground);
 
 const clock = new THREE.Clock();
 const keys = Object.create(null);
-let yaw = 0, pitch = 0;
+let yaw = 0, pitch = -0.38; // Startblick leicht nach unten auf die Grasfläche
 let moveX = 0, moveY = 0;
 let lastLookX = null, lastLookY = null;
 const player = { speed: 3.8 };
