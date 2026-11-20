@@ -35,7 +35,7 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(3300, 3300);
+grassTexture.repeat.set(9900, 9900); // 3x feinere Grasstruktur: Halme wirken kleiner im Maßstab des Spielers
 grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
 
 const grassMaterial = new THREE.ShaderMaterial({
