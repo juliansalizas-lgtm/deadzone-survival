@@ -19,8 +19,8 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x78945d);
 scene.fog = new THREE.Fog(0x78945d, 180, 720);
 
-const camera = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.1, 400);
-camera.position.set(0, 1.7, 15);
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 900);
+camera.position.set(0, 1.75, 15);
 camera.rotation.order = "YXZ";
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
@@ -35,7 +35,7 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(35, 35);
+grassTexture.repeat.set(1100, 1100);
 grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
 
 const grassMaterial = new THREE.ShaderMaterial({
@@ -88,7 +88,7 @@ const keys = Object.create(null);
 let yaw = 0, pitch = 0;
 let moveX = 0, moveY = 0;
 let lastLookX = null, lastLookY = null;
-const player = { speed: 7.0 };
+const player = { speed: 4.8 };
 
 addEventListener('keydown', e => { keys[e.code] = true; });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -154,7 +154,7 @@ function animate(){
   const speed = player.speed * (keys.ShiftLeft||keys.ShiftRight ? 1.55:1);
   camera.position.x += (Math.sin(yaw)*forward + Math.cos(yaw)*side) * speed * dt;
   camera.position.z += (-Math.cos(yaw)*forward + Math.sin(yaw)*side) * speed * dt;
-  camera.position.y = 1.7;
+  camera.position.y = 1.75;
   renderer.render(scene,camera);
 }
 animate();
