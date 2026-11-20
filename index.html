@@ -20,7 +20,7 @@ scene.background = new THREE.Color(0x78945d);
 scene.fog = new THREE.Fog(0x78945d, 180, 720);
 
 const camera = new THREE.PerspectiveCamera(62, innerWidth/innerHeight, 0.1, 1200);
-camera.position.set(0, 1.85, 15);
+camera.position.set(0, 1.80, 15);
 camera.rotation.order = "YXZ";
 
 const renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
@@ -35,8 +35,8 @@ const grassTexture = new THREE.TextureLoader().load('data:image/jpeg;base64,/9j/
 grassTexture.colorSpace = THREE.SRGBColorSpace;
 grassTexture.wrapS = THREE.RepeatWrapping;
 grassTexture.wrapT = THREE.RepeatWrapping;
-grassTexture.repeat.set(320, 450); // natürliche Halmbreite: ca. wenige Zentimeter bis 15 cm
-grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+grassTexture.repeat.set(1000, 1000); // deutlich feineres Gras: ungefähr 1,1 m pro Fotokachel
+grassTexture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
 
 const grassMaterial = new THREE.ShaderMaterial({
   uniforms: {
@@ -154,7 +154,7 @@ function animate(){
   const speed = player.speed * (keys.ShiftLeft||keys.ShiftRight ? 1.55:1);
   camera.position.x += (Math.sin(yaw)*forward + Math.cos(yaw)*side) * speed * dt;
   camera.position.z += (-Math.cos(yaw)*forward + Math.sin(yaw)*side) * speed * dt;
-  camera.position.y = 1.85;
+  camera.position.y = 1.80;
   renderer.render(scene,camera);
 }
 animate();
